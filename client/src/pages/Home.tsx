@@ -85,9 +85,11 @@ export default function Home() {
               <p className="text-zaka-gray mb-6">
                 Gérez vos informations personnelles et paramètres
               </p>
-              <Button className="w-full bg-zaka-orange hover:bg-zaka-orange text-white">
-                Voir le profil
-              </Button>
+              <Link href="/profile">
+                <Button className="w-full bg-zaka-orange hover:bg-zaka-orange text-white">
+                  Voir le profil
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>
@@ -152,27 +154,33 @@ export default function Home() {
 
             {user?.role === 'customer' && (
               <>
-                <Button className="p-6 bg-zaka-blue hover:bg-zaka-blue text-white text-left h-auto">
-                  <div>
-                    <i className="fas fa-search text-2xl mb-2 block"></i>
-                    <h3 className="font-semibold mb-1">Rechercher</h3>
-                    <p className="text-sm opacity-90">Trouver des produits</p>
-                  </div>
-                </Button>
-                <Button className="p-6 bg-zaka-green hover:bg-zaka-green text-white text-left h-auto">
-                  <div>
-                    <i className="fas fa-shopping-cart text-2xl mb-2 block"></i>
-                    <h3 className="font-semibold mb-1">Mon panier</h3>
-                    <p className="text-sm opacity-90">Voir les articles ajoutés</p>
-                  </div>
-                </Button>
-                <Button className="p-6 bg-zaka-orange hover:bg-zaka-orange text-white text-left h-auto">
-                  <div>
-                    <i className="fas fa-history text-2xl mb-2 block"></i>
-                    <h3 className="font-semibold mb-1">Mes commandes</h3>
-                    <p className="text-sm opacity-90">Suivre mes achats</p>
-                  </div>
-                </Button>
+                <Link href="/customer">
+                  <Button className="p-6 bg-zaka-blue hover:bg-zaka-blue text-white text-left h-auto">
+                    <div>
+                      <i className="fas fa-search text-2xl mb-2 block"></i>
+                      <h3 className="font-semibold mb-1">Rechercher</h3>
+                      <p className="text-sm opacity-90">Trouver des produits</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link href="/customer">
+                  <Button className="p-6 bg-zaka-green hover:bg-zaka-green text-white text-left h-auto">
+                    <div>
+                      <i className="fas fa-shopping-cart text-2xl mb-2 block"></i>
+                      <h3 className="font-semibold mb-1">Mon panier</h3>
+                      <p className="text-sm opacity-90">Voir les articles ajoutés</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link href="/customer">
+                  <Button className="p-6 bg-zaka-orange hover:bg-zaka-orange text-white text-left h-auto">
+                    <div>
+                      <i className="fas fa-history text-2xl mb-2 block"></i>
+                      <h3 className="font-semibold mb-1">Mes commandes</h3>
+                      <p className="text-sm opacity-90">Suivre mes achats</p>
+                    </div>
+                  </Button>
+                </Link>
               </>
             )}
 

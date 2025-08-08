@@ -137,6 +137,7 @@ export default function Navbar() {
                 <Button
                   variant={location === link.href ? "secondary" : "ghost"}
                   className="text-zaka-dark hover:text-zaka-orange transition-colors"
+                  style={location === link.href ? { color: 'var(--zaka-orange)' } : {}}
                 >
                   <i className={`${link.icon} mr-2`}></i>
                   {link.label}
