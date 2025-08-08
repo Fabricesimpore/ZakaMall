@@ -65,7 +65,7 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
   });
 
   const createOrderMutation = useMutation({
-    mutationFn: async (orderData: any) => {
+    mutationFn: async (orderData: Record<string, unknown>) => {
       return await apiRequest("POST", "/api/orders", orderData);
     },
     onSuccess: () => {
@@ -101,18 +101,24 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
   const onSubmit = async (values: z.infer<typeof deliverySchema>) => {
     try {
       // Group cart items by vendor
-      const vendorGroups = cartItems.reduce((groups: any, item: any) => {
-        const vendorId = item.product.vendorId;
-        if (!groups[vendorId]) {
-          groups[vendorId] = [];
-        }
-        groups[vendorId].push(item);
-        return groups;
-      }, {});
+      const vendorGroups = cartItems.reduce(
+        (groups: Record<string, unknown[]>, item: CartItemWithProduct) => {
+          const vendorId = item.product.vendorId;
+          if (!groups[vendorId]) {
+            groups[vendorId] = [];
+          }
+          groups[vendorId].push(item);
+          return groups;
+        },
+        {}
+      );
 
       // Create separate orders for each vendor
       let firstOrderId = null;
-      for (const [vendorId, items] of Object.entries(vendorGroups) as [string, any[]][]) {
+      for (const [vendorId, items] of Object.entries(vendorGroups) as [
+        string,
+        CartItemWithProduct[],
+      ][]) {
         const subtotal = items.reduce(
           (sum, item) => sum + parseFloat(item.product.price) * item.quantity,
           0

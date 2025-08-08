@@ -83,7 +83,7 @@ export default function PaymentModal({
       return response.json();
     },
     onSuccess: (data: { success: boolean; message: string; failureReason?: string }) => {
-      if ((data as any).status === "completed") {
+      if ((data as { status?: string }).status === "completed") {
         setIsProcessing(false);
         toast({
           title: "Paiement réussi",
@@ -92,7 +92,7 @@ export default function PaymentModal({
         onPaymentSuccess();
         queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
         onClose();
-      } else if ((data as any).status === "failed") {
+      } else if ((data as { status?: string }).status === "failed") {
         setIsProcessing(false);
         toast({
           title: "Paiement échoué",

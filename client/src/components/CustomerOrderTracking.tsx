@@ -27,7 +27,7 @@ const statusConfig = {
 };
 
 export default function CustomerOrderTracking({ orderId }: CustomerOrderTrackingProps) {
-  const { data: trackingData = {} as any, isLoading } = useQuery({
+  const { data: trackingData = {} as Record<string, unknown>, isLoading } = useQuery({
     queryKey: ["/api/customer/orders", orderId, "tracking"],
     enabled: !!orderId,
   });
@@ -60,7 +60,7 @@ export default function CustomerOrderTracking({ orderId }: CustomerOrderTracking
     );
   }
 
-  const { order, driver, trackingHistory } = trackingData;
+  const { order, driver, trackingHistory } = trackingData as any;
   const currentStatus = order.status;
   const currentStepIndex = orderSteps.findIndex((step) => step.status === currentStatus);
 
@@ -181,10 +181,14 @@ export default function CustomerOrderTracking({ orderId }: CustomerOrderTracking
 
                       {/* Show timestamp for completed/current steps */}
                       {(isCompleted || isCurrent) &&
-                        trackingHistory?.find((h: any) => h.status === step.status) && (
+                        trackingHistory?.find(
+                          (h: Record<string, unknown>) => h.status === step.status
+                        ) && (
                           <p className="text-sm text-gray-500 mt-1">
                             {new Date(
-                              trackingHistory?.find((h: any) => h.status === step.status)?.timestamp
+                              trackingHistory?.find(
+                                (h: Record<string, unknown>) => h.status === step.status
+                              )?.timestamp
                             ).toLocaleDateString("fr-BF", {
                               month: "short",
                               day: "numeric",
@@ -197,7 +201,11 @@ export default function CustomerOrderTracking({ orderId }: CustomerOrderTracking
                       {/* Show description for current step */}
                       {isCurrent && (
                         <p className="text-sm text-gray-600 mt-2">
-                          {trackingHistory?.find((h: any) => h.status === step.status)?.description}
+                          {
+                            trackingHistory?.find(
+                              (h: Record<string, unknown>) => h.status === step.status
+                            )?.description
+                          }
                         </p>
                       )}
                     </div>

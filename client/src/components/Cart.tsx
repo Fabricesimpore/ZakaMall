@@ -180,14 +180,14 @@ export default function Cart({ onClose }: CartProps) {
           <>
             <div className="flex-1 space-y-4">
               {Array.isArray(cartItems) &&
-                cartItems.map((item: any) => (
-                  <div key={item.id} className="flex items-center justify-between border-b pb-4">
+                cartItems.map((item: Record<string, unknown>) => (
+                  <div key={item.id as string} className="flex items-center justify-between border-b pb-4">
                     <div className="flex items-center space-x-3">
                       <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                        {item.product.images && item.product.images.length > 0 ? (
+                        {(item.product as any).images && (item.product as any).images.length > 0 ? (
                           <img
-                            src={item.product.images[0]}
-                            alt={item.product.name}
+                            src={(item.product as any).images[0]}
+                            alt={(item.product as any).name}
                             className="w-full h-full object-cover rounded-lg"
                           />
                         ) : (
@@ -195,9 +195,12 @@ export default function Cart({ onClose }: CartProps) {
                         )}
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-medium text-zaka-dark text-sm">{item.product.name}</h4>
+                        <h4 className="font-medium text-zaka-dark text-sm">
+                          {(item.product as any).name}
+                        </h4>
                         <p className="text-xs text-zaka-gray">
-                          {parseFloat(item.product.price).toLocaleString()} CFA x {item.quantity}
+                          {parseFloat((item.product as any).price).toLocaleString()} CFA x{" "}
+                          {item.quantity as number}
                         </p>
                         <div className="flex items-center space-x-2 mt-2">
                           <Button
@@ -206,23 +209,25 @@ export default function Cart({ onClose }: CartProps) {
                             className="h-6 w-6 p-0"
                             onClick={() =>
                               updateCartMutation.mutate({
-                                itemId: item.id,
-                                quantity: Math.max(1, item.quantity - 1),
+                                itemId: item.id as string,
+                                quantity: Math.max(1, (item.quantity as number) - 1),
                               })
                             }
-                            disabled={item.quantity <= 1 || updateCartMutation.isPending}
+                            disabled={
+                              (item.quantity as number) <= 1 || updateCartMutation.isPending
+                            }
                           >
                             <i className="fas fa-minus text-xs"></i>
                           </Button>
-                          <span className="text-sm font-medium">{item.quantity}</span>
+                          <span className="text-sm font-medium">{item.quantity as number}</span>
                           <Button
                             size="sm"
                             variant="outline"
                             className="h-6 w-6 p-0"
                             onClick={() =>
                               updateCartMutation.mutate({
-                                itemId: item.id,
-                                quantity: item.quantity + 1,
+                                itemId: item.id as string,
+                                quantity: (item.quantity as number) + 1,
                               })
                             }
                             disabled={updateCartMutation.isPending}
@@ -234,13 +239,16 @@ export default function Cart({ onClose }: CartProps) {
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-semibold text-zaka-orange">
-                        {(parseFloat(item.product.price) * item.quantity).toLocaleString()} CFA
+                        {(
+                          parseFloat((item.product as any).price) * (item.quantity as number)
+                        ).toLocaleString()}{" "}
+                        CFA
                       </div>
                       <Button
                         size="sm"
                         variant="ghost"
                         className="text-red-500 hover:text-red-700 h-6 w-6 p-0 mt-1"
-                        onClick={() => removeItemMutation.mutate(item.id)}
+                        onClick={() => removeItemMutation.mutate(item.id as string)}
                         disabled={removeItemMutation.isPending}
                       >
                         <i className="fas fa-trash text-xs"></i>

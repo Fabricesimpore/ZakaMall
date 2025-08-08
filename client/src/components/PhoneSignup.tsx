@@ -44,7 +44,7 @@ interface PhoneSignupProps {
 
 export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
   const [step, setStep] = useState(1);
-  const [isVerifying, setIsVerifying] = useState(false);
+  // const [isVerifying, setIsVerifying] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const { toast } = useToast();
 
@@ -74,10 +74,10 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
       });
       setStep(2);
     },
-    onError: (error: Error) => {
+    onError: () => {
       toast({
         title: "Erreur d'inscription",
-        description: error.message || "Impossible de créer le compte",
+        description: "Impossible de créer le compte",
         variant: "destructive",
       });
     },
@@ -87,7 +87,7 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
     mutationFn: async ({ phone, code }: { phone: string; code: string }) => {
       return await apiRequest("POST", "/api/auth/verify-phone", { phone, code });
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast({
         title: "Compte créé avec succès!",
         description: "Vous pouvez maintenant compléter votre profil",
@@ -105,7 +105,7 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
         window.location.href = "/api/login";
       }
     },
-    onError: (error: Error) => {
+    onError: () => {
       toast({
         title: "Code incorrect",
         description: "Le code de vérification est invalide ou expiré",

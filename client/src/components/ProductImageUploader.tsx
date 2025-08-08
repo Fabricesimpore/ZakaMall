@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ObjectUploader } from "@/components/ObjectUploader";
-import { Button } from "@/components/ui/button";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { UploadResult } from "@uppy/core";
 
@@ -23,13 +23,13 @@ export default function ProductImageUploader({
   const queryClient = useQueryClient();
 
   const updateProductImagesMutation = useMutation({
-    mutationFn: async (imageURLs: string[]) => {
-      return await apiRequest("PUT", `/api/products/${productId}/images`, {
+    mutationFn: async (imageURLs: string[]): Promise<Record<string, unknown>> => {
+      return ((await apiRequest("PUT", `/api/products/${productId}/images`, {
         imageURLs,
-      });
+      })) as any) as Record<string, unknown>;
     },
-    onSuccess: (data: any) => {
-      const newImages = data?.imagePaths || [];
+    onSuccess: (data: Record<string, unknown>) => {
+      const newImages = (data?.imagePaths || []) as string[];
       setUploadedImages(newImages);
       onImagesUpdated?.(newImages);
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
@@ -58,11 +58,11 @@ export default function ProductImageUploader({
     updateProductImagesMutation.mutate(allImages);
   };
 
-  const handleGetUploadParameters = async () => {
-    const response: any = await apiRequest("POST", "/api/objects/upload");
+  const handleGetUploadParameters = async (): Promise<{ method: "PUT"; url: string }> => {
+    const response = ((await apiRequest("POST", "/api/objects/upload")) as any) as Record<string, unknown>;
     return {
       method: "PUT" as const,
-      url: response.uploadURL,
+      url: response.uploadURL as string,
     };
   };
 

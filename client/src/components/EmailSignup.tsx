@@ -76,7 +76,7 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
     mutationFn: async ({ email, code }: { email: string; code: string }) => {
       return await apiRequest("POST", "/api/auth/verify-email", { email, code });
     },
-    onSuccess: (_data) => {
+    onSuccess: () => {
       toast({
         title: "Compte créé avec succès!",
         description: "Vous pouvez maintenant compléter votre profil",
@@ -94,7 +94,7 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
         window.location.href = "/api/login";
       }
     },
-    onError: (_error: Error) => {
+    onError: () => {
       toast({
         title: "Code incorrect",
         description: "Le code de vérification est invalide ou expiré",

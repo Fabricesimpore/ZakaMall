@@ -137,12 +137,13 @@ export default function DriverDashboard() {
 
   const activeOrders = Array.isArray(orders)
     ? orders.filter(
-        (order: any) => order.status === "ready_for_pickup" || order.status === "in_transit"
+        (order: Record<string, unknown>) =>
+          order.status === "ready_for_pickup" || order.status === "in_transit"
       )
     : [];
 
   const completedOrders = Array.isArray(orders)
-    ? orders.filter((order: any) => order.status === "delivered")
+    ? orders.filter((order: Record<string, unknown>) => order.status === "delivered")
     : [];
 
   return (
@@ -259,18 +260,18 @@ export default function DriverDashboard() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {activeOrders.map((order: any) => {
+                {activeOrders.map((order: Record<string, unknown>) => {
                   const statusConfig =
                     orderStatusConfig[order.status as keyof typeof orderStatusConfig];
 
                   return (
-                    <Card key={order.id}>
+                    <Card key={order.id as string}>
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between mb-4">
                           <div>
-                            <h3 className="text-lg font-semibold">{order.orderNumber}</h3>
+                            <h3 className="text-lg font-semibold">{order.orderNumber as string}</h3>
                             <p className="text-sm text-gray-600">
-                              {new Date(order.createdAt).toLocaleDateString("fr-BF", {
+                              {new Date(order.createdAt as string).toLocaleDateString("fr-BF", {
                                 year: "numeric",
                                 month: "long",
                                 day: "numeric",
@@ -281,7 +282,7 @@ export default function DriverDashboard() {
                           </div>
                           <div className="text-right">
                             <p className="text-lg font-bold text-zaka-orange">
-                              Frais: {parseInt(order.deliveryFee).toLocaleString("fr-BF")} CFA
+                              Frais: {parseInt(order.deliveryFee as string).toLocaleString("fr-BF")} CFA
                             </p>
                             <Badge variant={statusConfig?.variant} className="mt-1">
                               {statusConfig?.label}
@@ -289,18 +290,18 @@ export default function DriverDashboard() {
                           </div>
                         </div>
 
-                        {order.deliveryAddress && (
+                        {(order.deliveryAddress as string) && (
                           <div className="bg-gray-50 p-3 rounded-lg mb-4">
                             <h4 className="font-medium text-sm mb-2">Adresse de livraison:</h4>
                             <p className="text-sm text-gray-700">
                               {typeof order.deliveryAddress === "string"
                                 ? order.deliveryAddress
-                                : order.deliveryAddress.address}
+                                : (order.deliveryAddress as any).address}
                             </p>
-                            {order.deliveryAddress.phone && (
+                            {(order.deliveryAddress as any).phone && (
                               <p className="text-sm text-gray-600 mt-1">
                                 <i className="fas fa-phone mr-1"></i>
-                                {order.deliveryAddress.phone}
+                                {(order.deliveryAddress as any).phone}
                               </p>
                             )}
                           </div>
@@ -312,7 +313,7 @@ export default function DriverDashboard() {
                               <Button
                                 onClick={() =>
                                   updateOrderStatusMutation.mutate({
-                                    orderId: order.id,
+                                    orderId: order.id as string,
                                     status: "in_transit",
                                   })
                                 }
@@ -327,7 +328,7 @@ export default function DriverDashboard() {
                               <Button
                                 onClick={() =>
                                   updateOrderStatusMutation.mutate({
-                                    orderId: order.id,
+                                    orderId: order.id as string,
                                     status: "delivered",
                                   })
                                 }
@@ -366,19 +367,19 @@ export default function DriverDashboard() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {completedOrders.map((order: any) => (
-                  <Card key={order.id}>
+                {completedOrders.map((order: Record<string, unknown>) => (
+                  <Card key={order.id as string}>
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="text-lg font-semibold">{order.orderNumber}</h3>
+                          <h3 className="text-lg font-semibold">{order.orderNumber as string}</h3>
                           <p className="text-sm text-gray-600">
-                            Livrée le {new Date(order.updatedAt).toLocaleDateString("fr-BF")}
+                            Livrée le {new Date(order.updatedAt as string).toLocaleDateString("fr-BF")}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold text-green-600">
-                            +{parseInt(order.deliveryFee).toLocaleString("fr-BF")} CFA
+                            +{parseInt(order.deliveryFee as string).toLocaleString("fr-BF")} CFA
                           </p>
                           <Badge variant="default" className="bg-green-600">
                             Livrée

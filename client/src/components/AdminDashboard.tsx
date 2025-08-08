@@ -178,7 +178,7 @@ export default function AdminDashboard() {
         <Tabs defaultValue="vendors" className="space-y-6">
           <TabsList>
             <TabsTrigger value="vendors">
-              Approbation vendeurs ({(pendingVendors as any[]).length})
+              Approbation vendeurs ({(pendingVendors as unknown[])?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -199,7 +199,7 @@ export default function AdminDashboard() {
                       </div>
                     ))}
                   </div>
-                ) : (pendingVendors as any[]).length === 0 ? (
+                ) : (pendingVendors as unknown[])?.length === 0 ? (
                   <div className="text-center py-8">
                     <i className="fas fa-check-circle text-6xl text-green-300 mb-4"></i>
                     <h3 className="text-lg font-semibold text-gray-600 mb-2">
@@ -209,119 +209,132 @@ export default function AdminDashboard() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {(pendingVendors as any[]).map((vendor: any) => (
-                      <div key={vendor.id} className="border rounded-lg p-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h3 className="text-lg font-semibold">{vendor.businessName}</h3>
-                            <p className="text-gray-600">{vendor.businessType}</p>
-                            <p className="text-sm text-gray-500 mt-1">
-                              Demandé le {new Date(vendor.createdAt).toLocaleDateString("fr-BF")}
-                            </p>
+                    {(pendingVendors as Record<string, unknown>[]).map(
+                      (vendor: Record<string, unknown>) => (
+                        <div key={vendor.id as string} className="border rounded-lg p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="text-lg font-semibold">
+                                {vendor.businessName as string}
+                              </h3>
+                              <p className="text-gray-600">{vendor.businessType as string}</p>
+                              <p className="text-sm text-gray-500 mt-1">
+                                Demandé le{" "}
+                                {new Date(vendor.createdAt as string).toLocaleDateString("fr-BF")}
+                              </p>
 
-                            <div className="mt-4 grid grid-cols-2 gap-4">
-                              <div>
-                                <p className="text-sm font-medium text-gray-700">Adresse:</p>
-                                <p className="text-sm text-gray-600">{vendor.businessAddress}</p>
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-gray-700">Téléphone:</p>
-                                <p className="text-sm text-gray-600">{vendor.phone}</p>
-                              </div>
-                              {vendor.taxId && (
+                              <div className="mt-4 grid grid-cols-2 gap-4">
                                 <div>
-                                  <p className="text-sm font-medium text-gray-700">ID fiscal:</p>
-                                  <p className="text-sm text-gray-600">{vendor.taxId}</p>
+                                  <p className="text-sm font-medium text-gray-700">Adresse:</p>
+                                  <p className="text-sm text-gray-600">
+                                    {vendor.businessAddress as string}
+                                  </p>
                                 </div>
-                              )}
-                              {vendor.description && (
-                                <div className="col-span-2">
-                                  <p className="text-sm font-medium text-gray-700">Description:</p>
-                                  <p className="text-sm text-gray-600">{vendor.description}</p>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-700">Téléphone:</p>
+                                  <p className="text-sm text-gray-600">{vendor.phone as string}</p>
                                 </div>
-                              )}
+                                {(vendor.taxId as string) && (
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-700">ID fiscal:</p>
+                                    <p className="text-sm text-gray-600">
+                                      {vendor.taxId as string}
+                                    </p>
+                                  </div>
+                                )}
+                                {(vendor.description as string) && (
+                                  <div className="col-span-2">
+                                    <p className="text-sm font-medium text-gray-700">
+                                      Description:
+                                    </p>
+                                    <p className="text-sm text-gray-600">
+                                      {vendor.description as string}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col space-y-2 ml-6">
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    className="bg-green-600 hover:bg-green-700"
+                                    onClick={() => setSelectedVendor(vendor as any)}
+                                  >
+                                    <i className="fas fa-check mr-2"></i>
+                                    Approuver
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Approuver le vendeur</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Êtes-vous sûr de vouloir approuver "{vendor.businessName as string}" ?
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <div className="py-4">
+                                    <Textarea
+                                      placeholder="Notes d'approbation (optionnel)"
+                                      value={approvalNotes}
+                                      onChange={(e) => setApprovalNotes(e.target.value)}
+                                    />
+                                  </div>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleVendorApproval(vendor, "approved")}
+                                      className="bg-green-600 hover:bg-green-700"
+                                    >
+                                      Approuver
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className="text-red-600 hover:text-red-700"
+                                    onClick={() => setSelectedVendor(vendor as any)}
+                                  >
+                                    <i className="fas fa-times mr-2"></i>
+                                    Rejeter
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Rejeter le vendeur</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Êtes-vous sûr de vouloir rejeter "{vendor.businessName as string}" ?
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <div className="py-4">
+                                    <Textarea
+                                      placeholder="Raison du rejet (requis)"
+                                      value={approvalNotes}
+                                      onChange={(e) => setApprovalNotes(e.target.value)}
+                                      required
+                                    />
+                                  </div>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleVendorApproval(vendor, "rejected")}
+                                      className="bg-red-600 hover:bg-red-700"
+                                      disabled={!approvalNotes.trim()}
+                                    >
+                                      Rejeter
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
                           </div>
-
-                          <div className="flex flex-col space-y-2 ml-6">
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  className="bg-green-600 hover:bg-green-700"
-                                  onClick={() => setSelectedVendor(vendor)}
-                                >
-                                  <i className="fas fa-check mr-2"></i>
-                                  Approuver
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Approuver le vendeur</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Êtes-vous sûr de vouloir approuver "{vendor.businessName}" ?
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <div className="py-4">
-                                  <Textarea
-                                    placeholder="Notes d'approbation (optionnel)"
-                                    value={approvalNotes}
-                                    onChange={(e) => setApprovalNotes(e.target.value)}
-                                  />
-                                </div>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleVendorApproval(vendor, "approved")}
-                                    className="bg-green-600 hover:bg-green-700"
-                                  >
-                                    Approuver
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className="text-red-600 hover:text-red-700"
-                                  onClick={() => setSelectedVendor(vendor)}
-                                >
-                                  <i className="fas fa-times mr-2"></i>
-                                  Rejeter
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Rejeter le vendeur</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Êtes-vous sûr de vouloir rejeter "{vendor.businessName}" ?
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <div className="py-4">
-                                  <Textarea
-                                    placeholder="Raison du rejet (requis)"
-                                    value={approvalNotes}
-                                    onChange={(e) => setApprovalNotes(e.target.value)}
-                                    required
-                                  />
-                                </div>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleVendorApproval(vendor, "rejected")}
-                                    className="bg-red-600 hover:bg-red-700"
-                                    disabled={!approvalNotes.trim()}
-                                  >
-                                    Rejeter
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
                 )}
               </CardContent>
