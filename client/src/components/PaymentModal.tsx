@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import React from "react";
 import { Loader2 } from "lucide-react";
 
 interface PaymentModalProps {
@@ -35,7 +36,7 @@ export default function PaymentModal({
   >("orange_money");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [, setPaymentId] = useState<string | null>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -44,7 +45,7 @@ export default function PaymentModal({
     mutationFn: async (data: { orderId: string; paymentMethod: string; phoneNumber?: string }) => {
       return await apiRequest("POST", "/api/payments/initiate", data);
     },
-    onSuccess: async (data: any) => {
+    onSuccess: async (data: { success: boolean; message: string; paymentId: string }) => {
       setPaymentId(data.paymentId);
 
       if (paymentMethod === "cash_on_delivery") {
@@ -79,7 +80,7 @@ export default function PaymentModal({
     mutationFn: async (paymentId: string) => {
       return await apiRequest("GET", `/api/payments/${paymentId}/status`);
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: { success: boolean; message: string }) => {
       if (data.status === "completed") {
         setIsProcessing(false);
         toast({
@@ -192,7 +193,7 @@ export default function PaymentModal({
               <Label className="text-base font-medium">Méthode de paiement</Label>
               <RadioGroup
                 value={paymentMethod}
-                onValueChange={(value: any) => setPaymentMethod(value)}
+                onValueChange={(value: "orange_money" | "moov_money" | "cash_on_delivery") => setPaymentMethod(value)}
               >
                 <div className="flex items-center space-x-3 p-3 border rounded-lg">
                   <RadioGroupItem value="orange_money" id="orange_money" />

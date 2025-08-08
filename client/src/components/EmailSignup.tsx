@@ -63,7 +63,7 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
       });
       setStep(2);
     },
-    onError: (error: Error) => {
+    onError: (_error: Error) => {
       toast({
         title: "Erreur d'inscription",
         description: error.message || "Impossible de créer le compte",
@@ -94,7 +94,7 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
         window.location.href = "/api/login";
       }
     },
-    onError: (error: Error) => {
+    onError: (_error: Error) => {
       toast({
         title: "Code incorrect",
         description: "Le code de vérification est invalide ou expiré",

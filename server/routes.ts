@@ -11,16 +11,9 @@ import {
   insertDriverSchema,
   insertProductSchema,
   insertCartSchema,
-  insertOrderSchema,
   insertReviewSchema,
-  insertChatRoomSchema,
   insertMessageSchema,
-  insertChatParticipantSchema,
-  insertPhoneVerificationSchema,
-  insertEmailVerificationSchema,
-  insertPaymentSchema,
 } from "@shared/schema";
-import { z } from "zod";
 import { randomInt } from "crypto";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -278,7 +271,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Orange Money Webhook Handlers
   app.post("/api/payments/orange-money/notify", async (req, res) => {
     try {
-      const { txnid, status, reference, amount } = req.body;
+      const { txnid, status, reference } = req.body;
 
       console.log("Orange Money notification received:", req.body);
 

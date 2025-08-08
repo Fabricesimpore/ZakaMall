@@ -46,7 +46,7 @@ interface PaymentMethodSelectorProps {
   orderId: string;
   totalAmount: number;
   onPaymentSuccess: (paymentId: string, transactionId: string) => void;
-  onPaymentError: (error: string) => void;
+  onPaymentError: (errorMessage: string) => void;
 }
 
 export default function PaymentMethodSelector({
@@ -76,7 +76,12 @@ export default function PaymentMethodSelector({
         phoneNumber: data.phoneNumber,
       });
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: {
+      success: boolean;
+      message: string;
+      paymentId: string;
+      transactionId: string;
+    }) => {
       if (data.success) {
         setIsProcessing(true);
         toast({
@@ -102,7 +107,10 @@ export default function PaymentMethodSelector({
 
     const checkStatus = async () => {
       try {
-        const response: any = await apiRequest("GET", `/api/payments/${paymentId}/status`);
+        const response: { status: string; failureReason?: string } = await apiRequest(
+          "GET",
+          `/api/payments/${paymentId}/status`
+        );
 
         if (response.status === "completed") {
           setIsProcessing(false);
