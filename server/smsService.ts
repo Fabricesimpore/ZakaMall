@@ -103,9 +103,9 @@ export class SMSService {
         },
         body: new URLSearchParams({
           To: phone,
-          From: twilioPhone,
+          From: twilioPhone || "",
           Body: message,
-        }),
+        }).toString(),
       });
 
       if (response.ok) {

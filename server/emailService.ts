@@ -131,28 +131,14 @@ export class EmailService {
 
   private async sendViaHTTPService(message: { to: string; subject: string; text: string; html: string }): Promise<boolean> {
     try {
-      // Use EmailJS as a free service that can work with Gmail credentials
-      // This requires setting up an EmailJS service, but let's try a direct approach first
+      // Try EmailJS API - completely free email service
+      const emailjsResult = await this.sendViaEmailJS(message);
+      if (emailjsResult) {
+        return true;
+      }
       
-      // Try using a webhook service that can relay emails
-      const webhookPayload = {
-        from: this.emailConfig.from,
-        to: message.to,
-        subject: message.subject,
-        html: message.html,
-        text: message.text,
-        gmail_user: this.emailConfig.user,
-        gmail_pass: this.emailConfig.pass
-      };
-
-      // For now, let's implement a simple solution that works around SMTP issues
-      // by using the Gmail web interface approach
-      console.log("Trying alternative email sending method...");
-      
-      // Since we have valid Gmail credentials, let's create a working email solution
-      // that bypasses nodemailer dependency issues
-      const success = await this.sendViaGmailWeb(message);
-      return success;
+      console.log("EmailJS not configured, falling back");
+      return false;
       
     } catch (error) {
       console.error("HTTP email service exception:", error);
@@ -160,22 +146,49 @@ export class EmailService {
     }
   }
 
-  private async sendViaGmailWeb(message: { to: string; subject: string; text: string; html: string }): Promise<boolean> {
+  private async sendViaEmailJS(message: { to: string; subject: string; text: string; html: string }): Promise<boolean> {
     try {
-      // This is a placeholder for a working Gmail integration
-      // In production, this would use OAuth2 or app passwords properly
+      // EmailJS configuration from environment variables
+      const serviceId = process.env.EMAILJS_SERVICE_ID;
+      const templateId = process.env.EMAILJS_TEMPLATE_ID;
+      const userId = process.env.EMAILJS_USER_ID;
       
-      // For development, we'll implement a mock that shows the email would be sent
-      console.log("Gmail Web API simulation - would send email with:");
-      console.log(`From: ${this.emailConfig.from}`);
-      console.log(`To: ${message.to}`);  
-      console.log(`Subject: ${message.subject}`);
-      console.log(`Content: ${message.text}`);
-      
-      // Return false to fall back to console logging for now
-      return false;
+      if (!serviceId || !templateId || !userId) {
+        console.log("EmailJS not configured (missing service ID, template ID, or user ID)");
+        return false;
+      }
+
+      const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          service_id: serviceId,
+          template_id: templateId,
+          user_id: userId,
+          template_params: {
+            to_email: message.to,
+            to_name: message.to.split('@')[0],
+            subject: message.subject,
+            message: message.text,
+            html_message: message.html,
+            from_name: 'ZakaMall',
+            from_email: this.emailConfig.from,
+          },
+        }),
+      });
+
+      if (response.ok) {
+        console.log(`📧 Email sent successfully via EmailJS to ${message.to}`);
+        return true;
+      } else {
+        const error = await response.text();
+        console.error('EmailJS API error:', error);
+        return false;
+      }
     } catch (error) {
-      console.error("Gmail Web API error:", error);
+      console.error("EmailJS exception:", error);
       return false;
     }
   }
