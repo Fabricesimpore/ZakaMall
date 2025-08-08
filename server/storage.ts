@@ -379,16 +379,14 @@ export class DatabaseStorage implements IStorage {
         or(
           ilike(products.name, `%${filters.search}%`),
           ilike(products.description, `%${filters.search}%`)
-        )
+        )!
       );
     }
 
-    let query = db.select().from(products);
-    
     let result = db.select().from(products);
     
     if (conditions.length > 0) {
-      const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
+      const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions)!;
       result = result.where(whereCondition);
     }
     

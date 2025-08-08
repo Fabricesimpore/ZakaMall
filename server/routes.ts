@@ -54,9 +54,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         customerId: 'test-user-123',
         vendorId: 'test-vendor-1',
         status: 'pending' as const,
-        subtotal: amount,
-        deliveryFee: 2000,
-        totalAmount: amount,
+        subtotal: amount.toString(),
+        deliveryFee: '2000',
+        totalAmount: amount.toString(),
         deliveryAddress: {
           address: 'Adresse de test, Ouagadougou, Burkina Faso',
           phone: '+226 70 12 34 56',
@@ -76,6 +76,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Test order creation error:', error);
       res.status(500).json({ error: 'Failed to create test order' });
+    }
+  });
+
+  // Test payment routes (unprotected for testing)
+  app.post('/api/test/payments/orange-money', async (req, res) => {
+    try {
+      const { phoneNumber } = req.body;
+      const paymentService = PaymentServiceFactory.getService('orange_money');
+      const result = await paymentService.initiatePayment({
+        orderId: 'test-order-123',
+        amount: 25000,
+        phoneNumber: phoneNumber || '+226 70 12 34 56',
+        paymentMethod: 'orange_money'
+      });
+      res.json(result);
+    } catch (error) {
+      console.error('Orange Money test error:', error);
+      res.status(500).json({ error: 'Orange Money test failed' });
+    }
+  });
+
+  app.post('/api/test/payments/moov-money', async (req, res) => {
+    try {
+      const { phoneNumber } = req.body;
+      const paymentService = PaymentServiceFactory.getService('moov_money');
+      const result = await paymentService.initiatePayment({
+        orderId: 'test-order-124',
+        amount: 25000,
+        phoneNumber: phoneNumber || '+226 75 56 78 90',
+        paymentMethod: 'moov_money'
+      });
+      res.json(result);
+    } catch (error) {
+      console.error('Moov Money test error:', error);
+      res.status(500).json({ error: 'Moov Money test failed' });
+    }
+  });
+
+  app.post('/api/test/payments/cash-on-delivery', async (req, res) => {
+    try {
+      const paymentService = PaymentServiceFactory.getService('cash_on_delivery');
+      const result = await paymentService.initiatePayment({
+        orderId: 'test-order-125',
+        amount: 25000,
+        phoneNumber: '',
+        paymentMethod: 'cash_on_delivery'
+      });
+      res.json(result);
+    } catch (error) {
+      console.error('Cash on delivery test error:', error);
+      res.status(500).json({ error: 'Cash on delivery test failed' });
+    }
+  });
+
+  app.get('/api/test/payments/:paymentId/status', async (req, res) => {
+    try {
+      const { paymentId } = req.params;
+      const transactionId = paymentId;
+      
+      // Determine payment method from transaction ID prefix
+      let paymentMethod: 'orange_money' | 'moov_money' | 'cash_on_delivery';
+      if (transactionId.startsWith('OM_')) {
+        paymentMethod = 'orange_money';
+      } else if (transactionId.startsWith('MM_')) {
+        paymentMethod = 'moov_money';
+      } else {
+        paymentMethod = 'cash_on_delivery';
+      }
+      
+      const paymentService = PaymentServiceFactory.getService(paymentMethod);
+      const status = await paymentService.checkPaymentStatus(transactionId);
+      res.json(status);
+    } catch (error) {
+      console.error('Payment status check error:', error);
+      res.status(500).json({ error: 'Payment status check failed' });
     }
   });
 
