@@ -13,6 +13,10 @@ import DriverDashboard from "@/pages/DriverDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import Profile from "@/pages/Profile";
 import Chat from "@/pages/Chat";
+import VendorSetup from "@/pages/VendorSetup";
+import DriverSetup from "@/pages/DriverSetup";
+import VendorPending from "@/pages/VendorPending";
+import DriverPending from "@/pages/DriverPending";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -30,6 +34,10 @@ function Router() {
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/profile" component={Profile} />
           <Route path="/chat" component={Chat} />
+          <Route path="/vendor-setup" component={VendorSetup} />
+          <Route path="/driver-setup" component={DriverSetup} />
+          <Route path="/vendor-pending" component={VendorPending} />
+          <Route path="/driver-pending" component={DriverPending} />
         </>
       )}
       <Route component={NotFound} />

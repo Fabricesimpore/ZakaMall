@@ -73,14 +73,23 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
     mutationFn: async ({ phone, code }: { phone: string; code: string }) => {
       return await apiRequest('POST', '/api/auth/verify-phone', { phone, code });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Compte créé avec succès!",
-        description: "Vous pouvez maintenant vous connecter",
+        description: "Vous pouvez maintenant compléter votre profil",
       });
       onSuccess();
-      // Redirect to login or auto-login
-      window.location.href = "/api/login";
+      
+      // Redirect based on user role to setup pages
+      const userData = form.getValues();
+      if (userData.role === 'vendor') {
+        window.location.href = "/vendor-setup";
+      } else if (userData.role === 'driver') {
+        window.location.href = "/driver-setup";
+      } else {
+        // Customer role goes directly to login
+        window.location.href = "/api/login";
+      }
     },
     onError: (error: Error) => {
       toast({

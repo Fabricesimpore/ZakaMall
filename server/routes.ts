@@ -36,6 +36,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/auth/setup-status', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      let setupStatus = {
+        hasVendorProfile: false,
+        hasDriverProfile: false,
+        vendorStatus: null,
+        driverStatus: null,
+      };
+
+      if (user.role === 'vendor') {
+        const vendor = await storage.getVendorByUserId(userId);
+        setupStatus.hasVendorProfile = !!vendor;
+        setupStatus.vendorStatus = vendor?.status || null;
+      } else if (user.role === 'driver') {
+        const driver = await storage.getDriverByUserId(userId);
+        setupStatus.hasDriverProfile = !!driver;
+        setupStatus.driverStatus = driver?.status || null;
+      }
+
+      res.json(setupStatus);
+    } catch (error) {
+      console.error("Error fetching setup status:", error);
+      res.status(500).json({ message: "Failed to fetch setup status" });
+    }
+  });
+
   // User role management
   app.post('/api/auth/set-role', isAuthenticated, async (req: any, res) => {
     try {
