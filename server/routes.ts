@@ -1668,7 +1668,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/vendors/pending', isAuthenticated, async (req: any, res) => {
+  app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
@@ -1677,18 +1677,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Admin access required" });
       }
 
-      const pendingVendors = await storage.getVendors('pending');
-      res.json(pendingVendors);
+      const allUsers = await storage.getAllUsers();
+      res.json(allUsers);
     } catch (error) {
-      console.error("Error fetching pending vendors:", error);
-      res.status(500).json({ message: "Failed to fetch pending vendors" });
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
     }
   });
 
-  app.patch('/api/admin/vendors/:id/approve', isAuthenticated, async (req: any, res) => {
+  app.get('/api/admin/admins', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const admins = await storage.getUsersByRole('admin');
+      res.json(admins);
+    } catch (error) {
+      console.error("Error fetching admins:", error);
+      res.status(500).json({ message: "Failed to fetch admins" });
+    }
+  });
+
+  app.patch('/api/admin/users/:id/role', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const { status, notes } = req.body;
+      const { role } = req.body;
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       
@@ -1696,20 +1713,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Admin access required" });
       }
 
-      const vendor = await storage.updateVendorStatus(id, status);
-      if (notes) {
-        await storage.addVendorNotes(id, notes);
+      if (!['customer', 'vendor', 'driver', 'admin'].includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
       }
-      
-      res.json(vendor);
+
+      const updatedUser = await storage.updateUserRole(id, role);
+      res.json(updatedUser);
     } catch (error) {
-      console.error("Error updating vendor status:", error);
-      res.status(500).json({ message: "Failed to update vendor status" });
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update user role" });
     }
   });
 
-  app.get('/api/admin/transactions', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/admin/users/:id', isAuthenticated, async (req: any, res) => {
     try {
+      const { id } = req.params;
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       
@@ -1717,19 +1735,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Admin access required" });
       }
 
-      const { page = 1, limit = 50, status, dateFrom, dateTo } = req.query;
-      const transactions = await storage.getTransactions({
-        page: parseInt(page as string),
-        limit: parseInt(limit as string),
-        status: status as string,
-        dateFrom: dateFrom as string,
-        dateTo: dateTo as string
-      });
-      
-      res.json(transactions);
+      // Prevent admin from deleting themselves
+      if (id === userId) {
+        return res.status(400).json({ message: "Cannot delete your own account" });
+      }
+
+      await storage.deleteUser(id);
+      res.json({ message: "User deleted successfully" });
     } catch (error) {
-      console.error("Error fetching transactions:", error);
-      res.status(500).json({ message: "Failed to fetch transactions" });
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
     }
   });
 

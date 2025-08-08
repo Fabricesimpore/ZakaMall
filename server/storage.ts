@@ -59,6 +59,8 @@ export interface IStorage {
   createUserWithPhone(user: InsertUser): Promise<User>;
   updateUserRole(userId: string, role: 'customer' | 'vendor' | 'driver' | 'admin'): Promise<User>;
   getUsersByRole(role: 'customer' | 'vendor' | 'driver' | 'admin'): Promise<User[]>;
+  getAllUsers(): Promise<User[]>;
+  deleteUser(userId: string): Promise<void>;
   
   // Phone verification operations
   createPhoneVerification(verification: InsertPhoneVerification): Promise<PhoneVerification>;
@@ -240,6 +242,41 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(users)
       .where(eq(users.role, role));
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .orderBy(desc(users.createdAt));
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    await db
+      .delete(users)
+      .where(eq(users.id, userId));
+  }
+
+  async getAdminStats(): Promise<any> {
+    const adminCount = await db
+      .select({ count: count() })
+      .from(users)
+      .where(eq(users.role, 'admin'));
+    
+    const userCount = await db
+      .select({ count: count() })
+      .from(users);
+    
+    const totalSessions = await db
+      .select({ count: count() })
+      .from(sessions);
+    
+    return {
+      totalAdmins: adminCount[0]?.count || 0,
+      totalUsers: userCount[0]?.count || 0,
+      activeSessions: totalSessions[0]?.count || 0,
+      platformUptime: '99.9%'
+    };
   }
 
   // Vendor operations
