@@ -19,15 +19,9 @@ export default function Navbar() {
     const baseLinks = [
       { href: "/", label: "Accueil", icon: "fas fa-home" },
       { href: "/customer", label: "Marketplace", icon: "fas fa-shopping-bag" },
+      { href: "/vendor", label: "Vendeurs", icon: "fas fa-store" },
+      { href: "/driver", label: "Livraison", icon: "fas fa-motorcycle" },
     ];
-
-    if (user?.role === 'vendor') {
-      baseLinks.push({ href: "/vendor", label: "Vendeur", icon: "fas fa-store" });
-    }
-    
-    if (user?.role === 'driver') {
-      baseLinks.push({ href: "/driver", label: "Livreur", icon: "fas fa-motorcycle" });
-    }
     
     if (user?.role === 'admin') {
       baseLinks.push({ href: "/admin", label: "Admin", icon: "fas fa-cog" });
