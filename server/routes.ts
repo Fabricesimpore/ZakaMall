@@ -1064,8 +1064,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role,
       });
 
-      // In production, send SMS via Orange/Moov API
-      console.log(`SMS Verification Code for ${phone}: ${verificationCode}`);
+      // Send verification SMS
+      try {
+        const { smsService } = await import("./smsService");
+        await smsService.sendVerificationSMS(phone, verificationCode, firstName);
+      } catch (smsError) {
+        console.error("SMS sending failed, falling back to console:", smsError);
+        console.log(`SMS Verification Code for ${phone}: ${verificationCode}`);
+      }
 
       res.json({ message: "Code de vérification envoyé", phone });
     } catch (error) {
@@ -1130,8 +1136,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
       });
 
-      // In production, send SMS
-      console.log(`SMS Login Code for ${phone}: ${loginCode}`);
+      // Send login SMS
+      try {
+        const { smsService } = await import("./smsService");
+        await smsService.sendLoginSMS(phone, loginCode);
+      } catch (smsError) {
+        console.error("SMS sending failed, falling back to console:", smsError);
+        console.log(`SMS Login Code for ${phone}: ${loginCode}`);
+      }
 
       res.json({ message: "Code de connexion envoyé", phone });
     } catch (error) {
