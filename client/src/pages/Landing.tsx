@@ -88,7 +88,7 @@ export default function Landing() {
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {/* Customer Card */}
-            <Card className="hover:shadow-xl transition-shadow cursor-pointer group" onClick={handleLogin}>
+            <Card className="cursor-pointer" onClick={handleLogin}>
               <CardContent className="p-8 text-center">
                 <div className="w-16 h-16 bg-zaka-blue bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <i className="fas fa-shopping-cart text-2xl text-zaka-blue"></i>
@@ -101,14 +101,14 @@ export default function Landing() {
                   <li>✓ Livraison rapide</li>
                   <li>✓ Support en français</li>
                 </ul>
-                <Button className="w-full bg-zaka-blue text-white py-3 rounded-lg font-semibold hover:bg-zaka-blue transition-colors">
+                <Button className="w-full bg-zaka-blue text-white py-3 rounded-lg font-semibold">
                   Commencer les achats
                 </Button>
               </CardContent>
             </Card>
 
             {/* Vendor Card */}
-            <Card className="hover:shadow-xl transition-shadow cursor-pointer group" onClick={handleLogin}>
+            <Card className="cursor-pointer" onClick={handleLogin}>
               <CardContent className="p-8 text-center">
                 <div className="w-16 h-16 bg-zaka-green bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <i className="fas fa-store text-2xl text-zaka-green"></i>
@@ -121,14 +121,14 @@ export default function Landing() {
                   <li>✓ Analytics de vente</li>
                   <li>✓ Commission compétitive</li>
                 </ul>
-                <Button className="w-full bg-zaka-green text-white py-3 rounded-lg font-semibold hover:bg-zaka-green transition-colors">
+                <Button className="w-full bg-zaka-green text-white py-3 rounded-lg font-semibold">
                   Devenir vendeur
                 </Button>
               </CardContent>
             </Card>
 
             {/* Driver Card */}
-            <Card className="hover:shadow-xl transition-shadow cursor-pointer group" onClick={handleLogin}>
+            <Card className="cursor-pointer" onClick={handleLogin}>
               <CardContent className="p-8 text-center">
                 <div className="w-16 h-16 bg-zaka-orange bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <i className="fas fa-motorcycle text-2xl text-zaka-orange"></i>
@@ -141,7 +141,7 @@ export default function Landing() {
                   <li>✓ GPS intégré</li>
                   <li>✓ Support 24/7</li>
                 </ul>
-                <Button className="w-full bg-zaka-orange text-white py-3 rounded-lg font-semibold hover:bg-zaka-orange transition-colors">
+                <Button className="w-full bg-zaka-orange text-white py-3 rounded-lg font-semibold">
                   Devenir livreur
                 </Button>
               </CardContent>
