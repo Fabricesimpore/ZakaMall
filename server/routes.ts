@@ -553,6 +553,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/chat/rooms/:roomId/read', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { roomId } = req.params;
+      
+      await storage.markMessagesAsRead(userId, roomId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+      res.status(500).json({ message: "Failed to mark messages as read" });
+    }
+  });
+
+  app.get('/api/notifications/unread-count', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const unreadCount = await storage.getTotalUnreadCount(userId);
+      res.json({ unreadCount });
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+      res.status(500).json({ message: "Failed to fetch unread count" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // WebSocket server for real-time chat
@@ -586,11 +610,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           roomParticipants.forEach(participant => {
             const client = clients.get(participant.userId);
             if (client && client.ws.readyState === WebSocket.OPEN) {
+              // Send message to participant
               client.ws.send(JSON.stringify({
                 type: 'message_received',
                 message: messageWithSender,
                 roomId: data.roomId
               }));
+              
+              // Send notification if not the sender
+              if (participant.userId !== data.message.senderId) {
+                client.ws.send(JSON.stringify({
+                  type: 'new_notification',
+                  notification: {
+                    title: `${messageWithSender.sender?.firstName || 'Someone'} sent a message`,
+                    body: messageWithSender.content,
+                    roomId: data.roomId,
+                    senderId: data.message.senderId
+                  }
+                }));
+              }
             }
           });
         }

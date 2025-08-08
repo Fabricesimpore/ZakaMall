@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import UnreadBadge from "@/components/UnreadBadge";
 
 export default function Navbar() {
   const { user, isLoading } = useAuth();
@@ -131,11 +133,12 @@ export default function Navbar() {
               <Link key={link.href} href={link.href}>
                 <Button
                   variant={location === link.href ? "secondary" : "ghost"}
-                  className="text-zaka-dark hover:text-zaka-orange transition-colors"
+                  className="text-zaka-dark hover:text-zaka-orange transition-colors relative"
                   style={location === link.href ? { color: 'var(--zaka-orange)' } : {}}
                 >
                   <i className={`${link.icon} mr-2`}></i>
                   {link.label}
+                  {link.href === '/chat' && <UnreadBadge />}
                 </Button>
               </Link>
             ))}

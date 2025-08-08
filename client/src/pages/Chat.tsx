@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { useNotifications } from "@/hooks/useNotifications";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { useToast } from "@/hooks/use-toast";
@@ -25,15 +26,54 @@ export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  const { showNotification, requestPermission, permission } = useNotifications();
+
   // WebSocket message handler
   const handleWebSocketMessage = useCallback((message: any) => {
     if (message.type === 'message_received' && message.roomId === selectedRoom?.id) {
       // Invalidate messages query to fetch new messages
       queryClient.invalidateQueries({ queryKey: ['/api/chat/rooms', selectedRoom.id, 'messages'] });
+    } else if (message.type === 'new_notification') {
+      // Show browser notification
+      if (permission === 'granted') {
+        showNotification(message.notification.title, {
+          body: message.notification.body,
+          tag: `chat-${message.notification.roomId}`,
+        });
+      }
+      // Refresh chat rooms to update unread counts
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/rooms'] });
     }
-  }, [selectedRoom?.id]);
+    // Always refresh chat rooms list for any message
+    if (message.type === 'message_received') {
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/rooms'] });
+    }
+  }, [selectedRoom?.id, showNotification, permission]);
 
   const { sendMessage: sendWebSocketMessage } = useWebSocket(handleWebSocketMessage);
+
+  // Request notification permission on component mount
+  useEffect(() => {
+    if (permission === 'default') {
+      requestPermission();
+    }
+  }, [permission, requestPermission]);
+
+  // Mark messages as read when selecting a room
+  const markAsReadMutation = useMutation({
+    mutationFn: async (roomId: string) => {
+      return await apiRequest('POST', `/api/chat/rooms/${roomId}/read`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/rooms'] });
+    },
+  });
+
+  useEffect(() => {
+    if (selectedRoom?.id) {
+      markAsReadMutation.mutate(selectedRoom.id);
+    }
+  }, [selectedRoom?.id]);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -304,17 +344,33 @@ export default function Chat() {
                       onClick={() => setSelectedRoom(room)}
                     >
                       <div className="flex items-center space-x-3">
-                        <Avatar className="w-10 h-10">
-                          <AvatarFallback className="bg-zaka-blue text-white">
-                            {room.type === 'group' ? (
-                              <i className="fas fa-users"></i>
-                            ) : (
-                              room.name?.charAt(0) || 'C'
-                            )}
-                          </AvatarFallback>
-                        </Avatar>
+                        <div className="relative">
+                          <Avatar className="w-10 h-10">
+                            <AvatarFallback className="bg-zaka-blue text-white">
+                              {room.type === 'group' ? (
+                                <i className="fas fa-users"></i>
+                              ) : (
+                                room.name?.charAt(0) || 'C'
+                              )}
+                            </AvatarFallback>
+                          </Avatar>
+                          {room.unreadCount > 0 && (
+                            <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs min-w-5 h-5 flex items-center justify-center rounded-full">
+                              {room.unreadCount > 99 ? '99+' : room.unreadCount}
+                            </Badge>
+                          )}
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-sm truncate">{room.name || 'Conversation'}</h3>
+                          <div className="flex items-center justify-between">
+                            <h3 className={`font-medium text-sm truncate ${
+                              room.unreadCount > 0 ? 'font-bold text-zaka-dark' : ''
+                            }`}>
+                              {room.name || 'Conversation'}
+                            </h3>
+                            {room.unreadCount > 0 && (
+                              <div className="w-2 h-2 bg-zaka-orange rounded-full flex-shrink-0"></div>
+                            )}
+                          </div>
                           <p className="text-xs text-gray-500">
                             {room.type === 'group' ? 'Groupe' : 'Direct'}
                           </p>

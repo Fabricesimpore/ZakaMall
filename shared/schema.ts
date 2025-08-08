@@ -196,6 +196,7 @@ export const chatRooms = pgTable("chat_rooms", {
   type: varchar("type").notNull().default('direct'), // 'direct' or 'group'
   isActive: boolean("is_active").default(true),
   createdBy: varchar("created_by").references(() => users.id).notNull(),
+  lastMessageAt: timestamp("last_message_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -206,7 +207,8 @@ export const chatParticipants = pgTable("chat_participants", {
   chatRoomId: varchar("chat_room_id").references(() => chatRooms.id).notNull(),
   userId: varchar("user_id").references(() => users.id).notNull(),
   joinedAt: timestamp("joined_at").defaultNow(),
-  lastReadAt: timestamp("last_read_at"),
+  lastReadAt: timestamp("last_read_at").defaultNow(),
+  unreadCount: integer("unread_count").default(0),
 });
 
 // Messages table
@@ -427,6 +429,7 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({
 
 export const insertChatRoomSchema = createInsertSchema(chatRooms).omit({
   id: true,
+  lastMessageAt: true,
   createdAt: true,
   updatedAt: true,
 });
@@ -434,6 +437,7 @@ export const insertChatRoomSchema = createInsertSchema(chatRooms).omit({
 export const insertChatParticipantSchema = createInsertSchema(chatParticipants).omit({
   id: true,
   joinedAt: true,
+  unreadCount: true,
 });
 
 export const insertMessageSchema = createInsertSchema(messages).omit({

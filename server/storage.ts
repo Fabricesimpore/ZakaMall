@@ -115,13 +115,16 @@ export interface IStorage {
   
   // Chat operations
   createChatRoom(chatRoom: InsertChatRoom): Promise<ChatRoom>;
-  getUserChatRooms(userId: string): Promise<ChatRoom[]>;
+  getUserChatRooms(userId: string): Promise<(ChatRoom & { unreadCount: number })[]>;
   addChatParticipant(participant: InsertChatParticipant): Promise<ChatParticipant>;
   isUserInChatRoom(userId: string, chatRoomId: string): Promise<boolean>;
   createMessage(message: InsertMessage): Promise<Message>;
   getChatMessages(chatRoomId: string, limit?: number, offset?: number): Promise<Message[]>;
   searchUsers(query: string): Promise<User[]>;
   getChatRoomParticipants(chatRoomId: string): Promise<ChatParticipant[]>;
+  markMessagesAsRead(userId: string, chatRoomId: string): Promise<void>;
+  incrementUnreadCount(chatRoomId: string, excludeUserId: string): Promise<void>;
+  getTotalUnreadCount(userId: string): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -634,7 +637,7 @@ export class DatabaseStorage implements IStorage {
     return chatRoom;
   }
 
-  async getUserChatRooms(userId: string): Promise<ChatRoom[]> {
+  async getUserChatRooms(userId: string): Promise<(ChatRoom & { unreadCount: number })[]> {
     const rooms = await db
       .select({
         id: chatRooms.id,
@@ -642,13 +645,15 @@ export class DatabaseStorage implements IStorage {
         type: chatRooms.type,
         isActive: chatRooms.isActive,
         createdBy: chatRooms.createdBy,
+        lastMessageAt: chatRooms.lastMessageAt,
         createdAt: chatRooms.createdAt,
         updatedAt: chatRooms.updatedAt,
+        unreadCount: chatParticipants.unreadCount,
       })
       .from(chatRooms)
       .innerJoin(chatParticipants, eq(chatRooms.id, chatParticipants.chatRoomId))
       .where(and(eq(chatParticipants.userId, userId), eq(chatRooms.isActive, true)))
-      .orderBy(desc(chatRooms.updatedAt));
+      .orderBy(desc(chatRooms.lastMessageAt));
     return rooms;
   }
 
@@ -673,6 +678,16 @@ export class DatabaseStorage implements IStorage {
       .insert(messages)
       .values(messageData)
       .returning();
+    
+    // Update chat room's last message timestamp
+    await db
+      .update(chatRooms)
+      .set({ lastMessageAt: new Date(), updatedAt: new Date() })
+      .where(eq(chatRooms.id, messageData.chatRoomId));
+    
+    // Increment unread count for all participants except sender
+    await this.incrementUnreadCount(messageData.chatRoomId, messageData.senderId);
+    
     return message;
   }
 
@@ -732,6 +747,45 @@ export class DatabaseStorage implements IStorage {
       .from(chatParticipants)
       .where(eq(chatParticipants.chatRoomId, chatRoomId));
     return participants;
+  }
+
+  async markMessagesAsRead(userId: string, chatRoomId: string): Promise<void> {
+    await db
+      .update(chatParticipants)
+      .set({ 
+        lastReadAt: new Date(),
+        unreadCount: 0
+      })
+      .where(and(
+        eq(chatParticipants.userId, userId),
+        eq(chatParticipants.chatRoomId, chatRoomId)
+      ));
+  }
+
+  async incrementUnreadCount(chatRoomId: string, excludeUserId: string): Promise<void> {
+    const participants = await db
+      .select()
+      .from(chatParticipants)
+      .where(and(
+        eq(chatParticipants.chatRoomId, chatRoomId),
+        sql`${chatParticipants.userId} != ${excludeUserId}`
+      ));
+    
+    for (const participant of participants) {
+      await db
+        .update(chatParticipants)
+        .set({ unreadCount: sql`${chatParticipants.unreadCount} + 1` })
+        .where(eq(chatParticipants.id, participant.id));
+    }
+  }
+
+  async getTotalUnreadCount(userId: string): Promise<number> {
+    const [result] = await db
+      .select({ total: sum(chatParticipants.unreadCount) })
+      .from(chatParticipants)
+      .where(eq(chatParticipants.userId, userId));
+    
+    return Number(result?.total || 0);
   }
 }
 
