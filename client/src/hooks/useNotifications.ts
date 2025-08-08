@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 export function useNotifications() {
-  const [permission, setPermission] = useState<NotificationPermission>("default");
+  const [permission, setPermission] = useState<string>("default");
 
   useEffect(() => {
     if ("Notification" in window) {
@@ -21,7 +21,7 @@ export function useNotifications() {
   }, []);
 
   const showNotification = useCallback(
-    (title: string, options?: NotificationOptions) => {
+    (title: string, options?: Record<string, unknown>) => {
       if (permission !== "granted" || !("Notification" in window)) {
         return;
       }
