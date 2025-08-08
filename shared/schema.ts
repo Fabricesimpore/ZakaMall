@@ -71,6 +71,7 @@ export const vendors = pgTable("vendors", {
   identityDocument: varchar("identity_document"),
   businessLicense: varchar("business_license"),
   status: vendorStatusEnum("status").default('pending'),
+  adminNotes: text("admin_notes"),
   commissionRate: decimal("commission_rate", { precision: 5, scale: 2 }).default('5.00'),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

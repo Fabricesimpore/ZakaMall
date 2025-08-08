@@ -30,17 +30,17 @@ export default function AdminDashboard() {
     }
   }, [user, authLoading, toast]);
 
-  const { data: adminStats, isLoading: statsLoading } = useQuery({
+  const { data: adminStats = {}, isLoading: statsLoading } = useQuery({
     queryKey: ['/api/analytics/admin'],
     enabled: !!user && user.role === 'admin',
   });
 
-  const { data: pendingVendors, isLoading: vendorsLoading } = useQuery({
+  const { data: pendingVendors = [], isLoading: vendorsLoading } = useQuery({
     queryKey: ['/api/vendors', { status: 'pending' }],
     enabled: !!user && user.role === 'admin',
   });
 
-  const { data: allOrders, isLoading: ordersLoading } = useQuery({
+  const { data: allOrders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ['/api/orders'],
     enabled: !!user && user.role === 'admin',
   });
@@ -122,7 +122,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-zaka-gray text-sm">Vendeurs actifs</p>
                   <p className="text-2xl font-bold text-zaka-dark">
-                    {statsLoading ? "..." : adminStats?.activeVendors || 0}
+                    {statsLoading ? "..." : (adminStats as any)?.activeVendors || 0}
                   </p>
                 </div>
                 <i className="fas fa-store text-2xl text-zaka-green"></i>
@@ -137,7 +137,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-zaka-gray text-sm">Commandes du jour</p>
                   <p className="text-2xl font-bold text-zaka-dark">
-                    {statsLoading ? "..." : adminStats?.dailyOrders || 0}
+                    {statsLoading ? "..." : (adminStats as any)?.dailyOrders || 0}
                   </p>
                 </div>
                 <i className="fas fa-shopping-cart text-2xl text-zaka-blue"></i>
@@ -152,7 +152,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-zaka-gray text-sm">Revenus plateforme</p>
                   <p className="text-2xl font-bold text-zaka-dark">
-                    {statsLoading ? "..." : `${(adminStats?.platformRevenue || 0).toLocaleString()} CFA`}
+                    {statsLoading ? "..." : `${((adminStats as any)?.platformRevenue || 0).toLocaleString()} CFA`}
                   </p>
                 </div>
                 <i className="fas fa-chart-line text-2xl text-zaka-orange"></i>
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-zaka-gray text-sm">Livreurs disponibles</p>
                   <p className="text-2xl font-bold text-zaka-dark">
-                    {statsLoading ? "..." : adminStats?.availableDrivers || 0}
+                    {statsLoading ? "..." : (adminStats as any)?.availableDrivers || 0}
                   </p>
                 </div>
                 <i className="fas fa-motorcycle text-2xl text-purple-500"></i>
@@ -205,7 +205,7 @@ export default function AdminDashboard() {
                       </div>
                     ))}
                   </div>
-                ) : pendingVendors && pendingVendors.length > 0 ? (
+                ) : (pendingVendors as any[])?.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
@@ -218,7 +218,7 @@ export default function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody className="text-sm">
-                        {pendingVendors.map((vendor: any) => (
+                        {(pendingVendors as any[]).map((vendor: any) => (
                           <tr key={vendor.id} className="border-b border-gray-100">
                             <td className="py-4">
                               <div className="flex items-center">
@@ -302,7 +302,7 @@ export default function AdminDashboard() {
                       </div>
                     ))}
                   </div>
-                ) : allOrders && allOrders.length > 0 ? (
+                ) : (allOrders as any[])?.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
@@ -315,7 +315,7 @@ export default function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody className="text-sm">
-                        {allOrders.slice(0, 10).map((order: any) => (
+                        {(allOrders as any[]).slice(0, 10).map((order: any) => (
                           <tr key={order.id} className="border-b border-gray-100">
                             <td className="py-3 font-medium">{order.orderNumber}</td>
                             <td className="py-3 font-semibold">{parseFloat(order.totalAmount).toLocaleString()} CFA</td>

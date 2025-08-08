@@ -1086,7 +1086,7 @@ export class DatabaseStorage implements IStorage {
     
     if (order.status !== 'pending') {
       history.push({
-        status: order.status,
+        status: order.status || 'unknown',
         timestamp: order.updatedAt,
         description: this.getStatusDescription(order.status as any)
       });
