@@ -24,9 +24,9 @@ export default function ProductImageUploader({
 
   const updateProductImagesMutation = useMutation({
     mutationFn: async (imageURLs: string[]): Promise<Record<string, unknown>> => {
-      return ((await apiRequest("PUT", `/api/products/${productId}/images`, {
+      return (await apiRequest("PUT", `/api/products/${productId}/images`, {
         imageURLs,
-      })) as any) as Record<string, unknown>;
+      })) as any as Record<string, unknown>;
     },
     onSuccess: (data: Record<string, unknown>) => {
       const newImages = (data?.imagePaths || []) as string[];
@@ -59,7 +59,10 @@ export default function ProductImageUploader({
   };
 
   const handleGetUploadParameters = async (): Promise<{ method: "PUT"; url: string }> => {
-    const response = ((await apiRequest("POST", "/api/objects/upload")) as any) as Record<string, unknown>;
+    const response = (await apiRequest("POST", "/api/objects/upload")) as any as Record<
+      string,
+      unknown
+    >;
     return {
       method: "PUT" as const,
       url: response.uploadURL as string,

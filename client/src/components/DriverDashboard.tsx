@@ -282,7 +282,8 @@ export default function DriverDashboard() {
                           </div>
                           <div className="text-right">
                             <p className="text-lg font-bold text-zaka-orange">
-                              Frais: {parseInt(order.deliveryFee as string).toLocaleString("fr-BF")} CFA
+                              Frais: {parseInt(order.deliveryFee as string).toLocaleString("fr-BF")}{" "}
+                              CFA
                             </p>
                             <Badge variant={statusConfig?.variant} className="mt-1">
                               {statusConfig?.label}
@@ -374,7 +375,8 @@ export default function DriverDashboard() {
                         <div>
                           <h3 className="text-lg font-semibold">{order.orderNumber as string}</h3>
                           <p className="text-sm text-gray-600">
-                            Livrée le {new Date(order.updatedAt as string).toLocaleDateString("fr-BF")}
+                            Livrée le{" "}
+                            {new Date(order.updatedAt as string).toLocaleDateString("fr-BF")}
                           </p>
                         </div>
                         <div className="text-right">

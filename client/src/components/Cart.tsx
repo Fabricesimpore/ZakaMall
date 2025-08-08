@@ -181,7 +181,10 @@ export default function Cart({ onClose }: CartProps) {
             <div className="flex-1 space-y-4">
               {Array.isArray(cartItems) &&
                 cartItems.map((item: Record<string, unknown>) => (
-                  <div key={item.id as string} className="flex items-center justify-between border-b pb-4">
+                  <div
+                    key={item.id as string}
+                    className="flex items-center justify-between border-b pb-4"
+                  >
                     <div className="flex items-center space-x-3">
                       <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
                         {(item.product as any).images && (item.product as any).images.length > 0 ? (

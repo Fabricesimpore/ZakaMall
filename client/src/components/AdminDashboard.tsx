@@ -270,7 +270,8 @@ export default function AdminDashboard() {
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>Approuver le vendeur</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Êtes-vous sûr de vouloir approuver "{vendor.businessName as string}" ?
+                                      Êtes-vous sûr de vouloir approuver "
+                                      {vendor.businessName as string}" ?
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <div className="py-4">
@@ -307,7 +308,8 @@ export default function AdminDashboard() {
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>Rejeter le vendeur</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Êtes-vous sûr de vouloir rejeter "{vendor.businessName as string}" ?
+                                      Êtes-vous sûr de vouloir rejeter "
+                                      {vendor.businessName as string}" ?
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <div className="py-4">
