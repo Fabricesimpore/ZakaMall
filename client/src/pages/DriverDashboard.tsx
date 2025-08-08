@@ -10,10 +10,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const driverRegistrationSchema = z.object({
+  vehicleType: z.string().min(1, "Le type de véhicule est requis"),
+  licenseNumber: z.string().min(1, "Le numéro de permis est requis"),
+});
 
 export default function DriverDashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const [isOnline, setIsOnline] = useState(false);
+  const [isDriverRegistrationOpen, setIsDriverRegistrationOpen] = useState(false);
   const { toast } = useToast();
 
   // Redirect to home if not authenticated
@@ -147,6 +159,52 @@ export default function DriverDashboard() {
     },
   });
 
+  const driverRegistrationForm = useForm<z.infer<typeof driverRegistrationSchema>>({
+    resolver: zodResolver(driverRegistrationSchema),
+    defaultValues: {
+      vehicleType: "",
+      licenseNumber: "",
+    },
+  });
+
+  const registerDriverMutation = useMutation({
+    mutationFn: async (driverData: any) => {
+      return await apiRequest('POST', '/api/drivers', driverData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      toast({
+        title: "Succès",
+        description: "Inscription livreur réussie ! Vous pouvez maintenant accepter des livraisons.",
+      });
+      setIsDriverRegistrationOpen(false);
+      // Refresh the page to show the driver dashboard
+      window.location.reload();
+    },
+    onError: (error: Error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Non autorisé",
+          description: "Vous êtes déconnecté. Reconnexion en cours...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Erreur",
+        description: "Impossible de vous inscrire comme livreur",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onDriverRegistrationSubmit = (values: z.infer<typeof driverRegistrationSchema>) => {
+    registerDriverMutation.mutate(values);
+  };
+
   const handleStatusChange = (checked: boolean) => {
     setIsOnline(checked);
     updateDriverStatusMutation.mutate(checked);
@@ -172,9 +230,64 @@ export default function DriverDashboard() {
               <p className="text-zaka-gray mb-6">
                 Vous devez d'abord vous inscrire en tant que livreur pour accéder à ce tableau de bord.
               </p>
-              <Button className="bg-zaka-orange hover:bg-zaka-orange">
-                S'inscrire comme livreur
-              </Button>
+              <Dialog open={isDriverRegistrationOpen} onOpenChange={setIsDriverRegistrationOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-zaka-orange hover:bg-zaka-orange">
+                    S'inscrire comme livreur
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Inscription livreur</DialogTitle>
+                  </DialogHeader>
+                  <Form {...driverRegistrationForm}>
+                    <form onSubmit={driverRegistrationForm.handleSubmit(onDriverRegistrationSubmit)} className="space-y-6">
+                      <FormField
+                        control={driverRegistrationForm.control}
+                        name="vehicleType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Type de véhicule *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex: Moto, Vélo, Voiture" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={driverRegistrationForm.control}
+                        name="licenseNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Numéro de permis *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Numéro de votre permis de conduire" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="flex justify-end space-x-2">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => setIsDriverRegistrationOpen(false)}
+                        >
+                          Annuler
+                        </Button>
+                        <Button 
+                          type="submit" 
+                          className="bg-zaka-orange hover:bg-zaka-orange"
+                          disabled={registerDriverMutation.isPending}
+                        >
+                          {registerDriverMutation.isPending ? "Inscription..." : "S'inscrire"}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         </div>

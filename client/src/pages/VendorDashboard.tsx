@@ -27,9 +27,18 @@ const productSchema = z.object({
   images: z.array(z.string()).optional(),
 });
 
+const vendorRegistrationSchema = z.object({
+  businessName: z.string().min(1, "Le nom de l'entreprise est requis"),
+  businessDescription: z.string().optional(),
+  businessAddress: z.string().optional(),
+  businessPhone: z.string().optional(),
+  taxId: z.string().optional(),
+});
+
 export default function VendorDashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const [isVendorRegistrationOpen, setIsVendorRegistrationOpen] = useState(false);
   const { toast } = useToast();
 
   // Redirect to home if not authenticated
@@ -146,6 +155,55 @@ export default function VendorDashboard() {
     },
   });
 
+  const vendorRegistrationForm = useForm<z.infer<typeof vendorRegistrationSchema>>({
+    resolver: zodResolver(vendorRegistrationSchema),
+    defaultValues: {
+      businessName: "",
+      businessDescription: "",
+      businessAddress: "",
+      businessPhone: "",
+      taxId: "",
+    },
+  });
+
+  const registerVendorMutation = useMutation({
+    mutationFn: async (vendorData: any) => {
+      return await apiRequest('POST', '/api/vendors', vendorData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      toast({
+        title: "Succès",
+        description: "Inscription vendeur réussie ! Votre compte est en cours de vérification.",
+      });
+      setIsVendorRegistrationOpen(false);
+      // Refresh the page to show the vendor dashboard
+      window.location.reload();
+    },
+    onError: (error: Error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Non autorisé",
+          description: "Vous êtes déconnecté. Reconnexion en cours...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Erreur",
+        description: "Impossible de vous inscrire comme vendeur",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onVendorRegistrationSubmit = (values: z.infer<typeof vendorRegistrationSchema>) => {
+    registerVendorMutation.mutate(values);
+  };
+
   const onSubmit = (values: z.infer<typeof productSchema>) => {
     createProductMutation.mutate({
       ...values,
@@ -174,9 +232,105 @@ export default function VendorDashboard() {
               <p className="text-zaka-gray mb-6">
                 Vous devez d'abord vous inscrire en tant que vendeur pour accéder à ce tableau de bord.
               </p>
-              <Button className="w-full bg-zaka-orange text-white py-3 rounded-lg font-semibold">
-                S'inscrire comme vendeur
-              </Button>
+              <Dialog open={isVendorRegistrationOpen} onOpenChange={setIsVendorRegistrationOpen}>
+                <DialogTrigger asChild>
+                  <Button className="w-full bg-zaka-orange text-white py-3 rounded-lg font-semibold">
+                    S'inscrire comme vendeur
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Inscription vendeur</DialogTitle>
+                  </DialogHeader>
+                  <Form {...vendorRegistrationForm}>
+                    <form onSubmit={vendorRegistrationForm.handleSubmit(onVendorRegistrationSubmit)} className="space-y-6">
+                      <FormField
+                        control={vendorRegistrationForm.control}
+                        name="businessName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nom de l'entreprise *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Nom de votre entreprise" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={vendorRegistrationForm.control}
+                        name="businessDescription"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description de l'entreprise</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="Décrivez votre entreprise et vos produits" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={vendorRegistrationForm.control}
+                        name="businessAddress"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Adresse de l'entreprise</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Adresse complète de votre entreprise" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={vendorRegistrationForm.control}
+                          name="businessPhone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Téléphone professionnel</FormLabel>
+                              <FormControl>
+                                <Input placeholder="70 XX XX XX XX" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={vendorRegistrationForm.control}
+                          name="taxId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Numéro fiscal (optionnel)</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Numéro d'identification fiscale" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => setIsVendorRegistrationOpen(false)}
+                        >
+                          Annuler
+                        </Button>
+                        <Button 
+                          type="submit" 
+                          className="bg-zaka-orange hover:bg-zaka-orange"
+                          disabled={registerVendorMutation.isPending}
+                        >
+                          {registerVendorMutation.isPending ? "Inscription..." : "S'inscrire"}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         </div>
