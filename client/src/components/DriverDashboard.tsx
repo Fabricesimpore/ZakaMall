@@ -28,7 +28,7 @@ export default function DriverDashboard() {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/driver/stats"],
   });
-  
+
   const typedStats = (stats || {}) as DriverStats;
 
   const updateStatusMutation = useMutation({

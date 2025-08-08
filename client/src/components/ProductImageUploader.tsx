@@ -50,7 +50,10 @@ export default function ProductImageUploader({
   const handleUploadComplete = (
     result: UploadResult<Record<string, unknown>, Record<string, unknown>>
   ) => {
-    const uploadedURLs = result.successful?.map((file) => file.uploadURL).filter(Boolean) || [];
+    const uploadedURLs =
+      result.successful
+        ?.map((file) => file.uploadURL)
+        .filter((url): url is string => Boolean(url)) || [];
     const allImages = [...uploadedImages, ...uploadedURLs];
     updateProductImagesMutation.mutate(allImages);
   };

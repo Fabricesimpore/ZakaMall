@@ -672,5 +672,16 @@ export interface DriverStats {
   todayDeliveries?: number;
   rating?: number;
   earnings?: number;
+  dailyEarnings?: number;
+  completedDeliveries?: number;
+  averageRating?: number;
+  [key: string]: any;
+}
+
+export interface VendorStats {
+  monthlyOrders?: number;
+  totalSales?: number;
+  averageRating?: number;
+  totalProducts?: number;
   [key: string]: any;
 }

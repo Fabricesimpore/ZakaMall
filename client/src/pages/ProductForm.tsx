@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import type { Category, Product } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,11 +61,11 @@ export default function ProductForm({ productId }: ProductFormProps) {
   const queryClient = useQueryClient();
   const isEdit = !!productId;
 
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [] as Category[] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 
-  const { data: product, isLoading: productLoading } = useQuery({
+  const { data: product = {} as Product, isLoading: productLoading } = useQuery<Product>({
     queryKey: ["/api/vendor/products", productId],
     enabled: isEdit,
   });

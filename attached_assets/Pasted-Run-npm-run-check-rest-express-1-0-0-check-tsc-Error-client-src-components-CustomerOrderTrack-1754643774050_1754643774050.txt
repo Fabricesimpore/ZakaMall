@@ -1,0 +1,72 @@
+Run npm run check
+
+> rest-express@1.0.0 check
+> tsc
+
+Error: client/src/components/CustomerOrderTracking.tsx(63,11): error TS2339: Property 'order' does not exist on type '{}'.
+Error: client/src/components/CustomerOrderTracking.tsx(63,18): error TS2339: Property 'driver' does not exist on type '{}'.
+Error: client/src/components/CustomerOrderTracking.tsx(63,26): error TS2339: Property 'trackingHistory' does not exist on type '{}'.
+Error: client/src/components/CustomerOrderTracking.tsx(184,47): error TS7006: Parameter 'h' implicitly has an 'any' type.
+Error: client/src/components/CustomerOrderTracking.tsx(187,53): error TS7006: Parameter 'h' implicitly has an 'any' type.
+Error: client/src/components/CustomerOrderTracking.tsx(200,50): error TS7006: Parameter 'h' implicitly has an 'any' type.
+Error: client/src/components/EmailSignup.tsx(69,22): error TS2552: Cannot find name 'error'. Did you mean '_error'?
+Error: client/src/components/PaymentMethodSelector.tsx(72,5): error TS2322: Type '(data: PaymentFormData) => Promise<Response>' is not assignable to type 'MutationFunction<{ success: boolean; message: string; paymentId: string; transactionId: string; }, { paymentMethod: "orange_money" | "moov_money" | "cash_on_delivery"; phoneNumber?: string | undefined; }>'.
+  Type 'Promise<Response>' is not assignable to type 'Promise<{ success: boolean; message: string; paymentId: string; transactionId: string; }>'.
+    Type 'Response' is missing the following properties from type '{ success: boolean; message: string; paymentId: string; transactionId: string; }': success, message, paymentId, transactionId
+Error: client/src/components/PaymentMethodSelector.tsx(110,15): error TS2322: Type 'Response' is not assignable to type '{ status: string; failureReason?: string | undefined; }'.
+  Types of property 'status' are incompatible.
+    Type 'number' is not assignable to type 'string'.
+Error: client/src/components/PaymentModal.tsx(45,5): error TS2322: Type '(data: { orderId: string; paymentMethod: string; phoneNumber?: string; }) => Promise<Response>' is not assignable to type 'MutationFunction<{ success: boolean; message: string; paymentId: string; }, { orderId: string; paymentMethod: string; phoneNumber?: string | undefined; }>'.
+  Type 'Promise<Response>' is not assignable to type 'Promise<{ success: boolean; message: string; paymentId: string; }>'.
+    Type 'Response' is missing the following properties from type '{ success: boolean; message: string; paymentId: string; }': success, message, paymentId
+Error: client/src/components/PaymentModal.tsx(80,5): error TS2322: Type '(paymentId: string) => Promise<Response>' is not assignable to type 'MutationFunction<{ success: boolean; message: string; }, string>'.
+  Type 'Promise<Response>' is not assignable to type 'Promise<{ success: boolean; message: string; }>'.
+    Type 'Response' is missing the following properties from type '{ success: boolean; message: string; }': success, message
+Error: client/src/components/PaymentModal.tsx(84,16): error TS2339: Property 'status' does not exist on type '{ success: boolean; message: string; }'.
+Error: client/src/components/PaymentModal.tsx(93,23): error TS2339: Property 'status' does not exist on type '{ success: boolean; message: string; }'.
+Error: client/src/components/PaymentModal.tsx(97,29): error TS2339: Property 'failureReason' does not exist on type '{ success: boolean; message: string; }'.
+Error: client/src/components/ProductImageUploader.tsx(55,40): error TS2345: Argument of type '(string | undefined)[]' is not assignable to parameter of type 'string[]'.
+  Type 'string | undefined' is not assignable to type 'string'.
+    Type 'undefined' is not assignable to type 'string'.
+Error: client/src/pages/DriverDashboard.tsx(65,49): error TS2339: Property 'roleData' does not exist on type '{}'.
+Error: client/src/pages/DriverDashboard.tsx(66,24): error TS2339: Property 'roleData' does not exist on type '{}'.
+Error: client/src/pages/DriverDashboard.tsx(71,24): error TS2339: Property 'roleData' does not exist on type '{}'.
+Error: client/src/pages/DriverDashboard.tsx(75,51): error TS2339: Property 'roleData' does not exist on type '{}'.
+Error: client/src/pages/DriverDashboard.tsx(76,24): error TS2339: Property 'roleData' does not exist on type '{}'.
+Error: client/src/pages/DriverDashboard.tsx(81,64): error TS2339: Property 'roleData' does not exist on type '{}'.
+Error: client/src/pages/DriverDashboard.tsx(115,27): error TS2339: Property 'roleData' does not exist on type '{}'.
+Error: client/src/pages/DriverDashboard.tsx(237,16): error TS2339: Property 'roleData' does not exist on type '{}'.
+Error: client/src/pages/DriverDashboard.tsx(326,9): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+Error: client/src/pages/DriverDashboard.tsx(364,39): error TS2339: Property 'dailyEarnings' does not exist on type '{}'.
+Error: client/src/pages/DriverDashboard.tsx(370,56): error TS2339: Property 'completedDeliveries' does not exist on type '{}'.
+Error: client/src/pages/DriverDashboard.tsx(376,59): error TS2339: Property 'averageRating' does not exist on type '{}'.
+Error: client/src/pages/DriverDashboard.tsx(384,49): error TS2339: Property 'length' does not exist on type '{}'.
+Error: client/src/pages/DriverDashboard.tsx(390,34): error TS2339: Property 'map' does not exist on type '{}'.
+Error: client/src/pages/DriverDashboard.tsx(464,60): error TS2339: Property 'length' does not exist on type '{}'.
+Error: client/src/pages/DriverDashboard.tsx(466,38): error TS2339: Property 'map' does not exist on type '{}'.
+Error: client/src/pages/ProductForm.tsx(93,23): error TS2339: Property 'name' does not exist on type '{}'.
+Error: client/src/pages/ProductForm.tsx(94,30): error TS2339: Property 'description' does not exist on type '{}'.
+Error: client/src/pages/ProductForm.tsx(95,29): error TS2339: Property 'categoryId' does not exist on type '{}'.
+Error: client/src/pages/ProductForm.tsx(96,24): error TS2339: Property 'price' does not exist on type '{}'.
+Error: client/src/pages/ProductForm.tsx(97,33): error TS2339: Property 'compareAtPrice' does not exist on type '{}'.
+Error: client/src/pages/ProductForm.tsx(98,22): error TS2339: Property 'sku' does not exist on type '{}'.
+Error: client/src/pages/ProductForm.tsx(99,27): error TS2339: Property 'quantity' does not exist on type '{}'.
+Error: client/src/pages/ProductForm.tsx(100,25): error TS2339: Property 'weight' does not exist on type '{}'.
+Error: client/src/pages/ProductForm.tsx(101,25): error TS2339: Property 'images' does not exist on type '{}'.
+Error: client/src/pages/ProductForm.tsx(102,27): error TS2339: Property 'isActive' does not exist on type '{}'.
+Error: client/src/pages/ProductForm.tsx(103,29): error TS2339: Property 'isFeatured' does not exist on type '{}'.
+Error: client/src/pages/ProductForm.tsx(104,32): error TS2339: Property 'trackQuantity' does not exist on type '{}'.
+Error: client/src/pages/ProductForm.tsx(106,28): error TS2339: Property 'images' does not exist on type '{}'.
+Error: client/src/pages/ProductForm.tsx(276,30): error TS18046: 'categories' is of type 'unknown'.
+Error: client/src/pages/VendorDashboard.tsx(50,45): error TS18046: 'stats' is of type 'unknown'.
+Error: client/src/pages/VendorDashboard.tsx(68,29): error TS18046: 'stats' is of type 'unknown'.
+Error: client/src/pages/VendorDashboard.tsx(84,45): error TS18046: 'stats' is of type 'unknown'.
+Error: client/src/pages/VendorDashboard.tsx(100,46): error TS18046: 'stats' is of type 'unknown'.
+Error: client/src/pages/VendorDashboard.tsx(109,27): error TS18046: 'lowStockProducts' is of type 'unknown'.
+Error: client/src/pages/VendorDashboard.tsx(119,18): error TS18046: 'lowStockProducts' is of type 'unknown'.
+Error: client/src/pages/VendorDashboard.tsx(136,16): error TS18046: 'lowStockProducts' is of type 'unknown'.
+Error: client/src/pages/VendorDashboard.tsx(138,21): error TS18046: 'lowStockProducts' is of type 'unknown'.
+Error: client/src/pages/VendorDashboard.tsx(178,23): error TS18046: 'recentOrders' is of type 'unknown'.
+Error: client/src/pages/VendorDashboard.tsx(180,24): error TS18046: 'recentOrders' is of type 'unknown'.
+Error: server/storage.ts(357,11): error TS2461: Type 'any[] | QueryResult<never>' is not an array type.
+Error: Process completed with exit code 2.

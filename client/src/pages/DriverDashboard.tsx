@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import type { DriverStats, Order, User, Driver } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { useToast } from "@/hooks/use-toast";
@@ -56,22 +57,26 @@ export default function DriverDashboard() {
     }
   }, [user, authLoading, toast]);
 
-  const { data: driver, isLoading: driverLoading } = useQuery({
+  const { data: driver = {} as User & { roleData?: Driver }, isLoading: driverLoading } = useQuery<
+    User & { roleData?: Driver }
+  >({
     queryKey: ["/api/auth/user"],
     enabled: !!user,
   });
 
-  const { data: driverStats, isLoading: statsLoading } = useQuery({
+  const { data: driverStats = {} as DriverStats, isLoading: statsLoading } = useQuery<DriverStats>({
     queryKey: ["/api/analytics/driver", driver?.roleData?.id],
     enabled: !!driver?.roleData?.id,
   });
 
-  const { data: availableDeliveries, isLoading: deliveriesLoading } = useQuery({
+  const { data: availableDeliveries = [] as Order[], isLoading: deliveriesLoading } = useQuery<
+    Order[]
+  >({
     queryKey: ["/api/orders", { status: "ready_for_pickup" }],
     enabled: !!driver?.roleData?.id,
   });
 
-  const { data: currentDeliveries, isLoading: currentLoading } = useQuery({
+  const { data: currentDeliveries = [] as Order[], isLoading: currentLoading } = useQuery<Order[]>({
     queryKey: ["/api/orders", { driverId: driver?.roleData?.id, status: "in_transit" }],
     enabled: !!driver?.roleData?.id,
   });

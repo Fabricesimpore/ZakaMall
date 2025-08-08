@@ -373,13 +373,15 @@ export default function AdminDashboard() {
                               {transaction.transactionId || transaction.id}
                             </p>
                             <p className="text-sm text-gray-600">
-                              {transaction.createdAt ? new Date(transaction.createdAt).toLocaleDateString("fr-BF", {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }) : "Date inconnue"}
+                              {transaction.createdAt
+                                ? new Date(transaction.createdAt).toLocaleDateString("fr-BF", {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })
+                                : "Date inconnue"}
                             </p>
                             <p className="text-sm text-gray-500">
                               Méthode: {transaction.paymentMethod.replace("_", " ").toUpperCase()}

@@ -66,7 +66,7 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
     onError: (_error: Error) => {
       toast({
         title: "Erreur d'inscription",
-        description: error.message || "Impossible de créer le compte",
+        description: _error.message || "Impossible de créer le compte",
         variant: "destructive",
       });
     },

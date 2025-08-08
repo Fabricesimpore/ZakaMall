@@ -70,11 +70,12 @@ export default function PaymentMethodSelector({
 
   const initiatePaymentMutation = useMutation({
     mutationFn: async (data: PaymentFormData) => {
-      return await apiRequest("POST", "/api/payments/initiate", {
+      const response = await apiRequest("POST", "/api/payments/initiate", {
         orderId,
         paymentMethod: data.paymentMethod,
         phoneNumber: data.phoneNumber,
       });
+      return response.json();
     },
     onSuccess: (data: {
       success: boolean;
@@ -107,10 +108,8 @@ export default function PaymentMethodSelector({
 
     const checkStatus = async () => {
       try {
-        const response: { status: string; failureReason?: string } = await apiRequest(
-          "GET",
-          `/api/payments/${paymentId}/status`
-        );
+        const responseData = await apiRequest("GET", `/api/payments/${paymentId}/status`);
+        const response: { status: string; failureReason?: string } = await responseData.json();
 
         if (response.status === "completed") {
           setIsProcessing(false);

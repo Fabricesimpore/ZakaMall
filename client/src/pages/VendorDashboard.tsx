@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import type { VendorStats, Product, Order } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,17 +9,19 @@ import VendorProducts from "@/components/VendorProducts";
 import VendorOrders from "@/components/VendorOrders";
 
 export default function VendorDashboard() {
-  const { data: stats = {}, isLoading: statsLoading } = useQuery({
+  const { data: stats = {} as VendorStats, isLoading: statsLoading } = useQuery<VendorStats>({
     queryKey: ["/api/vendor/stats"],
   });
 
-  const { data: recentOrders = [], isLoading: ordersLoading } = useQuery({
+  const { data: recentOrders = [] as Order[], isLoading: ordersLoading } = useQuery<Order[]>({
     queryKey: ["/api/vendor/orders", { limit: 5 }],
   });
 
-  const { data: lowStockProducts = [], isLoading: stockLoading } = useQuery({
-    queryKey: ["/api/vendor/products/low-stock"],
-  });
+  const { data: lowStockProducts = [] as Product[], isLoading: stockLoading } = useQuery<Product[]>(
+    {
+      queryKey: ["/api/vendor/products/low-stock"],
+    }
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">

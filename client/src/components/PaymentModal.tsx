@@ -43,7 +43,8 @@ export default function PaymentModal({
 
   const initiatePaymentMutation = useMutation({
     mutationFn: async (data: { orderId: string; paymentMethod: string; phoneNumber?: string }) => {
-      return await apiRequest("POST", "/api/payments/initiate", data);
+      const response = await apiRequest("POST", "/api/payments/initiate", data);
+      return response.json();
     },
     onSuccess: async (data: { success: boolean; message: string; paymentId: string }) => {
       setPaymentId(data.paymentId);
@@ -78,10 +79,11 @@ export default function PaymentModal({
 
   const checkPaymentStatusMutation = useMutation({
     mutationFn: async (paymentId: string) => {
-      return await apiRequest("GET", `/api/payments/${paymentId}/status`);
+      const response = await apiRequest("GET", `/api/payments/${paymentId}/status`);
+      return response.json();
     },
-    onSuccess: (data: { success: boolean; message: string }) => {
-      if (data.status === "completed") {
+    onSuccess: (data: { success: boolean; message: string; failureReason?: string }) => {
+      if ((data as any).status === "completed") {
         setIsProcessing(false);
         toast({
           title: "Paiement réussi",
@@ -90,7 +92,7 @@ export default function PaymentModal({
         onPaymentSuccess();
         queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
         onClose();
-      } else if (data.status === "failed") {
+      } else if ((data as any).status === "failed") {
         setIsProcessing(false);
         toast({
           title: "Paiement échoué",
@@ -193,7 +195,9 @@ export default function PaymentModal({
               <Label className="text-base font-medium">Méthode de paiement</Label>
               <RadioGroup
                 value={paymentMethod}
-                onValueChange={(value: "orange_money" | "moov_money" | "cash_on_delivery") => setPaymentMethod(value)}
+                onValueChange={(value: "orange_money" | "moov_money" | "cash_on_delivery") =>
+                  setPaymentMethod(value)
+                }
               >
                 <div className="flex items-center space-x-3 p-3 border rounded-lg">
                   <RadioGroupItem value="orange_money" id="orange_money" />

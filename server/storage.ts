@@ -354,7 +354,7 @@ export class DatabaseStorage implements IStorage {
 
   // Category operations
   async createCategory(categoryData: InsertCategory): Promise<Category> {
-    const [category] = await db.insert(categories).values(categoryData).returning();
+    const [category] = (await db.insert(categories).values(categoryData).returning()) as Category[];
     return category;
   }
 
