@@ -48,7 +48,9 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  phone: varchar("phone"),
+  phone: varchar("phone").unique(),
+  phoneVerified: boolean("phone_verified").default(false),
+  phoneOperator: varchar("phone_operator"),
   role: userRoleEnum("role").default('customer').notNull(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -93,7 +95,7 @@ export const categories = pgTable("categories", {
   nameEn: varchar("name_en"),
   description: text("description"),
   icon: varchar("icon"),
-  parentId: varchar("parent_id").references(() => categories.id),
+  parentId: varchar("parent_id").references((): any => categories.id),
   isActive: boolean("is_active").default(true),
   sortOrder: integer("sort_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
@@ -483,3 +485,17 @@ export type InsertChatParticipant = z.infer<typeof insertChatParticipantSchema>;
 
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+
+// Phone verification table
+export const phoneVerifications = pgTable("phone_verifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  phone: varchar("phone").notNull(),
+  code: varchar("code").notNull(),
+  isUsed: boolean("is_used").default(false),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertPhoneVerificationSchema = createInsertSchema(phoneVerifications);
+export type PhoneVerification = typeof phoneVerifications.$inferSelect;
+export type InsertPhoneVerification = z.infer<typeof insertPhoneVerificationSchema>;

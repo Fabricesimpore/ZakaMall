@@ -3,8 +3,9 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertVendorSchema, insertDriverSchema, insertProductSchema, insertCartSchema, insertOrderSchema, insertReviewSchema, insertChatRoomSchema, insertMessageSchema, insertChatParticipantSchema } from "@shared/schema";
+import { insertVendorSchema, insertDriverSchema, insertProductSchema, insertCartSchema, insertOrderSchema, insertReviewSchema, insertChatRoomSchema, insertMessageSchema, insertChatParticipantSchema, insertPhoneVerificationSchema } from "@shared/schema";
 import { z } from "zod";
+import { randomInt } from "crypto";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -577,6 +578,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Phone authentication routes
+  app.post('/api/auth/phone-signup', async (req, res) => {
+    try {
+      const { firstName, lastName, phone, operator, role } = req.body;
+      
+      // Validate Burkina Faso phone number format
+      if (!phone || !phone.startsWith('+226') || phone.length !== 12) {
+        return res.status(400).json({ message: "Format de téléphone invalide. Utilisez +226XXXXXXXX" });
+      }
+      
+      // Check if phone already exists
+      const existingUser = await storage.getUserByPhone(phone);
+      if (existingUser) {
+        return res.status(400).json({ message: "Ce numéro de téléphone est déjà utilisé" });
+      }
+      
+      // Generate verification code
+      const verificationCode = randomInt(100000, 999999).toString();
+      
+      // Store user data temporarily and create verification record
+      await storage.createPhoneVerification({
+        phone,
+        code: verificationCode,
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+      });
+      
+      // Store pending user data (in production, you'd store this in a temporary table)
+      await storage.storePendingUser({
+        phone,
+        firstName,
+        lastName,
+        phoneOperator: operator,
+        role,
+      });
+      
+      // In production, send SMS via Orange/Moov API
+      console.log(`SMS Verification Code for ${phone}: ${verificationCode}`);
+      
+      res.json({ message: "Code de vérification envoyé", phone });
+    } catch (error) {
+      console.error("Error in phone signup:", error);
+      res.status(500).json({ message: "Erreur lors de l'inscription" });
+    }
+  });
+  
+  app.post('/api/auth/verify-phone', async (req, res) => {
+    try {
+      const { phone, code } = req.body;
+      
+      // Verify the code
+      const verification = await storage.verifyPhoneCode(phone, code);
+      if (!verification) {
+        return res.status(400).json({ message: "Code incorrect ou expiré" });
+      }
+      
+      // Get pending user data
+      const pendingUser = await storage.getPendingUser(phone);
+      if (!pendingUser) {
+        return res.status(400).json({ message: "Données d'utilisateur introuvables" });
+      }
+      
+      // Create the user
+      const user = await storage.createUserWithPhone({
+        ...pendingUser,
+        phone,
+        phoneVerified: true,
+        id: undefined, // Let the database generate the ID
+      });
+      
+      // Mark verification as used
+      await storage.markPhoneVerificationUsed(verification.id);
+      
+      // Clean up pending user data
+      await storage.deletePendingUser(phone);
+      
+      res.json({ message: "Compte créé avec succès", user: { id: user.id, phone: user.phone } });
+    } catch (error) {
+      console.error("Error in phone verification:", error);
+      res.status(500).json({ message: "Erreur lors de la vérification" });
+    }
+  });
+  
+  app.post('/api/auth/phone-login', async (req, res) => {
+    try {
+      const { phone } = req.body;
+      
+      // Check if user exists
+      const user = await storage.getUserByPhone(phone);
+      if (!user || !user.phoneVerified) {
+        return res.status(400).json({ message: "Utilisateur non trouvé ou téléphone non vérifié" });
+      }
+      
+      // Generate login code
+      const loginCode = randomInt(100000, 999999).toString();
+      
+      await storage.createPhoneVerification({
+        phone,
+        code: loginCode,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+      });
+      
+      // In production, send SMS
+      console.log(`SMS Login Code for ${phone}: ${loginCode}`);
+      
+      res.json({ message: "Code de connexion envoyé", phone });
+    } catch (error) {
+      console.error("Error in phone login:", error);
+      res.status(500).json({ message: "Erreur lors de la connexion" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // WebSocket server for real-time chat
@@ -639,7 +751,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     ws.on('close', () => {
       // Remove client from active connections
-      for (const [userId, client] of clients.entries()) {
+      for (const [userId, client] of clients) {
         if (client.ws === ws) {
           clients.delete(userId);
           break;

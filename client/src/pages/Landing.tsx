@@ -1,7 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import PhoneSignup from "@/components/PhoneSignup";
 
 export default function Landing() {
+  const [isSignupOpen, setIsSignupOpen] = useState(false);
+  
   const handleLogin = () => {
     window.location.href = "/api/login";
   };
@@ -31,12 +36,27 @@ export default function Landing() {
               <a href="#marketplace" className="text-zaka-dark hover:text-zaka-orange transition-colors">Marketplace</a>
               <a href="#vendors" className="text-zaka-dark hover:text-zaka-orange transition-colors">Vendeurs</a>
               <a href="#delivery" className="text-zaka-dark hover:text-zaka-orange transition-colors">Livraison</a>
-              <Button 
-                onClick={handleLogin}
-                className="bg-zaka-orange text-white hover:bg-zaka-orange px-4 py-2 rounded-lg transition-colors"
-              >
-                Se connecter
-              </Button>
+              <div className="flex space-x-4">
+                <Dialog open={isSignupOpen} onOpenChange={setIsSignupOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-zaka-green text-white hover:bg-zaka-green px-4 py-2 rounded-lg transition-colors">
+                      S'inscrire
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Créer un compte ZakaMall</DialogTitle>
+                    </DialogHeader>
+                    <PhoneSignup onSuccess={() => setIsSignupOpen(false)} />
+                  </DialogContent>
+                </Dialog>
+                <Button 
+                  onClick={handleLogin}
+                  className="bg-zaka-orange text-white hover:bg-zaka-orange px-4 py-2 rounded-lg transition-colors"
+                >
+                  Se connecter
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -54,18 +74,25 @@ export default function Landing() {
                 Connectant vendeurs, clients et livreurs avec des solutions de paiement locales
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  onClick={handleLogin}
-                  className="bg-white text-zaka-orange px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-                >
-                  Commencer à acheter
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="bg-white text-zaka-orange px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                      S'inscrire maintenant
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Rejoindre ZakaMall</DialogTitle>
+                    </DialogHeader>
+                    <PhoneSignup onSuccess={() => {}} />
+                  </DialogContent>
+                </Dialog>
                 <Button 
                   onClick={handleLogin}
                   variant="outline"
                   className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-zaka-orange transition-colors"
                 >
-                  Devenir vendeur
+                  Se connecter
                 </Button>
               </div>
             </div>
@@ -88,7 +115,7 @@ export default function Landing() {
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {/* Customer Card */}
-            <Card className="cursor-pointer" onClick={handleLogin}>
+            <Card className="cursor-pointer">
               <CardContent className="p-8 text-center">
                 <div className="w-16 h-16 bg-zaka-blue bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <i className="fas fa-shopping-cart text-2xl text-zaka-blue"></i>
@@ -101,14 +128,24 @@ export default function Landing() {
                   <li>✓ Livraison rapide</li>
                   <li>✓ Support en français</li>
                 </ul>
-                <Button className="w-full bg-zaka-blue text-white py-3 rounded-lg font-semibold hover:bg-zaka-blue transition-colors">
-                  Commencer les achats
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="w-full bg-zaka-blue text-white py-3 rounded-lg font-semibold hover:bg-zaka-blue transition-colors">
+                      Commencer les achats
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Inscription Client</DialogTitle>
+                    </DialogHeader>
+                    <PhoneSignup onSuccess={() => {}} />
+                  </DialogContent>
+                </Dialog>
               </CardContent>
             </Card>
 
             {/* Vendor Card */}
-            <Card className="cursor-pointer" onClick={handleLogin}>
+            <Card className="cursor-pointer">
               <CardContent className="p-8 text-center">
                 <div className="w-16 h-16 bg-zaka-green bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <i className="fas fa-store text-2xl text-zaka-green"></i>
@@ -121,14 +158,24 @@ export default function Landing() {
                   <li>✓ Analytics de vente</li>
                   <li>✓ Commission compétitive</li>
                 </ul>
-                <Button className="w-full bg-zaka-green text-white py-3 rounded-lg font-semibold">
-                  Devenir vendeur
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="w-full bg-zaka-green text-white py-3 rounded-lg font-semibold">
+                      Devenir vendeur
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Inscription Vendeur</DialogTitle>
+                    </DialogHeader>
+                    <PhoneSignup onSuccess={() => {}} />
+                  </DialogContent>
+                </Dialog>
               </CardContent>
             </Card>
 
             {/* Driver Card */}
-            <Card className="cursor-pointer" onClick={handleLogin}>
+            <Card className="cursor-pointer">
               <CardContent className="p-8 text-center">
                 <div className="w-16 h-16 bg-zaka-orange bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <i className="fas fa-motorcycle text-2xl text-zaka-orange"></i>
@@ -141,9 +188,19 @@ export default function Landing() {
                   <li>✓ GPS intégré</li>
                   <li>✓ Support 24/7</li>
                 </ul>
-                <Button className="w-full bg-zaka-orange text-white py-3 rounded-lg font-semibold hover:bg-zaka-orange transition-colors">
-                  Devenir livreur
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="w-full bg-zaka-orange text-white py-3 rounded-lg font-semibold hover:bg-zaka-orange transition-colors">
+                      Devenir livreur
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Inscription Livreur</DialogTitle>
+                    </DialogHeader>
+                    <PhoneSignup onSuccess={() => {}} />
+                  </DialogContent>
+                </Dialog>
               </CardContent>
             </Card>
           </div>

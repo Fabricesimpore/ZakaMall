@@ -11,6 +11,7 @@ import {
   chatRooms,
   chatParticipants,
   messages,
+  phoneVerifications,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -36,17 +37,31 @@ import {
   type InsertChatParticipant,
   type Message,
   type InsertMessage,
+  type PhoneVerification,
+  type InsertPhoneVerification,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, ilike, or, count, avg, sum } from "drizzle-orm";
+import { eq, desc, and, ilike, or, count, avg, sum, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
+  getUserByPhone(phone: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   createUser(user: InsertUser): Promise<User>;
+  createUserWithPhone(user: InsertUser): Promise<User>;
   updateUserRole(userId: string, role: 'customer' | 'vendor' | 'driver' | 'admin'): Promise<User>;
+  
+  // Phone verification operations
+  createPhoneVerification(verification: InsertPhoneVerification): Promise<PhoneVerification>;
+  verifyPhoneCode(phone: string, code: string): Promise<PhoneVerification | undefined>;
+  markPhoneVerificationUsed(id: string): Promise<void>;
+  
+  // Temporary pending user storage (in production, use a proper cache like Redis)
+  storePendingUser(userData: any): Promise<void>;
+  getPendingUser(phone: string): Promise<any>;
+  deletePendingUser(phone: string): Promise<void>;
   
   // Vendor operations
   createVendor(vendor: InsertVendor): Promise<Vendor>;
@@ -127,10 +142,18 @@ export interface IStorage {
   getTotalUnreadCount(userId: string): Promise<number>;
 }
 
+// Temporary in-memory storage for pending users (use Redis in production)
+const pendingUsers = new Map<string, any>();
+
 export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByPhone(phone: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.phone, phone));
     return user;
   }
 
@@ -150,6 +173,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(userData: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .returning();
+    return user;
+  }
+
+  async createUserWithPhone(userData: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
       .values(userData)
@@ -330,14 +361,15 @@ export class DatabaseStorage implements IStorage {
       );
     }
 
+    const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
     let query = db
       .select()
       .from(products)
-      .where(conditions.length === 1 ? conditions[0] : and(...conditions))
+      .where(whereCondition)
       .orderBy(desc(products.createdAt));
 
     if (filters?.limit) {
-      query = query.limit(filters.limit);
+      return await query.limit(filters.limit);
     }
 
     return await query;
@@ -472,13 +504,15 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(orders.status, filters.status as any));
     }
 
-    let query = db.select().from(orders);
-    
     if (conditions.length > 0) {
-      query = query.where(conditions.length === 1 ? conditions[0] : and(...conditions));
+      return await db
+        .select()
+        .from(orders)
+        .where(conditions.length === 1 ? conditions[0] : and(...conditions))
+        .orderBy(desc(orders.createdAt));
     }
 
-    return await query.orderBy(desc(orders.createdAt));
+    return await db.select().from(orders).orderBy(desc(orders.createdAt));
   }
 
   async updateOrderStatus(id: string, status: string): Promise<Order> {
@@ -654,7 +688,7 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(chatParticipants, eq(chatRooms.id, chatParticipants.chatRoomId))
       .where(and(eq(chatParticipants.userId, userId), eq(chatRooms.isActive, true)))
       .orderBy(desc(chatRooms.lastMessageAt));
-    return rooms;
+    return rooms.map(room => ({ ...room, unreadCount: room.unreadCount || 0 }));
   }
 
   async addChatParticipant(participantData: InsertChatParticipant): Promise<ChatParticipant> {
@@ -721,14 +755,7 @@ export class DatabaseStorage implements IStorage {
 
   async searchUsers(query: string): Promise<User[]> {
     const searchUsers = await db
-      .select({
-        id: users.id,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        email: users.email,
-        profileImageUrl: users.profileImageUrl,
-        role: users.role,
-      })
+      .select()
       .from(users)
       .where(
         or(
@@ -786,6 +813,57 @@ export class DatabaseStorage implements IStorage {
       .where(eq(chatParticipants.userId, userId));
     
     return Number(result?.total || 0);
+  }
+
+  // Phone verification operations
+  async createPhoneVerification(verificationData: InsertPhoneVerification): Promise<PhoneVerification> {
+    const [verification] = await db
+      .insert(phoneVerifications)
+      .values(verificationData)
+      .returning();
+    return verification;
+  }
+
+  async verifyPhoneCode(phone: string, code: string): Promise<PhoneVerification | undefined> {
+    const [verification] = await db
+      .select()
+      .from(phoneVerifications)
+      .where(
+        and(
+          eq(phoneVerifications.phone, phone),
+          eq(phoneVerifications.code, code),
+          eq(phoneVerifications.isUsed, false)
+        )
+      )
+      .orderBy(desc(phoneVerifications.createdAt))
+      .limit(1);
+
+    // Check if verification is still valid (not expired)
+    if (verification && new Date() > verification.expiresAt) {
+      return undefined;
+    }
+
+    return verification;
+  }
+
+  async markPhoneVerificationUsed(id: string): Promise<void> {
+    await db
+      .update(phoneVerifications)
+      .set({ isUsed: true })
+      .where(eq(phoneVerifications.id, id));
+  }
+
+  // Temporary pending user storage
+  async storePendingUser(userData: any): Promise<void> {
+    pendingUsers.set(userData.phone, userData);
+  }
+
+  async getPendingUser(phone: string): Promise<any> {
+    return pendingUsers.get(phone);
+  }
+
+  async deletePendingUser(phone: string): Promise<void> {
+    pendingUsers.delete(phone);
   }
 }
 
