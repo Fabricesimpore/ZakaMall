@@ -8,6 +8,9 @@ import {
   orderItems,
   cart,
   reviews,
+  chatRooms,
+  chatParticipants,
+  messages,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -27,6 +30,12 @@ import {
   type InsertCartItem,
   type Review,
   type InsertReview,
+  type ChatRoom,
+  type InsertChatRoom,
+  type ChatParticipant,
+  type InsertChatParticipant,
+  type Message,
+  type InsertMessage,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, ilike, or, count, avg, sum } from "drizzle-orm";
@@ -103,6 +112,16 @@ export interface IStorage {
     platformRevenue: number;
     availableDrivers: number;
   }>;
+  
+  // Chat operations
+  createChatRoom(chatRoom: InsertChatRoom): Promise<ChatRoom>;
+  getUserChatRooms(userId: string): Promise<ChatRoom[]>;
+  addChatParticipant(participant: InsertChatParticipant): Promise<ChatParticipant>;
+  isUserInChatRoom(userId: string, chatRoomId: string): Promise<boolean>;
+  createMessage(message: InsertMessage): Promise<Message>;
+  getChatMessages(chatRoomId: string, limit?: number, offset?: number): Promise<Message[]>;
+  searchUsers(query: string): Promise<User[]>;
+  getChatRoomParticipants(chatRoomId: string): Promise<ChatParticipant[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -604,6 +623,115 @@ export class DatabaseStorage implements IStorage {
       platformRevenue: Number(revenueResult?.total || 0),
       availableDrivers: driversResult?.count || 0,
     };
+  }
+
+  // Chat operations
+  async createChatRoom(chatRoomData: InsertChatRoom): Promise<ChatRoom> {
+    const [chatRoom] = await db
+      .insert(chatRooms)
+      .values(chatRoomData)
+      .returning();
+    return chatRoom;
+  }
+
+  async getUserChatRooms(userId: string): Promise<ChatRoom[]> {
+    const rooms = await db
+      .select({
+        id: chatRooms.id,
+        name: chatRooms.name,
+        type: chatRooms.type,
+        isActive: chatRooms.isActive,
+        createdBy: chatRooms.createdBy,
+        createdAt: chatRooms.createdAt,
+        updatedAt: chatRooms.updatedAt,
+      })
+      .from(chatRooms)
+      .innerJoin(chatParticipants, eq(chatRooms.id, chatParticipants.chatRoomId))
+      .where(and(eq(chatParticipants.userId, userId), eq(chatRooms.isActive, true)))
+      .orderBy(desc(chatRooms.updatedAt));
+    return rooms;
+  }
+
+  async addChatParticipant(participantData: InsertChatParticipant): Promise<ChatParticipant> {
+    const [participant] = await db
+      .insert(chatParticipants)
+      .values(participantData)
+      .returning();
+    return participant;
+  }
+
+  async isUserInChatRoom(userId: string, chatRoomId: string): Promise<boolean> {
+    const [participant] = await db
+      .select()
+      .from(chatParticipants)
+      .where(and(eq(chatParticipants.userId, userId), eq(chatParticipants.chatRoomId, chatRoomId)));
+    return !!participant;
+  }
+
+  async createMessage(messageData: InsertMessage): Promise<Message> {
+    const [message] = await db
+      .insert(messages)
+      .values(messageData)
+      .returning();
+    return message;
+  }
+
+  async getChatMessages(chatRoomId: string, limit = 50, offset = 0): Promise<Message[]> {
+    const messageList = await db
+      .select({
+        id: messages.id,
+        chatRoomId: messages.chatRoomId,
+        senderId: messages.senderId,
+        content: messages.content,
+        messageType: messages.messageType,
+        isDeleted: messages.isDeleted,
+        createdAt: messages.createdAt,
+        updatedAt: messages.updatedAt,
+        sender: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          profileImageUrl: users.profileImageUrl,
+        },
+      })
+      .from(messages)
+      .innerJoin(users, eq(messages.senderId, users.id))
+      .where(and(eq(messages.chatRoomId, chatRoomId), eq(messages.isDeleted, false)))
+      .orderBy(desc(messages.createdAt))
+      .limit(limit)
+      .offset(offset);
+    return messageList;
+  }
+
+  async searchUsers(query: string): Promise<User[]> {
+    const searchUsers = await db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        profileImageUrl: users.profileImageUrl,
+        role: users.role,
+      })
+      .from(users)
+      .where(
+        or(
+          ilike(users.firstName, `%${query}%`),
+          ilike(users.lastName, `%${query}%`),
+          ilike(users.email, `%${query}%`)
+        )
+      )
+      .limit(20);
+    return searchUsers;
+  }
+
+  async getChatRoomParticipants(chatRoomId: string): Promise<ChatParticipant[]> {
+    const participants = await db
+      .select()
+      .from(chatParticipants)
+      .where(eq(chatParticipants.chatRoomId, chatRoomId));
+    return participants;
   }
 }
 

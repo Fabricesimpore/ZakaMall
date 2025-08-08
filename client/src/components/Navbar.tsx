@@ -21,6 +21,7 @@ export default function Navbar() {
       { href: "/customer", label: "Marketplace", icon: "fas fa-shopping-bag" },
       { href: "/vendor", label: "Vendeurs", icon: "fas fa-store" },
       { href: "/driver", label: "Livraison", icon: "fas fa-motorcycle" },
+      { href: "/chat", label: "Messages", icon: "fas fa-comments" },
     ];
     
     if (user?.role === 'admin') {

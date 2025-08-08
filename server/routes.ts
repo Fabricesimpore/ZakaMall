@@ -1,8 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertVendorSchema, insertDriverSchema, insertProductSchema, insertCartSchema, insertOrderSchema, insertReviewSchema } from "@shared/schema";
+import { insertVendorSchema, insertDriverSchema, insertProductSchema, insertCartSchema, insertOrderSchema, insertReviewSchema, insertChatRoomSchema, insertMessageSchema, insertChatParticipantSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -451,6 +452,164 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Chat routes
+  app.get('/api/chat/rooms', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const chatRooms = await storage.getUserChatRooms(userId);
+      res.json(chatRooms);
+    } catch (error) {
+      console.error("Error fetching chat rooms:", error);
+      res.status(500).json({ message: "Failed to fetch chat rooms" });
+    }
+  });
+
+  app.post('/api/chat/rooms', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { participantIds, name } = req.body;
+      
+      const chatRoom = await storage.createChatRoom({
+        name,
+        type: participantIds.length > 1 ? 'group' : 'direct',
+        createdBy: userId,
+      });
+      
+      // Add creator as participant
+      await storage.addChatParticipant({
+        chatRoomId: chatRoom.id,
+        userId,
+      });
+      
+      // Add other participants
+      for (const participantId of participantIds) {
+        if (participantId !== userId) {
+          await storage.addChatParticipant({
+            chatRoomId: chatRoom.id,
+            userId: participantId,
+          });
+        }
+      }
+      
+      res.json(chatRoom);
+    } catch (error) {
+      console.error("Error creating chat room:", error);
+      res.status(500).json({ message: "Failed to create chat room" });
+    }
+  });
+
+  app.get('/api/chat/rooms/:roomId/messages', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { roomId } = req.params;
+      const { limit = 50, offset = 0 } = req.query;
+      
+      // Check if user is participant
+      const isParticipant = await storage.isUserInChatRoom(userId, roomId);
+      if (!isParticipant) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const messages = await storage.getChatMessages(roomId, parseInt(limit), parseInt(offset));
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ message: "Failed to fetch messages" });
+    }
+  });
+
+  app.post('/api/chat/rooms/:roomId/messages', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { roomId } = req.params;
+      const messageData = insertMessageSchema.parse({ ...req.body, chatRoomId: roomId, senderId: userId });
+      
+      // Check if user is participant
+      const isParticipant = await storage.isUserInChatRoom(userId, roomId);
+      if (!isParticipant) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const message = await storage.createMessage(messageData);
+      res.json(message);
+    } catch (error) {
+      console.error("Error creating message:", error);
+      res.status(500).json({ message: "Failed to create message" });
+    }
+  });
+
+  app.get('/api/users/search', isAuthenticated, async (req: any, res) => {
+    try {
+      const { q } = req.query;
+      if (!q || q.length < 2) {
+        return res.json([]);
+      }
+      
+      const users = await storage.searchUsers(q as string);
+      res.json(users);
+    } catch (error) {
+      console.error("Error searching users:", error);
+      res.status(500).json({ message: "Failed to search users" });
+    }
+  });
+
   const httpServer = createServer(app);
+  
+  // WebSocket server for real-time chat
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Store connected clients with user info
+  const clients = new Map<string, { ws: WebSocket; userId: string }>();
+  
+  wss.on('connection', (ws: WebSocket, req: any) => {
+    console.log('WebSocket client connected');
+    
+    ws.on('message', async (message: string) => {
+      try {
+        const data = JSON.parse(message);
+        
+        if (data.type === 'auth') {
+          // Store client with user ID
+          clients.set(data.userId, { ws, userId: data.userId });
+          ws.send(JSON.stringify({ type: 'auth_success' }));
+        } else if (data.type === 'join_room') {
+          // Join a chat room (for future use)
+          ws.send(JSON.stringify({ type: 'room_joined', roomId: data.roomId }));
+        } else if (data.type === 'new_message') {
+          // Broadcast new message to all participants in the room
+          const roomParticipants = await storage.getChatRoomParticipants(data.roomId);
+          const messageWithSender = {
+            ...data.message,
+            sender: await storage.getUser(data.message.senderId)
+          };
+          
+          roomParticipants.forEach(participant => {
+            const client = clients.get(participant.userId);
+            if (client && client.ws.readyState === WebSocket.OPEN) {
+              client.ws.send(JSON.stringify({
+                type: 'message_received',
+                message: messageWithSender,
+                roomId: data.roomId
+              }));
+            }
+          });
+        }
+      } catch (error) {
+        console.error('WebSocket message error:', error);
+      }
+    });
+    
+    ws.on('close', () => {
+      // Remove client from active connections
+      for (const [userId, client] of clients.entries()) {
+        if (client.ws === ws) {
+          clients.delete(userId);
+          break;
+        }
+      }
+      console.log('WebSocket client disconnected');
+    });
+  });
+  
   return httpServer;
 }
