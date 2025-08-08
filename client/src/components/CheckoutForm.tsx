@@ -25,6 +25,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import type { CartItemWithProduct } from "@shared/schema";
 import PaymentModal from "@/components/PaymentModal";
 
 const deliverySchema = z.object({
@@ -38,7 +39,7 @@ const deliverySchema = z.object({
 });
 
 interface CheckoutFormProps {
-  cartItems: any[];
+  cartItems: CartItemWithProduct[];
   total: number;
   onBack: () => void;
   onClose: () => void;

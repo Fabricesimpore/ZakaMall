@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { Vendor, AdminStats, TransactionData } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function AdminDashboard() {
-  const [, setSelectedVendor] = useState<any>(null);
+  const [, setSelectedVendor] = useState<Vendor | null>(null);
   const [approvalNotes, setApprovalNotes] = useState("");
   const [transactionFilters, setTransactionFilters] = useState({
     status: "all",
@@ -38,20 +39,21 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: stats = {} as any, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/admin/dashboard"],
   });
 
-  const { data: pendingVendors = [] as any[], isLoading: vendorsLoading } = useQuery({
+  const typedStats = (stats || {}) as AdminStats;
+
+  const { data: pendingVendors = [] as Vendor[], isLoading: vendorsLoading } = useQuery({
     queryKey: ["/api/admin/vendors/pending"],
   });
 
-  const {
-    data: transactions = { transactions: [], total: 0 } as any,
-    isLoading: transactionsLoading,
-  } = useQuery({
+  const { data: transactionsData, isLoading: transactionsLoading } = useQuery({
     queryKey: ["/api/admin/transactions", transactionFilters],
   });
+
+  const typedTransactions = (transactionsData || { transactions: [], total: 0 }) as TransactionData;
 
   const approveVendorMutation = useMutation({
     mutationFn: async ({
@@ -114,7 +116,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Vendeurs actifs</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? "..." : stats.activeVendors || 0}
+                    {statsLoading ? "..." : typedStats.activeVendors || 0}
                   </p>
                 </div>
               </div>
@@ -130,7 +132,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Commandes du jour</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? "..." : stats.dailyOrders || 0}
+                    {statsLoading ? "..." : typedStats.dailyOrders || 0}
                   </p>
                 </div>
               </div>
@@ -148,7 +150,7 @@ export default function AdminDashboard() {
                   <p className="text-2xl font-bold text-gray-900">
                     {statsLoading
                       ? "..."
-                      : `${(stats.platformRevenue || 0).toLocaleString("fr-BF")} CFA`}
+                      : `${(typedStats.platformRevenue || 0).toLocaleString("fr-BF")} CFA`}
                   </p>
                 </div>
               </div>
@@ -164,7 +166,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Chauffeurs disponibles</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? "..." : stats.availableDrivers || 0}
+                    {statsLoading ? "..." : typedStats.availableDrivers || 0}
                   </p>
                 </div>
               </div>
@@ -363,7 +365,7 @@ export default function AdminDashboard() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {transactions.transactions.map((transaction: any) => (
+                    {typedTransactions.transactions.map((transaction) => (
                       <div key={transaction.id} className="border rounded-lg p-4">
                         <div className="flex items-center justify-between">
                           <div>
@@ -371,13 +373,13 @@ export default function AdminDashboard() {
                               {transaction.transactionId || transaction.id}
                             </p>
                             <p className="text-sm text-gray-600">
-                              {new Date(transaction.createdAt).toLocaleDateString("fr-BF", {
+                              {transaction.createdAt ? new Date(transaction.createdAt).toLocaleDateString("fr-BF", {
                                 year: "numeric",
                                 month: "short",
                                 day: "numeric",
                                 hour: "2-digit",
                                 minute: "2-digit",
-                              })}
+                              }) : "Date inconnue"}
                             </p>
                             <p className="text-sm text-gray-500">
                               Méthode: {transaction.paymentMethod.replace("_", " ").toUpperCase()}
@@ -407,7 +409,7 @@ export default function AdminDashboard() {
                       </div>
                     ))}
 
-                    {transactions.transactions.length === 0 && (
+                    {typedTransactions.transactions.length === 0 && (
                       <div className="text-center py-8">
                         <i className="fas fa-receipt text-6xl text-gray-300 mb-4"></i>
                         <h3 className="text-lg font-semibold text-gray-600 mb-2">

@@ -76,7 +76,7 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
     mutationFn: async ({ email, code }: { email: string; code: string }) => {
       return await apiRequest("POST", "/api/auth/verify-email", { email, code });
     },
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       toast({
         title: "Compte créé avec succès!",
         description: "Vous pouvez maintenant compléter votre profil",

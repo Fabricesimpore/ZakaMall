@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Order, DriverStats } from "@shared/schema";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -16,17 +17,19 @@ const orderStatusConfig = {
 
 export default function DriverDashboard() {
   const [isOnline, setIsOnline] = useState(false);
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: orders = [], isLoading: ordersLoading } = useQuery({
+  const { data: orders = [] as Order[], isLoading: ordersLoading } = useQuery({
     queryKey: ["/api/driver/orders"],
   });
 
-  const { data: stats = {}, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/driver/stats"],
   });
+  
+  const typedStats = (stats || {}) as DriverStats;
 
   const updateStatusMutation = useMutation({
     mutationFn: async (isOnline: boolean) => {
@@ -125,7 +128,7 @@ export default function DriverDashboard() {
 
       return () => clearInterval(interval);
     }
-  }, [isOnline]);
+  }, [isOnline, updateLocationMutation]);
 
   const handleStatusToggle = (online: boolean) => {
     setIsOnline(online);
@@ -178,7 +181,7 @@ export default function DriverDashboard() {
                   <p className="text-2xl font-bold text-gray-900">
                     {statsLoading
                       ? "..."
-                      : `${(stats.dailyEarnings || 0).toLocaleString("fr-BF")} CFA`}
+                      : `${(typedStats.dailyEarnings || 0).toLocaleString("fr-BF")} CFA`}
                   </p>
                 </div>
               </div>
@@ -194,7 +197,7 @@ export default function DriverDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Livraisons terminées</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? "..." : stats.completedDeliveries || 0}
+                    {statsLoading ? "..." : typedStats.completedDeliveries || 0}
                   </p>
                 </div>
               </div>
@@ -210,7 +213,7 @@ export default function DriverDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Note moyenne</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? "..." : (stats.averageRating || 0).toFixed(1)}/5
+                    {statsLoading ? "..." : (typedStats.averageRating || 0).toFixed(1)}/5
                   </p>
                 </div>
               </div>

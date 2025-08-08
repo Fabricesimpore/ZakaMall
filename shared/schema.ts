@@ -135,7 +135,7 @@ export const drivers = pgTable("drivers", {
 });
 
 // Categories table
-export const categories = pgTable("categories", {
+export const categories: any = pgTable("categories", {
   id: varchar("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
@@ -647,3 +647,30 @@ export const emailVerifications = pgTable("email_verifications", {
 export const insertEmailVerificationSchema = createInsertSchema(emailVerifications);
 export type EmailVerification = typeof emailVerifications.$inferSelect;
 export type InsertEmailVerification = z.infer<typeof insertEmailVerificationSchema>;
+
+// Additional types for frontend components
+export interface AdminStats {
+  totalUsers?: number;
+  totalOrders?: number;
+  totalRevenue?: number;
+  pendingVendors?: number;
+  activeDrivers?: number;
+  [key: string]: any;
+}
+
+export interface TransactionData {
+  transactions: Payment[];
+  total: number;
+}
+
+export interface CartItemWithProduct extends CartItem {
+  product: Product;
+}
+
+export interface DriverStats {
+  totalDeliveries?: number;
+  todayDeliveries?: number;
+  rating?: number;
+  earnings?: number;
+  [key: string]: any;
+}

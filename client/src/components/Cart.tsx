@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { CartItemWithProduct } from "@shared/schema";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +18,7 @@ export default function Cart({ onClose }: CartProps) {
   const [showCheckout, setShowCheckout] = useState(false);
   const { toast } = useToast();
 
-  const { data: cartItems = [], isLoading } = useQuery({
+  const { data: cartItems = [] as CartItemWithProduct[], isLoading } = useQuery({
     queryKey: ["/api/cart"],
   });
 
@@ -112,7 +113,7 @@ export default function Cart({ onClose }: CartProps) {
 
   const calculateTotal = () => {
     if (!Array.isArray(cartItems) || cartItems.length === 0) return 0;
-    return cartItems.reduce((total: number, item: any) => {
+    return cartItems.reduce((total: number, item: CartItemWithProduct) => {
       return total + parseFloat(item.product.price) * item.quantity;
     }, 0);
   };
