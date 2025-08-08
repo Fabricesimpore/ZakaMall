@@ -101,7 +101,7 @@ export default function Landing() {
                   <li>✓ Livraison rapide</li>
                   <li>✓ Support en français</li>
                 </ul>
-                <Button className="w-full bg-zaka-blue text-white py-3 rounded-lg font-semibold">
+                <Button className="w-full bg-zaka-blue text-white py-3 rounded-lg font-semibold hover:bg-zaka-blue transition-colors">
                   Commencer les achats
                 </Button>
               </CardContent>
@@ -141,7 +141,7 @@ export default function Landing() {
                   <li>✓ GPS intégré</li>
                   <li>✓ Support 24/7</li>
                 </ul>
-                <Button className="w-full bg-zaka-orange text-white py-3 rounded-lg font-semibold">
+                <Button className="w-full bg-zaka-orange text-white py-3 rounded-lg font-semibold hover:bg-zaka-orange transition-colors">
                   Devenir livreur
                 </Button>
               </CardContent>
