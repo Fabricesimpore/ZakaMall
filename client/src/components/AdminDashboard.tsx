@@ -13,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
@@ -28,7 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function AdminDashboard() {
-  const [selectedVendor, setSelectedVendor] = useState<any>(null);
+  const [, setSelectedVendor] = useState<any>(null);
   const [approvalNotes, setApprovalNotes] = useState("");
   const [transactionFilters, setTransactionFilters] = useState({
     status: "all",
@@ -39,18 +38,20 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: stats = {}, isLoading: statsLoading } = useQuery({
+  const { data: stats = {} as any, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/admin/dashboard"],
   });
 
-  const { data: pendingVendors = [], isLoading: vendorsLoading } = useQuery({
+  const { data: pendingVendors = [] as any[], isLoading: vendorsLoading } = useQuery({
     queryKey: ["/api/admin/vendors/pending"],
   });
 
-  const { data: transactions = { transactions: [], total: 0 }, isLoading: transactionsLoading } =
-    useQuery({
-      queryKey: ["/api/admin/transactions", transactionFilters],
-    });
+  const {
+    data: transactions = { transactions: [], total: 0 } as any,
+    isLoading: transactionsLoading,
+  } = useQuery({
+    queryKey: ["/api/admin/transactions", transactionFilters],
+  });
 
   const approveVendorMutation = useMutation({
     mutationFn: async ({
@@ -175,7 +176,7 @@ export default function AdminDashboard() {
         <Tabs defaultValue="vendors" className="space-y-6">
           <TabsList>
             <TabsTrigger value="vendors">
-              Approbation vendeurs ({pendingVendors.length})
+              Approbation vendeurs ({(pendingVendors as any[]).length})
             </TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -196,7 +197,7 @@ export default function AdminDashboard() {
                       </div>
                     ))}
                   </div>
-                ) : pendingVendors.length === 0 ? (
+                ) : (pendingVendors as any[]).length === 0 ? (
                   <div className="text-center py-8">
                     <i className="fas fa-check-circle text-6xl text-green-300 mb-4"></i>
                     <h3 className="text-lg font-semibold text-gray-600 mb-2">
@@ -206,7 +207,7 @@ export default function AdminDashboard() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {pendingVendors.map((vendor: any) => (
+                    {(pendingVendors as any[]).map((vendor: any) => (
                       <div key={vendor.id} className="border rounded-lg p-6">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">

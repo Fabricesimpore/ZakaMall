@@ -6,7 +6,6 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -138,13 +137,13 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
 
         const order = await createOrderMutation.mutateAsync(orderData);
         if (!firstOrderId) {
-          firstOrderId = order.id;
+          firstOrderId = (order as any).id;
         }
       }
 
       setCreatedOrderId(firstOrderId);
       setShowPaymentModal(true);
-    } catch (error) {
+    } catch {
       toast({
         title: "Erreur",
         description: "Impossible de créer la commande. Veuillez réessayer.",
@@ -158,14 +157,6 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
     setStep("success");
     queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
     queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
-  };
-
-  const handlePaymentError = (error: string) => {
-    toast({
-      title: "Erreur de paiement",
-      description: error,
-      variant: "destructive",
-    });
   };
 
   return (

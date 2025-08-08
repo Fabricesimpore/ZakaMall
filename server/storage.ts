@@ -14,6 +14,7 @@ import {
   payments,
   phoneVerifications,
   emailVerifications,
+  sessions,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -265,24 +266,6 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUser(userId: string): Promise<void> {
     await db.delete(users).where(eq(users.id, userId));
-  }
-
-  async getAdminStats(): Promise<any> {
-    const adminCount = await db
-      .select({ count: count() })
-      .from(users)
-      .where(eq(users.role, "admin"));
-
-    const userCount = await db.select({ count: count() }).from(users);
-
-    const totalSessions = await db.select({ count: count() }).from(sessions);
-
-    return {
-      totalAdmins: adminCount[0]?.count || 0,
-      totalUsers: userCount[0]?.count || 0,
-      activeSessions: totalSessions[0]?.count || 0,
-      platformUptime: "99.9%",
-    };
   }
 
   // Vendor operations
