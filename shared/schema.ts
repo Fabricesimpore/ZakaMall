@@ -1,5 +1,5 @@
-import { sql } from 'drizzle-orm';
-import { relations } from 'drizzle-orm';
+import { sql } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 import {
   index,
   jsonb,
@@ -23,27 +23,51 @@ export const sessions = pgTable(
     sess: jsonb("sess").notNull(),
     expire: timestamp("expire").notNull(),
   },
-  (table) => [index("IDX_session_expire").on(table.expire)],
+  (table) => [index("IDX_session_expire").on(table.expire)]
 );
 
 // User roles enum
-export const userRoleEnum = pgEnum('user_role', ['customer', 'vendor', 'driver', 'admin']);
+export const userRoleEnum = pgEnum("user_role", ["customer", "vendor", "driver", "admin"]);
 
 // Order status enum
-export const orderStatusEnum = pgEnum('order_status', ['pending', 'confirmed', 'preparing', 'ready_for_pickup', 'in_transit', 'delivered', 'cancelled']);
+export const orderStatusEnum = pgEnum("order_status", [
+  "pending",
+  "confirmed",
+  "preparing",
+  "ready_for_pickup",
+  "in_transit",
+  "delivered",
+  "cancelled",
+]);
 
 // Payment status enum
-export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'completed', 'failed', 'refunded']);
+export const paymentStatusEnum = pgEnum("payment_status", [
+  "pending",
+  "completed",
+  "failed",
+  "refunded",
+]);
 
 // Payment method enum
-export const paymentMethodEnum = pgEnum('payment_method', ['orange_money', 'moov_money', 'cash_on_delivery']);
+export const paymentMethodEnum = pgEnum("payment_method", [
+  "orange_money",
+  "moov_money",
+  "cash_on_delivery",
+]);
 
 // Vendor status enum
-export const vendorStatusEnum = pgEnum('vendor_status', ['pending', 'approved', 'rejected', 'suspended']);
+export const vendorStatusEnum = pgEnum("vendor_status", [
+  "pending",
+  "approved",
+  "rejected",
+  "suspended",
+]);
 
 // User storage table.
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
@@ -51,7 +75,7 @@ export const users = pgTable("users", {
   phone: varchar("phone").unique(),
   phoneVerified: boolean("phone_verified").default(false),
   phoneOperator: varchar("phone_operator"),
-  role: userRoleEnum("role").default('customer').notNull(),
+  role: userRoleEnum("role").default("customer").notNull(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -59,8 +83,12 @@ export const users = pgTable("users", {
 
 // Vendors table
 export const vendors = pgTable("vendors", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .references(() => users.id)
+    .notNull(),
   businessName: varchar("business_name").notNull(),
   businessDescription: text("business_description"),
   businessAddress: text("business_address"),
@@ -70,17 +98,21 @@ export const vendors = pgTable("vendors", {
   bankName: varchar("bank_name"),
   identityDocument: varchar("identity_document"),
   businessLicense: varchar("business_license"),
-  status: vendorStatusEnum("status").default('pending'),
+  status: vendorStatusEnum("status").default("pending"),
   adminNotes: text("admin_notes"),
-  commissionRate: decimal("commission_rate", { precision: 5, scale: 2 }).default('5.00'),
+  commissionRate: decimal("commission_rate", { precision: 5, scale: 2 }).default("5.00"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Drivers table
 export const drivers = pgTable("drivers", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .references(() => users.id)
+    .notNull(),
   vehicleType: varchar("vehicle_type"),
   licenseNumber: varchar("license_number"),
   vehicleModel: varchar("vehicle_model"),
@@ -91,10 +123,10 @@ export const drivers = pgTable("drivers", {
   emergencyName: varchar("emergency_name"),
   workZone: text("work_zone"),
   experience: varchar("experience"),
-  status: vendorStatusEnum("status").default('pending'),
+  status: vendorStatusEnum("status").default("pending"),
   isActive: boolean("is_active").default(true),
   isOnline: boolean("is_online").default(false),
-  rating: decimal("rating", { precision: 3, scale: 2 }).default('5.00'),
+  rating: decimal("rating", { precision: 3, scale: 2 }).default("5.00"),
   totalDeliveries: integer("total_deliveries").default(0),
   currentLat: decimal("current_lat", { precision: 10, scale: 8 }),
   currentLng: decimal("current_lng", { precision: 11, scale: 8 }),
@@ -104,7 +136,9 @@ export const drivers = pgTable("drivers", {
 
 // Categories table
 export const categories = pgTable("categories", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: varchar("name").notNull(),
   nameEn: varchar("name_en"),
   description: text("description"),
@@ -117,8 +151,12 @@ export const categories = pgTable("categories", {
 
 // Products table
 export const products = pgTable("products", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  vendorId: varchar("vendor_id").references(() => vendors.id).notNull(),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  vendorId: varchar("vendor_id")
+    .references(() => vendors.id)
+    .notNull(),
   categoryId: varchar("category_id").references(() => categories.id),
   name: varchar("name").notNull(),
   description: text("description"),
@@ -134,7 +172,7 @@ export const products = pgTable("products", {
   dimensions: jsonb("dimensions"),
   isActive: boolean("is_active").default(true),
   isFeatured: boolean("is_featured").default(false),
-  rating: decimal("rating", { precision: 3, scale: 2 }).default('0.00'),
+  rating: decimal("rating", { precision: 3, scale: 2 }).default("0.00"),
   reviewCount: integer("review_count").default(0),
   tags: text("tags").array(),
   seoTitle: varchar("seo_title"),
@@ -145,19 +183,25 @@ export const products = pgTable("products", {
 
 // Orders table
 export const orders = pgTable("orders", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   orderNumber: varchar("order_number").unique().notNull(),
-  customerId: varchar("customer_id").references(() => users.id).notNull(),
-  vendorId: varchar("vendor_id").references(() => vendors.id).notNull(),
+  customerId: varchar("customer_id")
+    .references(() => users.id)
+    .notNull(),
+  vendorId: varchar("vendor_id")
+    .references(() => vendors.id)
+    .notNull(),
   driverId: varchar("driver_id").references(() => drivers.id),
-  status: orderStatusEnum("status").default('pending'),
+  status: orderStatusEnum("status").default("pending"),
   subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
-  taxAmount: decimal("tax_amount", { precision: 12, scale: 2 }).default('0.00'),
-  deliveryFee: decimal("delivery_fee", { precision: 12, scale: 2 }).default('0.00'),
+  taxAmount: decimal("tax_amount", { precision: 12, scale: 2 }).default("0.00"),
+  deliveryFee: decimal("delivery_fee", { precision: 12, scale: 2 }).default("0.00"),
   totalAmount: decimal("total_amount", { precision: 12, scale: 2 }).notNull(),
-  currency: varchar("currency").default('CFA'),
+  currency: varchar("currency").default("CFA"),
   paymentMethod: paymentMethodEnum("payment_method"),
-  paymentStatus: paymentStatusEnum("payment_status").default('pending'),
+  paymentStatus: paymentStatusEnum("payment_status").default("pending"),
   deliveryAddress: jsonb("delivery_address"),
   deliveryInstructions: text("delivery_instructions"),
   estimatedDeliveryTime: timestamp("estimated_delivery_time"),
@@ -169,9 +213,15 @@ export const orders = pgTable("orders", {
 
 // Order items table
 export const orderItems = pgTable("order_items", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  orderId: varchar("order_id").references(() => orders.id).notNull(),
-  productId: varchar("product_id").references(() => products.id).notNull(),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  orderId: varchar("order_id")
+    .references(() => orders.id)
+    .notNull(),
+  productId: varchar("product_id")
+    .references(() => products.id)
+    .notNull(),
   quantity: integer("quantity").notNull(),
   unitPrice: decimal("unit_price", { precision: 12, scale: 2 }).notNull(),
   totalPrice: decimal("total_price", { precision: 12, scale: 2 }).notNull(),
@@ -181,9 +231,15 @@ export const orderItems = pgTable("order_items", {
 
 // Cart table
 export const cart = pgTable("cart", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
-  productId: varchar("product_id").references(() => products.id).notNull(),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .references(() => users.id)
+    .notNull(),
+  productId: varchar("product_id")
+    .references(() => products.id)
+    .notNull(),
   quantity: integer("quantity").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -191,8 +247,12 @@ export const cart = pgTable("cart", {
 
 // Reviews table
 export const reviews = pgTable("reviews", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .references(() => users.id)
+    .notNull(),
   productId: varchar("product_id").references(() => products.id),
   vendorId: varchar("vendor_id").references(() => vendors.id),
   orderId: varchar("order_id").references(() => orders.id),
@@ -207,11 +267,15 @@ export const reviews = pgTable("reviews", {
 
 // Chat rooms table
 export const chatRooms = pgTable("chat_rooms", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: varchar("name"),
-  type: varchar("type").notNull().default('direct'), // 'direct' or 'group'
+  type: varchar("type").notNull().default("direct"), // 'direct' or 'group'
   isActive: boolean("is_active").default(true),
-  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  createdBy: varchar("created_by")
+    .references(() => users.id)
+    .notNull(),
   lastMessageAt: timestamp("last_message_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -219,9 +283,15 @@ export const chatRooms = pgTable("chat_rooms", {
 
 // Chat room participants table
 export const chatParticipants = pgTable("chat_participants", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  chatRoomId: varchar("chat_room_id").references(() => chatRooms.id).notNull(),
-  userId: varchar("user_id").references(() => users.id).notNull(),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  chatRoomId: varchar("chat_room_id")
+    .references(() => chatRooms.id)
+    .notNull(),
+  userId: varchar("user_id")
+    .references(() => users.id)
+    .notNull(),
   joinedAt: timestamp("joined_at").defaultNow(),
   lastReadAt: timestamp("last_read_at").defaultNow(),
   unreadCount: integer("unread_count").default(0),
@@ -229,11 +299,17 @@ export const chatParticipants = pgTable("chat_participants", {
 
 // Messages table
 export const messages = pgTable("messages", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  chatRoomId: varchar("chat_room_id").references(() => chatRooms.id).notNull(),
-  senderId: varchar("sender_id").references(() => users.id).notNull(),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  chatRoomId: varchar("chat_room_id")
+    .references(() => chatRooms.id)
+    .notNull(),
+  senderId: varchar("sender_id")
+    .references(() => users.id)
+    .notNull(),
   content: text("content").notNull(),
-  messageType: varchar("message_type").default('text'), // 'text', 'image', 'file'
+  messageType: varchar("message_type").default("text"), // 'text', 'image', 'file'
   isDeleted: boolean("is_deleted").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -241,12 +317,16 @@ export const messages = pgTable("messages", {
 
 // Payments table for detailed transaction tracking
 export const payments = pgTable("payments", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  orderId: varchar("order_id").references(() => orders.id).notNull(),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  orderId: varchar("order_id")
+    .references(() => orders.id)
+    .notNull(),
   paymentMethod: paymentMethodEnum("payment_method").notNull(),
   amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
-  currency: varchar("currency").default('CFA'),
-  status: paymentStatusEnum("status").default('pending'),
+  currency: varchar("currency").default("CFA"),
+  status: paymentStatusEnum("status").default("pending"),
   transactionId: varchar("transaction_id"), // External payment provider transaction ID
   phoneNumber: varchar("phone_number"), // For mobile money payments
   operatorReference: varchar("operator_reference"), // Orange Money or Moov Money reference
@@ -538,7 +618,9 @@ export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 
 // Phone verification table
 export const phoneVerifications = pgTable("phone_verifications", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   phone: varchar("phone").notNull(),
   code: varchar("code").notNull(),
   isUsed: boolean("is_used").default(false),
@@ -552,7 +634,9 @@ export type InsertPhoneVerification = z.infer<typeof insertPhoneVerificationSche
 
 // Email verification table
 export const emailVerifications = pgTable("email_verifications", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   email: varchar("email").notNull(),
   code: varchar("code").notNull(),
   isUsed: boolean("is_used").default(false),

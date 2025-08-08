@@ -34,10 +34,7 @@ export interface ObjectAclPolicy {
 }
 
 // Check if the requested permission is allowed based on the granted permission.
-function isPermissionAllowed(
-  requested: ObjectPermission,
-  granted: ObjectPermission,
-): boolean {
+function isPermissionAllowed(requested: ObjectPermission, granted: ObjectPermission): boolean {
   // Users granted with read or write permissions can read the object.
   if (requested === ObjectPermission.READ) {
     return [ObjectPermission.READ, ObjectPermission.WRITE].includes(granted);
@@ -51,16 +48,14 @@ function isPermissionAllowed(
 abstract class BaseObjectAccessGroup implements ObjectAccessGroup {
   constructor(
     public readonly type: ObjectAccessGroupType,
-    public readonly id: string,
+    public readonly id: string
   ) {}
 
   // Check if the user is a member of the group.
   public abstract hasMember(userId: string): Promise<boolean>;
 }
 
-function createObjectAccessGroup(
-  group: ObjectAccessGroup,
-): BaseObjectAccessGroup {
+function createObjectAccessGroup(group: ObjectAccessGroup): BaseObjectAccessGroup {
   switch (group.type) {
     // For now, we'll implement a simple case that always returns false
     // This can be extended based on specific access group needs
@@ -76,7 +71,7 @@ function createObjectAccessGroup(
 // Sets the ACL policy to the object metadata.
 export async function setObjectAclPolicy(
   objectFile: File,
-  aclPolicy: ObjectAclPolicy,
+  aclPolicy: ObjectAclPolicy
 ): Promise<void> {
   const [exists] = await objectFile.exists();
   if (!exists) {
@@ -91,9 +86,7 @@ export async function setObjectAclPolicy(
 }
 
 // Gets the ACL policy from the object metadata.
-export async function getObjectAclPolicy(
-  objectFile: File,
-): Promise<ObjectAclPolicy | null> {
+export async function getObjectAclPolicy(objectFile: File): Promise<ObjectAclPolicy | null> {
   const [metadata] = await objectFile.getMetadata();
   const aclPolicy = metadata?.metadata?.[ACL_POLICY_METADATA_KEY];
   if (!aclPolicy) {
@@ -119,10 +112,7 @@ export async function canAccessObject({
   }
 
   // Public objects are always accessible for read.
-  if (
-    aclPolicy.visibility === "public" &&
-    requestedPermission === ObjectPermission.READ
-  ) {
+  if (aclPolicy.visibility === "public" && requestedPermission === ObjectPermission.READ) {
     return true;
   }
 

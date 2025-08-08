@@ -18,15 +18,15 @@ export default function Cart({ onClose }: CartProps) {
   const { toast } = useToast();
 
   const { data: cartItems = [], isLoading } = useQuery({
-    queryKey: ['/api/cart'],
+    queryKey: ["/api/cart"],
   });
 
   const updateCartMutation = useMutation({
     mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
-      return await apiRequest('PATCH', `/api/cart/${itemId}`, { quantity });
+      return await apiRequest("PATCH", `/api/cart/${itemId}`, { quantity });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
     },
     onError: (error: Error) => {
       if (isUnauthorizedError(error)) {
@@ -50,10 +50,10 @@ export default function Cart({ onClose }: CartProps) {
 
   const removeItemMutation = useMutation({
     mutationFn: async (itemId: string) => {
-      return await apiRequest('DELETE', `/api/cart/${itemId}`);
+      return await apiRequest("DELETE", `/api/cart/${itemId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
       toast({
         title: "Succès",
         description: "Article retiré du panier",
@@ -81,10 +81,10 @@ export default function Cart({ onClose }: CartProps) {
 
   const clearCartMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('DELETE', '/api/cart');
+      return await apiRequest("DELETE", "/api/cart");
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
       toast({
         title: "Succès",
         description: "Panier vidé",
@@ -113,7 +113,7 @@ export default function Cart({ onClose }: CartProps) {
   const calculateTotal = () => {
     if (!Array.isArray(cartItems) || cartItems.length === 0) return 0;
     return cartItems.reduce((total: number, item: any) => {
-      return total + (parseFloat(item.product.price) * item.quantity);
+      return total + parseFloat(item.product.price) * item.quantity;
     }, 0);
   };
 
@@ -127,7 +127,7 @@ export default function Cart({ onClose }: CartProps) {
 
   if (showCheckout) {
     return (
-      <CheckoutForm 
+      <CheckoutForm
         cartItems={Array.isArray(cartItems) ? cartItems : []}
         total={calculateGrandTotal()}
         onBack={() => setShowCheckout(false)}
@@ -150,7 +150,7 @@ export default function Cart({ onClose }: CartProps) {
           <i className="fas fa-times"></i>
         </Button>
       </CardHeader>
-      
+
       <CardContent className="flex flex-col h-full">
         {isLoading ? (
           <div className="space-y-4 flex-1">
@@ -169,12 +169,8 @@ export default function Cart({ onClose }: CartProps) {
         ) : !Array.isArray(cartItems) || cartItems.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center">
             <i className="fas fa-shopping-cart text-6xl text-gray-300 mb-4"></i>
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">
-              Votre panier est vide
-            </h3>
-            <p className="text-gray-500 mb-4">
-              Ajoutez des produits pour commencer vos achats
-            </p>
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">Votre panier est vide</h3>
+            <p className="text-gray-500 mb-4">Ajoutez des produits pour commencer vos achats</p>
             <Button onClick={onClose} className="bg-zaka-blue hover:bg-zaka-blue">
               Continuer les achats
             </Button>
@@ -182,72 +178,77 @@ export default function Cart({ onClose }: CartProps) {
         ) : (
           <>
             <div className="flex-1 space-y-4">
-              {Array.isArray(cartItems) && cartItems.map((item: any) => (
-                <div key={item.id} className="flex items-center justify-between border-b pb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                      {item.product.images && item.product.images.length > 0 ? (
-                        <img 
-                          src={item.product.images[0]} 
-                          alt={item.product.name}
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                      ) : (
-                        <i className="fas fa-image text-gray-400"></i>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-zaka-dark text-sm">{item.product.name}</h4>
-                      <p className="text-xs text-zaka-gray">
-                        {parseFloat(item.product.price).toLocaleString()} CFA x {item.quantity}
-                      </p>
-                      <div className="flex items-center space-x-2 mt-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-6 w-6 p-0"
-                          onClick={() => updateCartMutation.mutate({ 
-                            itemId: item.id, 
-                            quantity: Math.max(1, item.quantity - 1) 
-                          })}
-                          disabled={item.quantity <= 1 || updateCartMutation.isPending}
-                        >
-                          <i className="fas fa-minus text-xs"></i>
-                        </Button>
-                        <span className="text-sm font-medium">{item.quantity}</span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-6 w-6 p-0"
-                          onClick={() => updateCartMutation.mutate({ 
-                            itemId: item.id, 
-                            quantity: item.quantity + 1 
-                          })}
-                          disabled={updateCartMutation.isPending}
-                        >
-                          <i className="fas fa-plus text-xs"></i>
-                        </Button>
+              {Array.isArray(cartItems) &&
+                cartItems.map((item: any) => (
+                  <div key={item.id} className="flex items-center justify-between border-b pb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                        {item.product.images && item.product.images.length > 0 ? (
+                          <img
+                            src={item.product.images[0]}
+                            alt={item.product.name}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        ) : (
+                          <i className="fas fa-image text-gray-400"></i>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-zaka-dark text-sm">{item.product.name}</h4>
+                        <p className="text-xs text-zaka-gray">
+                          {parseFloat(item.product.price).toLocaleString()} CFA x {item.quantity}
+                        </p>
+                        <div className="flex items-center space-x-2 mt-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 w-6 p-0"
+                            onClick={() =>
+                              updateCartMutation.mutate({
+                                itemId: item.id,
+                                quantity: Math.max(1, item.quantity - 1),
+                              })
+                            }
+                            disabled={item.quantity <= 1 || updateCartMutation.isPending}
+                          >
+                            <i className="fas fa-minus text-xs"></i>
+                          </Button>
+                          <span className="text-sm font-medium">{item.quantity}</span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 w-6 p-0"
+                            onClick={() =>
+                              updateCartMutation.mutate({
+                                itemId: item.id,
+                                quantity: item.quantity + 1,
+                              })
+                            }
+                            disabled={updateCartMutation.isPending}
+                          >
+                            <i className="fas fa-plus text-xs"></i>
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-semibold text-zaka-orange">
-                      {(parseFloat(item.product.price) * item.quantity).toLocaleString()} CFA
+                    <div className="text-right">
+                      <div className="text-sm font-semibold text-zaka-orange">
+                        {(parseFloat(item.product.price) * item.quantity).toLocaleString()} CFA
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-red-500 hover:text-red-700 h-6 w-6 p-0 mt-1"
+                        onClick={() => removeItemMutation.mutate(item.id)}
+                        disabled={removeItemMutation.isPending}
+                      >
+                        <i className="fas fa-trash text-xs"></i>
+                      </Button>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-red-500 hover:text-red-700 h-6 w-6 p-0 mt-1"
-                      onClick={() => removeItemMutation.mutate(item.id)}
-                      disabled={removeItemMutation.isPending}
-                    >
-                      <i className="fas fa-trash text-xs"></i>
-                    </Button>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
-            
+
             <div className="mt-4">
               <Separator className="mb-4" />
               <div className="space-y-2 text-sm">
@@ -262,20 +263,22 @@ export default function Cart({ onClose }: CartProps) {
                 <Separator />
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total:</span>
-                  <span className="text-zaka-orange">{calculateGrandTotal().toLocaleString()} CFA</span>
+                  <span className="text-zaka-orange">
+                    {calculateGrandTotal().toLocaleString()} CFA
+                  </span>
                 </div>
               </div>
-              
+
               <div className="flex space-x-2 mt-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => clearCartMutation.mutate()}
                   disabled={clearCartMutation.isPending}
                   className="flex-1"
                 >
                   Vider
                 </Button>
-                <Button 
+                <Button
                   className="bg-zaka-green hover:bg-zaka-green flex-2"
                   onClick={() => setShowCheckout(true)}
                 >

@@ -6,7 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -25,33 +31,42 @@ export default function AdminDashboard() {
   const [selectedVendor, setSelectedVendor] = useState<any>(null);
   const [approvalNotes, setApprovalNotes] = useState("");
   const [transactionFilters, setTransactionFilters] = useState({
-    status: 'all',
-    dateFrom: '',
-    dateTo: ''
+    status: "all",
+    dateFrom: "",
+    dateTo: "",
   });
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: stats = {}, isLoading: statsLoading } = useQuery({
-    queryKey: ['/api/admin/dashboard'],
+    queryKey: ["/api/admin/dashboard"],
   });
 
   const { data: pendingVendors = [], isLoading: vendorsLoading } = useQuery({
-    queryKey: ['/api/admin/vendors/pending'],
+    queryKey: ["/api/admin/vendors/pending"],
   });
 
-  const { data: transactions = { transactions: [], total: 0 }, isLoading: transactionsLoading } = useQuery({
-    queryKey: ['/api/admin/transactions', transactionFilters],
-  });
+  const { data: transactions = { transactions: [], total: 0 }, isLoading: transactionsLoading } =
+    useQuery({
+      queryKey: ["/api/admin/transactions", transactionFilters],
+    });
 
   const approveVendorMutation = useMutation({
-    mutationFn: async ({ vendorId, status, notes }: { vendorId: string; status: string; notes?: string }) => {
-      return await apiRequest('PATCH', `/api/admin/vendors/${vendorId}/approve`, { status, notes });
+    mutationFn: async ({
+      vendorId,
+      status,
+      notes,
+    }: {
+      vendorId: string;
+      status: string;
+      notes?: string;
+    }) => {
+      return await apiRequest("PATCH", `/api/admin/vendors/${vendorId}/approve`, { status, notes });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/vendors/pending'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/vendors/pending"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard"] });
       setSelectedVendor(null);
       setApprovalNotes("");
       toast({
@@ -68,12 +83,12 @@ export default function AdminDashboard() {
     },
   });
 
-  const handleVendorApproval = (vendor: any, status: 'approved' | 'rejected') => {
+  const handleVendorApproval = (vendor: any, status: "approved" | "rejected") => {
     setSelectedVendor(vendor);
     approveVendorMutation.mutate({
       vendorId: vendor.id,
       status,
-      notes: approvalNotes
+      notes: approvalNotes,
     });
   };
 
@@ -98,7 +113,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Vendeurs actifs</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? '...' : stats.activeVendors || 0}
+                    {statsLoading ? "..." : stats.activeVendors || 0}
                   </p>
                 </div>
               </div>
@@ -114,7 +129,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Commandes du jour</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? '...' : stats.dailyOrders || 0}
+                    {statsLoading ? "..." : stats.dailyOrders || 0}
                   </p>
                 </div>
               </div>
@@ -130,7 +145,9 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Revenus plateforme</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? '...' : `${(stats.platformRevenue || 0).toLocaleString('fr-BF')} CFA`}
+                    {statsLoading
+                      ? "..."
+                      : `${(stats.platformRevenue || 0).toLocaleString("fr-BF")} CFA`}
                   </p>
                 </div>
               </div>
@@ -146,7 +163,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Chauffeurs disponibles</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? '...' : stats.availableDrivers || 0}
+                    {statsLoading ? "..." : stats.availableDrivers || 0}
                   </p>
                 </div>
               </div>
@@ -185,9 +202,7 @@ export default function AdminDashboard() {
                     <h3 className="text-lg font-semibold text-gray-600 mb-2">
                       Aucun vendeur en attente
                     </h3>
-                    <p className="text-gray-500">
-                      Toutes les demandes ont été traitées
-                    </p>
+                    <p className="text-gray-500">Toutes les demandes ont été traitées</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -198,9 +213,9 @@ export default function AdminDashboard() {
                             <h3 className="text-lg font-semibold">{vendor.businessName}</h3>
                             <p className="text-gray-600">{vendor.businessType}</p>
                             <p className="text-sm text-gray-500 mt-1">
-                              Demandé le {new Date(vendor.createdAt).toLocaleDateString('fr-BF')}
+                              Demandé le {new Date(vendor.createdAt).toLocaleDateString("fr-BF")}
                             </p>
-                            
+
                             <div className="mt-4 grid grid-cols-2 gap-4">
                               <div>
                                 <p className="text-sm font-medium text-gray-700">Adresse:</p>
@@ -224,11 +239,11 @@ export default function AdminDashboard() {
                               )}
                             </div>
                           </div>
-                          
+
                           <div className="flex flex-col space-y-2 ml-6">
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button 
+                                <Button
                                   className="bg-green-600 hover:bg-green-700"
                                   onClick={() => setSelectedVendor(vendor)}
                                 >
@@ -253,7 +268,7 @@ export default function AdminDashboard() {
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Annuler</AlertDialogCancel>
                                   <AlertDialogAction
-                                    onClick={() => handleVendorApproval(vendor, 'approved')}
+                                    onClick={() => handleVendorApproval(vendor, "approved")}
                                     className="bg-green-600 hover:bg-green-700"
                                   >
                                     Approuver
@@ -264,8 +279,8 @@ export default function AdminDashboard() {
 
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button 
-                                  variant="outline" 
+                                <Button
+                                  variant="outline"
                                   className="text-red-600 hover:text-red-700"
                                   onClick={() => setSelectedVendor(vendor)}
                                 >
@@ -291,7 +306,7 @@ export default function AdminDashboard() {
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Annuler</AlertDialogCancel>
                                   <AlertDialogAction
-                                    onClick={() => handleVendorApproval(vendor, 'rejected')}
+                                    onClick={() => handleVendorApproval(vendor, "rejected")}
                                     className="bg-red-600 hover:bg-red-700"
                                     disabled={!approvalNotes.trim()}
                                   >
@@ -316,9 +331,11 @@ export default function AdminDashboard() {
                 <CardTitle className="flex items-center justify-between">
                   <span>Suivi des transactions</span>
                   <div className="flex items-center space-x-2">
-                    <Select 
-                      value={transactionFilters.status} 
-                      onValueChange={(value) => setTransactionFilters(prev => ({ ...prev, status: value }))}
+                    <Select
+                      value={transactionFilters.status}
+                      onValueChange={(value) =>
+                        setTransactionFilters((prev) => ({ ...prev, status: value }))
+                      }
                     >
                       <SelectTrigger className="w-40">
                         <SelectValue />
@@ -349,36 +366,46 @@ export default function AdminDashboard() {
                       <div key={transaction.id} className="border rounded-lg p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium">{transaction.transactionId || transaction.id}</p>
+                            <p className="font-medium">
+                              {transaction.transactionId || transaction.id}
+                            </p>
                             <p className="text-sm text-gray-600">
-                              {new Date(transaction.createdAt).toLocaleDateString('fr-BF', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
+                              {new Date(transaction.createdAt).toLocaleDateString("fr-BF", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
                               })}
                             </p>
                             <p className="text-sm text-gray-500">
-                              Méthode: {transaction.paymentMethod.replace('_', ' ').toUpperCase()}
+                              Méthode: {transaction.paymentMethod.replace("_", " ").toUpperCase()}
                             </p>
                           </div>
                           <div className="text-right">
                             <p className="text-lg font-bold">
-                              {parseInt(transaction.amount).toLocaleString('fr-BF')} CFA
+                              {parseInt(transaction.amount).toLocaleString("fr-BF")} CFA
                             </p>
-                            <Badge variant={
-                              transaction.status === 'completed' ? 'default' :
-                              transaction.status === 'pending' ? 'secondary' : 'destructive'
-                            }>
-                              {transaction.status === 'completed' ? 'Terminée' :
-                               transaction.status === 'pending' ? 'En attente' : 'Échouée'}
+                            <Badge
+                              variant={
+                                transaction.status === "completed"
+                                  ? "default"
+                                  : transaction.status === "pending"
+                                    ? "secondary"
+                                    : "destructive"
+                              }
+                            >
+                              {transaction.status === "completed"
+                                ? "Terminée"
+                                : transaction.status === "pending"
+                                  ? "En attente"
+                                  : "Échouée"}
                             </Badge>
                           </div>
                         </div>
                       </div>
                     ))}
-                    
+
                     {transactions.transactions.length === 0 && (
                       <div className="text-center py-8">
                         <i className="fas fa-receipt text-6xl text-gray-300 mb-4"></i>

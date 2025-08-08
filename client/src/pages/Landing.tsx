@@ -1,12 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import SignupModal from "@/components/SignupModal";
 
 export default function Landing() {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
-  
+
   const handleLogin = () => {
     window.location.href = "/api/login";
   };
@@ -23,19 +29,34 @@ export default function Landing() {
                 <p className="text-xs text-zaka-gray">Marketplace du Burkina</p>
               </div>
             </div>
-            
+
             {/* Mobile menu button */}
             <div className="md:hidden">
               <button type="button" className="text-zaka-gray hover:text-zaka-dark p-2">
                 <i className="fas fa-bars text-xl"></i>
               </button>
             </div>
-            
+
             {/* Desktop navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#marketplace" className="text-zaka-dark hover:text-zaka-orange transition-colors">Marketplace</a>
-              <a href="#vendors" className="text-zaka-dark hover:text-zaka-orange transition-colors">Vendeurs</a>
-              <a href="#delivery" className="text-zaka-dark hover:text-zaka-orange transition-colors">Livraison</a>
+              <a
+                href="#marketplace"
+                className="text-zaka-dark hover:text-zaka-orange transition-colors"
+              >
+                Marketplace
+              </a>
+              <a
+                href="#vendors"
+                className="text-zaka-dark hover:text-zaka-orange transition-colors"
+              >
+                Vendeurs
+              </a>
+              <a
+                href="#delivery"
+                className="text-zaka-dark hover:text-zaka-orange transition-colors"
+              >
+                Livraison
+              </a>
               <div className="flex space-x-4">
                 <Dialog open={isSignupOpen} onOpenChange={setIsSignupOpen}>
                   <DialogTrigger asChild>
@@ -50,7 +71,7 @@ export default function Landing() {
                     <SignupModal onSuccess={() => setIsSignupOpen(false)} />
                   </DialogContent>
                 </Dialog>
-                <Button 
+                <Button
                   onClick={handleLogin}
                   className="bg-zaka-orange text-white hover:bg-zaka-orange px-4 py-2 rounded-lg transition-colors"
                 >
@@ -87,7 +108,7 @@ export default function Landing() {
                     <SignupModal onSuccess={() => {}} />
                   </DialogContent>
                 </Dialog>
-                <Button 
+                <Button
                   onClick={handleLogin}
                   variant="outline"
                   className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-zaka-orange transition-colors"
@@ -97,10 +118,10 @@ export default function Landing() {
               </div>
             </div>
             <div className="hidden md:block">
-              <img 
-                src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" 
-                alt="Commerce mobile moderne en Afrique de l'Ouest" 
-                className="rounded-xl shadow-2xl w-full h-auto" 
+              <img
+                src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600"
+                alt="Commerce mobile moderne en Afrique de l'Ouest"
+                className="rounded-xl shadow-2xl w-full h-auto"
               />
             </div>
           </div>
@@ -121,7 +142,9 @@ export default function Landing() {
                   <i className="fas fa-shopping-cart text-2xl text-zaka-blue"></i>
                 </div>
                 <h3 className="text-xl font-semibold text-zaka-dark mb-4">Cliente</h3>
-                <p className="text-zaka-gray mb-6">Découvrez des milliers de produits de vendeurs locaux</p>
+                <p className="text-zaka-gray mb-6">
+                  Découvrez des milliers de produits de vendeurs locaux
+                </p>
                 <ul className="text-sm text-zaka-gray space-y-2 mb-6 text-left">
                   <li>✓ Navigation facile</li>
                   <li>✓ Paiement Orange Money</li>
@@ -151,7 +174,9 @@ export default function Landing() {
                   <i className="fas fa-store text-2xl text-zaka-green"></i>
                 </div>
                 <h3 className="text-xl font-semibold text-zaka-dark mb-4">Vendeur</h3>
-                <p className="text-zaka-gray mb-6">Développez votre business en ligne avec notre plateforme</p>
+                <p className="text-zaka-gray mb-6">
+                  Développez votre business en ligne avec notre plateforme
+                </p>
                 <ul className="text-sm text-zaka-gray space-y-2 mb-6 text-left">
                   <li>✓ Catalogue produits</li>
                   <li>✓ Gestion des commandes</li>
@@ -181,7 +206,9 @@ export default function Landing() {
                   <i className="fas fa-motorcycle text-2xl text-zaka-orange"></i>
                 </div>
                 <h3 className="text-xl font-semibold text-zaka-dark mb-4">Livreur</h3>
-                <p className="text-zaka-gray mb-6">Gagnez de l'argent en livrant dans votre ville</p>
+                <p className="text-zaka-gray mb-6">
+                  Gagnez de l'argent en livrant dans votre ville
+                </p>
                 <ul className="text-sm text-zaka-gray space-y-2 mb-6 text-left">
                   <li>✓ Horaires flexibles</li>
                   <li>✓ Paiement quotidien</li>
@@ -213,7 +240,9 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <h3 className="text-xl font-bold text-zaka-orange mb-4">ZakaMall</h3>
-              <p className="text-gray-300 mb-4">Le marketplace #1 du Burkina Faso. Connectant vendeurs, clients et livreurs.</p>
+              <p className="text-gray-300 mb-4">
+                Le marketplace #1 du Burkina Faso. Connectant vendeurs, clients et livreurs.
+              </p>
               <div className="flex space-x-4">
                 <i className="fab fa-facebook text-xl hover:text-zaka-orange cursor-pointer"></i>
                 <i className="fab fa-twitter text-xl hover:text-zaka-orange cursor-pointer"></i>
@@ -224,28 +253,76 @@ export default function Landing() {
             <div>
               <h4 className="font-semibold mb-4">Pour les clients</h4>
               <ul className="space-y-2 text-gray-300">
-                <li><a href="#" className="hover:text-zaka-orange">Comment commander</a></li>
-                <li><a href="#" className="hover:text-zaka-orange">Suivi de commande</a></li>
-                <li><a href="#" className="hover:text-zaka-orange">Service client</a></li>
-                <li><a href="#" className="hover:text-zaka-orange">Retours & remboursements</a></li>
+                <li>
+                  <a href="#" className="hover:text-zaka-orange">
+                    Comment commander
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-zaka-orange">
+                    Suivi de commande
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-zaka-orange">
+                    Service client
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-zaka-orange">
+                    Retours & remboursements
+                  </a>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Pour les vendeurs</h4>
               <ul className="space-y-2 text-gray-300">
-                <li><a href="#" className="hover:text-zaka-orange">Devenir vendeur</a></li>
-                <li><a href="#" className="hover:text-zaka-orange">Centre vendeur</a></li>
-                <li><a href="#" className="hover:text-zaka-orange">Politiques</a></li>
-                <li><a href="#" className="hover:text-zaka-orange">Support vendeur</a></li>
+                <li>
+                  <a href="#" className="hover:text-zaka-orange">
+                    Devenir vendeur
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-zaka-orange">
+                    Centre vendeur
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-zaka-orange">
+                    Politiques
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-zaka-orange">
+                    Support vendeur
+                  </a>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-300">
-                <li><a href="#" className="hover:text-zaka-orange">Centre d'aide</a></li>
-                <li><a href="#" className="hover:text-zaka-orange">Nous contacter</a></li>
-                <li><a href="#" className="hover:text-zaka-orange">Conditions d'utilisation</a></li>
-                <li><a href="#" className="hover:text-zaka-orange">Confidentialité</a></li>
+                <li>
+                  <a href="#" className="hover:text-zaka-orange">
+                    Centre d'aide
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-zaka-orange">
+                    Nous contacter
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-zaka-orange">
+                    Conditions d'utilisation
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-zaka-orange">
+                    Confidentialité
+                  </a>
+                </li>
               </ul>
             </div>
           </div>

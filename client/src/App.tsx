@@ -36,7 +36,7 @@ function Router() {
       <Route path="/payment-test" component={PaymentTest} />
       <Route path="/create-admin" component={CreateAdmin} />
       <Route path="/admin" component={AdminDashboard} />
-      
+
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (

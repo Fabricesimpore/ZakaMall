@@ -7,8 +7,21 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Email signup schema
 const emailSignupSchema = z.object({
@@ -41,7 +54,7 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
 
   const signupMutation = useMutation({
     mutationFn: async (data: EmailSignupForm) => {
-      return await apiRequest('POST', '/api/auth/email-signup', data);
+      return await apiRequest("POST", "/api/auth/email-signup", data);
     },
     onSuccess: () => {
       toast({
@@ -61,7 +74,7 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
 
   const verifyMutation = useMutation({
     mutationFn: async ({ email, code }: { email: string; code: string }) => {
-      return await apiRequest('POST', '/api/auth/verify-email', { email, code });
+      return await apiRequest("POST", "/api/auth/verify-email", { email, code });
     },
     onSuccess: (data) => {
       toast({
@@ -69,12 +82,12 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
         description: "Vous pouvez maintenant compléter votre profil",
       });
       onSuccess();
-      
+
       // Redirect based on user role to setup pages
       const userData = form.getValues();
-      if (userData.role === 'vendor') {
+      if (userData.role === "vendor") {
         window.location.href = "/vendor-setup";
-      } else if (userData.role === 'driver') {
+      } else if (userData.role === "driver") {
         window.location.href = "/driver-setup";
       } else {
         // Customer role goes directly to login

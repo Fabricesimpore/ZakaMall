@@ -15,7 +15,7 @@ export default function CartPage() {
           </Link>
           <h1 className="text-2xl font-bold text-zaka-dark">Mon panier</h1>
         </div>
-        
+
         <div className="max-w-4xl mx-auto">
           <Cart onClose={() => window.history.back()} />
         </div>

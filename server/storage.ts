@@ -57,35 +57,38 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   createUser(user: InsertUser): Promise<User>;
   createUserWithPhone(user: InsertUser): Promise<User>;
-  updateUserRole(userId: string, role: 'customer' | 'vendor' | 'driver' | 'admin'): Promise<User>;
-  getUsersByRole(role: 'customer' | 'vendor' | 'driver' | 'admin'): Promise<User[]>;
+  updateUserRole(userId: string, role: "customer" | "vendor" | "driver" | "admin"): Promise<User>;
+  getUsersByRole(role: "customer" | "vendor" | "driver" | "admin"): Promise<User[]>;
   getAllUsers(): Promise<User[]>;
   deleteUser(userId: string): Promise<void>;
-  
+
   // Phone verification operations
   createPhoneVerification(verification: InsertPhoneVerification): Promise<PhoneVerification>;
   verifyPhoneCode(phone: string, code: string): Promise<PhoneVerification | undefined>;
   markPhoneVerificationUsed(id: string): Promise<void>;
-  
+
   // Email verification operations
   createEmailVerification(verification: InsertEmailVerification): Promise<EmailVerification>;
   verifyEmailCode(email: string, code: string): Promise<EmailVerification | undefined>;
   markEmailVerificationUsed(id: string): Promise<void>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUserWithEmail(userData: any): Promise<User>;
-  
+
   // Temporary pending user storage (in production, use a proper cache like Redis)
   storePendingUser(userData: any): Promise<void>;
-  getPendingUser(identifier: string): Promise<any>;  // Changed from phone to identifier to support both
+  getPendingUser(identifier: string): Promise<any>; // Changed from phone to identifier to support both
   deletePendingUser(identifier: string): Promise<void>;
-  
+
   // Vendor operations
   createVendor(vendor: InsertVendor): Promise<Vendor>;
   getVendor(id: string): Promise<Vendor | undefined>;
   getVendorByUserId(userId: string): Promise<Vendor | undefined>;
-  getVendors(status?: 'pending' | 'approved' | 'rejected' | 'suspended'): Promise<Vendor[]>;
-  updateVendorStatus(id: string, status: 'pending' | 'approved' | 'rejected' | 'suspended'): Promise<Vendor>;
-  
+  getVendors(status?: "pending" | "approved" | "rejected" | "suspended"): Promise<Vendor[]>;
+  updateVendorStatus(
+    id: string,
+    status: "pending" | "approved" | "rejected" | "suspended"
+  ): Promise<Vendor>;
+
   // Driver operations
   createDriver(driver: InsertDriver): Promise<Driver>;
   getDriver(id: string): Promise<Driver | undefined>;
@@ -93,42 +96,52 @@ export interface IStorage {
   getAvailableDrivers(): Promise<Driver[]>;
   updateDriverLocation(id: string, lat: number, lng: number): Promise<Driver>;
   updateDriverStatus(id: string, isOnline: boolean): Promise<Driver>;
-  
+
   // Category operations
   createCategory(category: InsertCategory): Promise<Category>;
   getCategories(): Promise<Category[]>;
   getCategory(id: string): Promise<Category | undefined>;
-  
+
   // Product operations
   createProduct(product: InsertProduct): Promise<Product>;
   getProduct(id: string): Promise<Product | undefined>;
   getProductById(id: string): Promise<Product | undefined>;
-  getProducts(filters?: { vendorId?: string; categoryId?: string; search?: string; limit?: number }): Promise<Product[]>;
+  getProducts(filters?: {
+    vendorId?: string;
+    categoryId?: string;
+    search?: string;
+    limit?: number;
+  }): Promise<Product[]>;
   getVendorProducts(vendorId: string): Promise<Product[]>;
   updateProduct(id: string, updates: Partial<InsertProduct>): Promise<Product>;
   updateProductStock(id: string, quantity: number): Promise<Product>;
   updateProductImages(id: string, images: string[]): Promise<Product>;
   deleteProduct(id: string): Promise<void>;
   getLowStockProducts(vendorId: string): Promise<Product[]>;
-  
+
   // Cart operations
   addToCart(item: InsertCartItem): Promise<CartItem>;
   getCartItems(userId: string): Promise<(CartItem & { product: Product })[]>;
   updateCartItem(id: string, quantity: number): Promise<CartItem>;
   removeFromCart(id: string): Promise<void>;
   clearCart(userId: string): Promise<void>;
-  
+
   // Order operations
   createOrder(order: InsertOrder, items: InsertOrderItem[]): Promise<Order>;
   getOrder(id: string): Promise<Order | undefined>;
-  getOrders(filters?: { customerId?: string; vendorId?: string; driverId?: string; status?: string }): Promise<Order[]>;
+  getOrders(filters?: {
+    customerId?: string;
+    vendorId?: string;
+    driverId?: string;
+    status?: string;
+  }): Promise<Order[]>;
   updateOrderStatus(id: string, status: string): Promise<Order>;
   assignOrderToDriver(orderId: string, driverId: string): Promise<Order>;
-  
+
   // Review operations
   createReview(review: InsertReview): Promise<Review>;
   getProductReviews(productId: string): Promise<Review[]>;
-  
+
   // Analytics
   getVendorStats(vendorId: string): Promise<{
     totalSales: number;
@@ -147,7 +160,7 @@ export interface IStorage {
     platformRevenue: number;
     availableDrivers: number;
   }>;
-  
+
   // Chat operations
   createChatRoom(chatRoom: InsertChatRoom): Promise<ChatRoom>;
   getUserChatRooms(userId: string): Promise<(ChatRoom & { unreadCount: number })[]>;
@@ -157,20 +170,28 @@ export interface IStorage {
   getChatMessages(chatRoomId: string, limit?: number, offset?: number): Promise<Message[]>;
   searchUsers(query: string): Promise<User[]>;
   getChatRoomParticipants(chatRoomId: string): Promise<ChatParticipant[]>;
-  
+
   // Payment operations
   createPayment(payment: InsertPayment): Promise<Payment>;
   getPayment(id: string): Promise<Payment | undefined>;
   getOrderPayments(orderId: string): Promise<Payment[]>;
-  updatePaymentStatus(id: string, status: 'pending' | 'completed' | 'failed' | 'refunded', failureReason?: string): Promise<Payment>;
-  updatePaymentTransaction(id: string, transactionId: string, operatorReference?: string): Promise<Payment>;
+  updatePaymentStatus(
+    id: string,
+    status: "pending" | "completed" | "failed" | "refunded",
+    failureReason?: string
+  ): Promise<Payment>;
+  updatePaymentTransaction(
+    id: string,
+    transactionId: string,
+    operatorReference?: string
+  ): Promise<Payment>;
   markMessagesAsRead(userId: string, chatRoomId: string): Promise<void>;
   incrementUnreadCount(chatRoomId: string, excludeUserId: string): Promise<void>;
   getTotalUnreadCount(userId: string): Promise<number>;
-  
+
   // Order tracking
   getOrderTrackingHistory(orderId: string): Promise<any[]>;
-  
+
   // Admin operations
   addVendorNotes(vendorId: string, notes: string): Promise<void>;
   getTransactions(filters: {
@@ -179,7 +200,7 @@ export interface IStorage {
     status?: string;
     dateFrom?: string;
     dateTo?: string;
-  }): Promise<{ transactions: Payment[]; total: number; }>;
+  }): Promise<{ transactions: Payment[]; total: number }>;
 }
 
 // Temporary in-memory storage for pending users (use Redis in production)
@@ -213,22 +234,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(userData: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .returning();
+    const [user] = await db.insert(users).values(userData).returning();
     return user;
   }
 
   async createUserWithPhone(userData: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .returning();
+    const [user] = await db.insert(users).values(userData).returning();
     return user;
   }
 
-  async updateUserRole(userId: string, role: 'customer' | 'vendor' | 'driver' | 'admin'): Promise<User> {
+  async updateUserRole(
+    userId: string,
+    role: "customer" | "vendor" | "driver" | "admin"
+  ): Promise<User> {
     const [user] = await db
       .update(users)
       .set({ role, updatedAt: new Date() })
@@ -237,74 +255,53 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getUsersByRole(role: 'customer' | 'vendor' | 'driver' | 'admin'): Promise<User[]> {
-    return await db
-      .select()
-      .from(users)
-      .where(eq(users.role, role));
+  async getUsersByRole(role: "customer" | "vendor" | "driver" | "admin"): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.role, role));
   }
 
   async getAllUsers(): Promise<User[]> {
-    return await db
-      .select()
-      .from(users)
-      .orderBy(desc(users.createdAt));
+    return await db.select().from(users).orderBy(desc(users.createdAt));
   }
 
   async deleteUser(userId: string): Promise<void> {
-    await db
-      .delete(users)
-      .where(eq(users.id, userId));
+    await db.delete(users).where(eq(users.id, userId));
   }
 
   async getAdminStats(): Promise<any> {
     const adminCount = await db
       .select({ count: count() })
       .from(users)
-      .where(eq(users.role, 'admin'));
-    
-    const userCount = await db
-      .select({ count: count() })
-      .from(users);
-    
-    const totalSessions = await db
-      .select({ count: count() })
-      .from(sessions);
-    
+      .where(eq(users.role, "admin"));
+
+    const userCount = await db.select({ count: count() }).from(users);
+
+    const totalSessions = await db.select({ count: count() }).from(sessions);
+
     return {
       totalAdmins: adminCount[0]?.count || 0,
       totalUsers: userCount[0]?.count || 0,
       activeSessions: totalSessions[0]?.count || 0,
-      platformUptime: '99.9%'
+      platformUptime: "99.9%",
     };
   }
 
   // Vendor operations
   async createVendor(vendorData: InsertVendor): Promise<Vendor> {
-    const [vendor] = await db
-      .insert(vendors)
-      .values(vendorData)
-      .returning();
+    const [vendor] = await db.insert(vendors).values(vendorData).returning();
     return vendor;
   }
 
   async getVendor(id: string): Promise<Vendor | undefined> {
-    const [vendor] = await db
-      .select()
-      .from(vendors)
-      .where(eq(vendors.id, id));
+    const [vendor] = await db.select().from(vendors).where(eq(vendors.id, id));
     return vendor;
   }
 
   async getVendorByUserId(userId: string): Promise<Vendor | undefined> {
-    const [vendor] = await db
-      .select()
-      .from(vendors)
-      .where(eq(vendors.userId, userId));
+    const [vendor] = await db.select().from(vendors).where(eq(vendors.userId, userId));
     return vendor;
   }
 
-  async getVendors(status?: 'pending' | 'approved' | 'rejected' | 'suspended'): Promise<Vendor[]> {
+  async getVendors(status?: "pending" | "approved" | "rejected" | "suspended"): Promise<Vendor[]> {
     if (status) {
       return await db
         .select()
@@ -312,13 +309,13 @@ export class DatabaseStorage implements IStorage {
         .where(eq(vendors.status, status))
         .orderBy(desc(vendors.createdAt));
     }
-    return await db
-      .select()
-      .from(vendors)
-      .orderBy(desc(vendors.createdAt));
+    return await db.select().from(vendors).orderBy(desc(vendors.createdAt));
   }
 
-  async updateVendorStatus(id: string, status: 'pending' | 'approved' | 'rejected' | 'suspended'): Promise<Vendor> {
+  async updateVendorStatus(
+    id: string,
+    status: "pending" | "approved" | "rejected" | "suspended"
+  ): Promise<Vendor> {
     const [vendor] = await db
       .update(vendors)
       .set({ status, updatedAt: new Date() })
@@ -329,26 +326,17 @@ export class DatabaseStorage implements IStorage {
 
   // Driver operations
   async createDriver(driverData: InsertDriver): Promise<Driver> {
-    const [driver] = await db
-      .insert(drivers)
-      .values(driverData)
-      .returning();
+    const [driver] = await db.insert(drivers).values(driverData).returning();
     return driver;
   }
 
   async getDriver(id: string): Promise<Driver | undefined> {
-    const [driver] = await db
-      .select()
-      .from(drivers)
-      .where(eq(drivers.id, id));
+    const [driver] = await db.select().from(drivers).where(eq(drivers.id, id));
     return driver;
   }
 
   async getDriverByUserId(userId: string): Promise<Driver | undefined> {
-    const [driver] = await db
-      .select()
-      .from(drivers)
-      .where(eq(drivers.userId, userId));
+    const [driver] = await db.select().from(drivers).where(eq(drivers.userId, userId));
     return driver;
   }
 
@@ -362,10 +350,10 @@ export class DatabaseStorage implements IStorage {
   async updateDriverLocation(id: string, lat: number, lng: number): Promise<Driver> {
     const [driver] = await db
       .update(drivers)
-      .set({ 
+      .set({
         currentLat: lat.toString(),
         currentLng: lng.toString(),
-        updatedAt: new Date() 
+        updatedAt: new Date(),
       })
       .where(eq(drivers.id, id))
       .returning();
@@ -383,10 +371,7 @@ export class DatabaseStorage implements IStorage {
 
   // Category operations
   async createCategory(categoryData: InsertCategory): Promise<Category> {
-    const [category] = await db
-      .insert(categories)
-      .values(categoryData)
-      .returning();
+    const [category] = await db.insert(categories).values(categoryData).returning();
     return category;
   }
 
@@ -399,31 +384,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCategory(id: string): Promise<Category | undefined> {
-    const [category] = await db
-      .select()
-      .from(categories)
-      .where(eq(categories.id, id));
+    const [category] = await db.select().from(categories).where(eq(categories.id, id));
     return category;
   }
 
   // Product operations
   async createProduct(productData: InsertProduct): Promise<Product> {
-    const [product] = await db
-      .insert(products)
-      .values(productData)
-      .returning();
+    const [product] = await db.insert(products).values(productData).returning();
     return product;
   }
 
   async getProduct(id: string): Promise<Product | undefined> {
-    const [product] = await db
-      .select()
-      .from(products)
-      .where(eq(products.id, id));
+    const [product] = await db.select().from(products).where(eq(products.id, id));
     return product;
   }
 
-  async getProducts(filters?: { vendorId?: string; categoryId?: string; search?: string; limit?: number }): Promise<Product[]> {
+  async getProducts(filters?: {
+    vendorId?: string;
+    categoryId?: string;
+    search?: string;
+    limit?: number;
+  }): Promise<Product[]> {
     const conditions = [eq(products.isActive, true)];
 
     if (filters?.vendorId) {
@@ -454,11 +435,7 @@ export class DatabaseStorage implements IStorage {
         .limit(filters.limit);
     }
 
-    return await db
-      .select()
-      .from(products)
-      .where(whereCondition)
-      .orderBy(desc(products.createdAt));
+    return await db.select().from(products).where(whereCondition).orderBy(desc(products.createdAt));
   }
 
   async getVendorProducts(vendorId: string): Promise<Product[]> {
@@ -488,10 +465,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProductById(id: string): Promise<Product | undefined> {
-    const [product] = await db
-      .select()
-      .from(products)
-      .where(eq(products.id, id));
+    const [product] = await db.select().from(products).where(eq(products.id, id));
     return product;
   }
 
@@ -512,11 +486,13 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(products)
-      .where(and(
-        eq(products.vendorId, vendorId),
-        eq(products.isActive, true),
-        sql`${products.quantity} <= 5`
-      ))
+      .where(
+        and(
+          eq(products.vendorId, vendorId),
+          eq(products.isActive, true),
+          sql`${products.quantity} <= 5`
+        )
+      )
       .orderBy(products.quantity);
   }
 
@@ -532,19 +508,16 @@ export class DatabaseStorage implements IStorage {
       // Update quantity
       const [updatedItem] = await db
         .update(cart)
-        .set({ 
+        .set({
           quantity: existingItem.quantity + itemData.quantity,
-          updatedAt: new Date() 
+          updatedAt: new Date(),
         })
         .where(eq(cart.id, existingItem.id))
         .returning();
       return updatedItem;
     } else {
       // Create new cart item
-      const [newItem] = await db
-        .insert(cart)
-        .values(itemData)
-        .returning();
+      const [newItem] = await db.insert(cart).values(itemData).returning();
       return newItem;
     }
   }
@@ -557,9 +530,9 @@ export class DatabaseStorage implements IStorage {
       .where(eq(cart.userId, userId))
       .orderBy(desc(cart.createdAt));
 
-    return result.map(row => ({
+    return result.map((row) => ({
       ...row.cart,
-      product: row.products!
+      product: row.products!,
     }));
   }
 
@@ -583,28 +556,30 @@ export class DatabaseStorage implements IStorage {
   // Order operations
   async createOrder(orderData: InsertOrder, items: InsertOrderItem[]): Promise<Order> {
     const orderNumber = `ZK-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
-    
+
     const [order] = await db
       .insert(orders)
       .values({ ...orderData, orderNumber })
       .returning();
 
     // Insert order items
-    const orderItemsWithOrderId = items.map(item => ({ ...item, orderId: order.id }));
+    const orderItemsWithOrderId = items.map((item) => ({ ...item, orderId: order.id }));
     await db.insert(orderItems).values(orderItemsWithOrderId);
 
     return order;
   }
 
   async getOrder(id: string): Promise<Order | undefined> {
-    const [order] = await db
-      .select()
-      .from(orders)
-      .where(eq(orders.id, id));
+    const [order] = await db.select().from(orders).where(eq(orders.id, id));
     return order;
   }
 
-  async getOrders(filters?: { customerId?: string; vendorId?: string; driverId?: string; status?: string }): Promise<Order[]> {
+  async getOrders(filters?: {
+    customerId?: string;
+    vendorId?: string;
+    driverId?: string;
+    status?: string;
+  }): Promise<Order[]> {
     const conditions = [];
 
     if (filters?.customerId) {
@@ -654,10 +629,7 @@ export class DatabaseStorage implements IStorage {
 
   // Review operations
   async createReview(reviewData: InsertReview): Promise<Review> {
-    const [review] = await db
-      .insert(reviews)
-      .values(reviewData)
-      .returning();
+    const [review] = await db.insert(reviews).values(reviewData).returning();
     return review;
   }
 
@@ -687,10 +659,7 @@ export class DatabaseStorage implements IStorage {
     const [monthlyOrdersResult] = await db
       .select({ count: count() })
       .from(orders)
-      .where(and(
-        eq(orders.vendorId, vendorId),
-        eq(orders.createdAt, monthStart)
-      ));
+      .where(and(eq(orders.vendorId, vendorId), eq(orders.createdAt, monthStart)));
 
     const [productsResult] = await db
       .select({ count: count() })
@@ -721,18 +690,12 @@ export class DatabaseStorage implements IStorage {
     const [earningsResult] = await db
       .select({ total: sum(orders.deliveryFee) })
       .from(orders)
-      .where(and(
-        eq(orders.driverId, driverId),
-        eq(orders.createdAt, today)
-      ));
+      .where(and(eq(orders.driverId, driverId), eq(orders.createdAt, today)));
 
     const [deliveriesResult] = await db
       .select({ count: count() })
       .from(orders)
-      .where(and(
-        eq(orders.driverId, driverId),
-        eq(orders.status, 'delivered')
-      ));
+      .where(and(eq(orders.driverId, driverId), eq(orders.status, "delivered")));
 
     // For driver rating, we'd need to modify the reviews table to include driver ratings
     // For now, using driver table rating
@@ -757,16 +720,14 @@ export class DatabaseStorage implements IStorage {
     const [vendorsResult] = await db
       .select({ count: count() })
       .from(vendors)
-      .where(eq(vendors.status, 'approved'));
+      .where(eq(vendors.status, "approved"));
 
     const [ordersResult] = await db
       .select({ count: count() })
       .from(orders)
       .where(eq(orders.createdAt, today));
 
-    const [revenueResult] = await db
-      .select({ total: sum(orders.totalAmount) })
-      .from(orders);
+    const [revenueResult] = await db.select({ total: sum(orders.totalAmount) }).from(orders);
 
     const [driversResult] = await db
       .select({ count: count() })
@@ -783,10 +744,7 @@ export class DatabaseStorage implements IStorage {
 
   // Chat operations
   async createChatRoom(chatRoomData: InsertChatRoom): Promise<ChatRoom> {
-    const [chatRoom] = await db
-      .insert(chatRooms)
-      .values(chatRoomData)
-      .returning();
+    const [chatRoom] = await db.insert(chatRooms).values(chatRoomData).returning();
     return chatRoom;
   }
 
@@ -807,14 +765,11 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(chatParticipants, eq(chatRooms.id, chatParticipants.chatRoomId))
       .where(and(eq(chatParticipants.userId, userId), eq(chatRooms.isActive, true)))
       .orderBy(desc(chatRooms.lastMessageAt));
-    return rooms.map(room => ({ ...room, unreadCount: room.unreadCount || 0 }));
+    return rooms.map((room) => ({ ...room, unreadCount: room.unreadCount || 0 }));
   }
 
   async addChatParticipant(participantData: InsertChatParticipant): Promise<ChatParticipant> {
-    const [participant] = await db
-      .insert(chatParticipants)
-      .values(participantData)
-      .returning();
+    const [participant] = await db.insert(chatParticipants).values(participantData).returning();
     return participant;
   }
 
@@ -827,20 +782,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMessage(messageData: InsertMessage): Promise<Message> {
-    const [message] = await db
-      .insert(messages)
-      .values(messageData)
-      .returning();
-    
+    const [message] = await db.insert(messages).values(messageData).returning();
+
     // Update chat room's last message timestamp
     await db
       .update(chatRooms)
       .set({ lastMessageAt: new Date(), updatedAt: new Date() })
       .where(eq(chatRooms.id, messageData.chatRoomId));
-    
+
     // Increment unread count for all participants except sender
     await this.incrementUnreadCount(messageData.chatRoomId, messageData.senderId);
-    
+
     return message;
   }
 
@@ -898,25 +850,24 @@ export class DatabaseStorage implements IStorage {
   async markMessagesAsRead(userId: string, chatRoomId: string): Promise<void> {
     await db
       .update(chatParticipants)
-      .set({ 
+      .set({
         lastReadAt: new Date(),
-        unreadCount: 0
+        unreadCount: 0,
       })
-      .where(and(
-        eq(chatParticipants.userId, userId),
-        eq(chatParticipants.chatRoomId, chatRoomId)
-      ));
+      .where(and(eq(chatParticipants.userId, userId), eq(chatParticipants.chatRoomId, chatRoomId)));
   }
 
   async incrementUnreadCount(chatRoomId: string, excludeUserId: string): Promise<void> {
     const participants = await db
       .select()
       .from(chatParticipants)
-      .where(and(
-        eq(chatParticipants.chatRoomId, chatRoomId),
-        sql`${chatParticipants.userId} != ${excludeUserId}`
-      ));
-    
+      .where(
+        and(
+          eq(chatParticipants.chatRoomId, chatRoomId),
+          sql`${chatParticipants.userId} != ${excludeUserId}`
+        )
+      );
+
     for (const participant of participants) {
       await db
         .update(chatParticipants)
@@ -930,24 +881,18 @@ export class DatabaseStorage implements IStorage {
       .select({ total: sum(chatParticipants.unreadCount) })
       .from(chatParticipants)
       .where(eq(chatParticipants.userId, userId));
-    
+
     return Number(result?.total || 0);
   }
 
   // Payment operations
   async createPayment(paymentData: InsertPayment): Promise<Payment> {
-    const [payment] = await db
-      .insert(payments)
-      .values(paymentData)
-      .returning();
+    const [payment] = await db.insert(payments).values(paymentData).returning();
     return payment;
   }
 
   async getPayment(id: string): Promise<Payment | undefined> {
-    const [payment] = await db
-      .select()
-      .from(payments)
-      .where(eq(payments.id, id));
+    const [payment] = await db.select().from(payments).where(eq(payments.id, id));
     return payment;
   }
 
@@ -960,16 +905,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePaymentStatus(
-    id: string, 
-    status: 'pending' | 'completed' | 'failed' | 'refunded', 
+    id: string,
+    status: "pending" | "completed" | "failed" | "refunded",
     failureReason?: string
   ): Promise<Payment> {
-    const updateData: any = { 
-      status, 
+    const updateData: any = {
+      status,
       updatedAt: new Date(),
-      processedAt: status !== 'pending' ? new Date() : null
+      processedAt: status !== "pending" ? new Date() : null,
     };
-    
+
     if (failureReason) {
       updateData.failureReason = failureReason;
     }
@@ -983,15 +928,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePaymentTransaction(
-    id: string, 
-    transactionId: string, 
+    id: string,
+    transactionId: string,
     operatorReference?: string
   ): Promise<Payment> {
     const updateData: any = {
       transactionId,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
-    
+
     if (operatorReference) {
       updateData.operatorReference = operatorReference;
     }
@@ -1005,11 +950,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Phone verification operations
-  async createPhoneVerification(verificationData: InsertPhoneVerification): Promise<PhoneVerification> {
-    const [verification] = await db
-      .insert(phoneVerifications)
-      .values(verificationData)
-      .returning();
+  async createPhoneVerification(
+    verificationData: InsertPhoneVerification
+  ): Promise<PhoneVerification> {
+    const [verification] = await db.insert(phoneVerifications).values(verificationData).returning();
     return verification;
   }
 
@@ -1036,18 +980,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async markPhoneVerificationUsed(id: string): Promise<void> {
-    await db
-      .update(phoneVerifications)
-      .set({ isUsed: true })
-      .where(eq(phoneVerifications.id, id));
+    await db.update(phoneVerifications).set({ isUsed: true }).where(eq(phoneVerifications.id, id));
   }
 
   // Email verification operations
-  async createEmailVerification(verificationData: InsertEmailVerification): Promise<EmailVerification> {
-    const [verification] = await db
-      .insert(emailVerifications)
-      .values(verificationData)
-      .returning();
+  async createEmailVerification(
+    verificationData: InsertEmailVerification
+  ): Promise<EmailVerification> {
+    const [verification] = await db.insert(emailVerifications).values(verificationData).returning();
     return verification;
   }
 
@@ -1074,10 +1014,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async markEmailVerificationUsed(id: string): Promise<void> {
-    await db
-      .update(emailVerifications)
-      .set({ isUsed: true })
-      .where(eq(emailVerifications.id, id));
+    await db.update(emailVerifications).set({ isUsed: true }).where(eq(emailVerifications.id, id));
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
@@ -1086,10 +1023,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUserWithEmail(userData: any): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .returning();
+    const [user] = await db.insert(users).values(userData).returning();
     return user;
   }
 
@@ -1112,34 +1046,34 @@ export class DatabaseStorage implements IStorage {
     // For now, return basic status changes. In production, you'd have a dedicated tracking table
     const order = await this.getOrder(orderId);
     if (!order) return [];
-    
+
     const history = [
       {
-        status: 'pending',
+        status: "pending",
         timestamp: order.createdAt,
-        description: 'Commande créée'
-      }
+        description: "Commande créée",
+      },
     ];
-    
-    if (order.status !== 'pending') {
+
+    if (order.status !== "pending") {
       history.push({
-        status: order.status || 'unknown',
+        status: order.status || "unknown",
         timestamp: order.updatedAt,
-        description: this.getStatusDescription(order.status as any)
+        description: this.getStatusDescription(order.status as any),
       });
     }
-    
+
     return history;
   }
 
   private getStatusDescription(status: string): string {
     const descriptions: Record<string, string> = {
-      'confirmed': 'Commande confirmée',
-      'preparing': 'Commande en préparation',
-      'ready_for_pickup': 'Commande prête pour la livraison',
-      'in_transit': 'Commande en cours de livraison',
-      'delivered': 'Commande livrée',
-      'cancelled': 'Commande annulée'
+      confirmed: "Commande confirmée",
+      preparing: "Commande en préparation",
+      ready_for_pickup: "Commande prête pour la livraison",
+      in_transit: "Commande en cours de livraison",
+      delivered: "Commande livrée",
+      cancelled: "Commande annulée",
     };
     return descriptions[status] || status;
   }
@@ -1148,9 +1082,9 @@ export class DatabaseStorage implements IStorage {
   async addVendorNotes(vendorId: string, notes: string): Promise<void> {
     await db
       .update(vendors)
-      .set({ 
+      .set({
         adminNotes: notes,
-        updatedAt: new Date() 
+        updatedAt: new Date(),
       })
       .where(eq(vendors.id, vendorId));
   }
@@ -1161,29 +1095,26 @@ export class DatabaseStorage implements IStorage {
     status?: string;
     dateFrom?: string;
     dateTo?: string;
-  }): Promise<{ transactions: Payment[]; total: number; }> {
+  }): Promise<{ transactions: Payment[]; total: number }> {
     const conditions = [];
-    
+
     if (filters.status) {
       conditions.push(eq(payments.status, filters.status as any));
     }
-    
+
     if (filters.dateFrom) {
       conditions.push(sql`${payments.createdAt} >= ${new Date(filters.dateFrom)}`);
     }
-    
+
     if (filters.dateTo) {
       conditions.push(sql`${payments.createdAt} <= ${new Date(filters.dateTo)}`);
     }
-    
+
     const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
-    
+
     // Get total count
-    const [countResult] = await db
-      .select({ count: count() })
-      .from(payments)
-      .where(whereCondition);
-    
+    const [countResult] = await db.select({ count: count() }).from(payments).where(whereCondition);
+
     // Get paginated results
     const offset = (filters.page - 1) * filters.limit;
     const transactions = await db
@@ -1193,10 +1124,10 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(payments.createdAt))
       .limit(filters.limit)
       .offset(offset);
-    
+
     return {
       transactions,
-      total: countResult?.count || 0
+      total: countResult?.count || 0,
     };
   }
 }

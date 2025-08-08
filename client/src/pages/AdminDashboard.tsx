@@ -10,7 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +36,7 @@ export default function AdminDashboard() {
 
   // Redirect to home if not authenticated or not admin
   useEffect(() => {
-    if (!authLoading && (!user || user.role !== 'admin')) {
+    if (!authLoading && (!user || user.role !== "admin")) {
       toast({
         title: "Non autorisé",
         description: "Accès administrateur requis",
@@ -44,28 +50,28 @@ export default function AdminDashboard() {
   }, [user, authLoading, toast]);
 
   const { data: adminStats = {}, isLoading: statsLoading } = useQuery({
-    queryKey: ['/api/admin/dashboard'],
-    enabled: !!user && user.role === 'admin',
+    queryKey: ["/api/admin/dashboard"],
+    enabled: !!user && user.role === "admin",
   });
 
   const { data: allUsers = [], isLoading: usersLoading } = useQuery({
-    queryKey: ['/api/admin/users'],
-    enabled: !!user && user.role === 'admin',
+    queryKey: ["/api/admin/users"],
+    enabled: !!user && user.role === "admin",
   });
 
   const { data: admins = [], isLoading: adminsLoading } = useQuery({
-    queryKey: ['/api/admin/admins'],
-    enabled: !!user && user.role === 'admin',
+    queryKey: ["/api/admin/admins"],
+    enabled: !!user && user.role === "admin",
   });
 
   const updateUserRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
-      return await apiRequest('PATCH', `/api/admin/users/${userId}/role`, { role });
+      return await apiRequest("PATCH", `/api/admin/users/${userId}/role`, { role });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/admins'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/admins"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard"] });
       toast({
         title: "Succès",
         description: "Rôle utilisateur mis à jour",
@@ -93,12 +99,12 @@ export default function AdminDashboard() {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      return await apiRequest('DELETE', `/api/admin/users/${userId}`);
+      return await apiRequest("DELETE", `/api/admin/users/${userId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/admins'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/admins"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard"] });
       toast({
         title: "Succès",
         description: "Utilisateur supprimé",
@@ -123,11 +129,16 @@ export default function AdminDashboard() {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800';
-      case 'vendor': return 'bg-blue-100 text-blue-800';
-      case 'driver': return 'bg-green-100 text-green-800';
-      case 'customer': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "admin":
+        return "bg-red-100 text-red-800";
+      case "vendor":
+        return "bg-blue-100 text-blue-800";
+      case "driver":
+        return "bg-green-100 text-green-800";
+      case "customer":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -139,7 +150,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!user || user.role !== 'admin') {
+  if (!user || user.role !== "admin") {
     return (
       <div className="min-h-screen bg-zaka-light">
         <Navbar />
@@ -148,12 +159,8 @@ export default function AdminDashboard() {
             <CardContent className="p-8 text-center">
               <i className="fas fa-lock text-6xl text-red-500 mb-4"></i>
               <h2 className="text-2xl font-bold mb-4">Accès non autorisé</h2>
-              <p className="text-zaka-gray mb-6">
-                Cette page est réservée aux administrateurs.
-              </p>
-              <Button onClick={() => window.location.href = "/"}>
-                Retour à l'accueil
-              </Button>
+              <p className="text-zaka-gray mb-6">Cette page est réservée aux administrateurs.</p>
+              <Button onClick={() => (window.location.href = "/")}>Retour à l'accueil</Button>
             </CardContent>
           </Card>
         </div>
@@ -164,10 +171,10 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-zaka-light">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold text-zaka-dark mb-8">Administration système</h1>
-        
+
         {/* Admin Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
@@ -184,7 +191,7 @@ export default function AdminDashboard() {
               <p className="text-sm text-red-600 mt-2">Actifs</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -199,7 +206,7 @@ export default function AdminDashboard() {
               <p className="text-sm text-blue-600 mt-2">Enregistrés</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -214,7 +221,7 @@ export default function AdminDashboard() {
               <p className="text-sm text-green-600 mt-2">En ligne</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -261,7 +268,7 @@ export default function AdminDashboard() {
                           <div className="flex items-center space-x-4">
                             <Avatar className="w-12 h-12">
                               <AvatarFallback className="bg-red-100 text-red-800">
-                                {admin.firstName?.charAt(0) || admin.email?.charAt(0) || 'A'}
+                                {admin.firstName?.charAt(0) || admin.email?.charAt(0) || "A"}
                               </AvatarFallback>
                             </Avatar>
                             <div>
@@ -270,13 +277,11 @@ export default function AdminDashboard() {
                               </h3>
                               <p className="text-gray-600">{admin.email}</p>
                               <p className="text-sm text-gray-500">
-                                Créé le {new Date(admin.createdAt).toLocaleDateString('fr-FR')}
+                                Créé le {new Date(admin.createdAt).toLocaleDateString("fr-FR")}
                               </p>
                             </div>
                           </div>
-                          <Badge className="bg-red-100 text-red-800">
-                            Administrateur
-                          </Badge>
+                          <Badge className="bg-red-100 text-red-800">Administrateur</Badge>
                         </div>
                       </div>
                     ))}
@@ -329,7 +334,9 @@ export default function AdminDashboard() {
                               <div className="flex items-center">
                                 <Avatar className="w-10 h-10 mr-3">
                                   <AvatarFallback className="bg-zaka-blue text-white">
-                                    {userItem.firstName?.charAt(0) || userItem.email?.charAt(0) || 'U'}
+                                    {userItem.firstName?.charAt(0) ||
+                                      userItem.email?.charAt(0) ||
+                                      "U"}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
@@ -342,13 +349,17 @@ export default function AdminDashboard() {
                             </td>
                             <td className="py-4">
                               <Badge className={getRoleBadgeColor(userItem.role)}>
-                                {userItem.role === 'admin' ? 'Administrateur' :
-                                 userItem.role === 'vendor' ? 'Vendeur' :
-                                 userItem.role === 'driver' ? 'Chauffeur' : 'Client'}
+                                {userItem.role === "admin"
+                                  ? "Administrateur"
+                                  : userItem.role === "vendor"
+                                    ? "Vendeur"
+                                    : userItem.role === "driver"
+                                      ? "Chauffeur"
+                                      : "Client"}
                               </Badge>
                             </td>
                             <td className="py-4">
-                              {new Date(userItem.createdAt).toLocaleDateString('fr-FR')}
+                              {new Date(userItem.createdAt).toLocaleDateString("fr-FR")}
                             </td>
                             <td className="py-4">
                               <div className="flex space-x-2">
@@ -366,14 +377,11 @@ export default function AdminDashboard() {
                                     <SelectItem value="admin">Admin</SelectItem>
                                   </SelectContent>
                                 </Select>
-                                
+
                                 {userItem.id !== user?.id && (
                                   <AlertDialog>
                                     <AlertDialogTrigger asChild>
-                                      <Button 
-                                        variant="destructive" 
-                                        size="sm"
-                                      >
+                                      <Button variant="destructive" size="sm">
                                         <i className="fas fa-trash mr-2"></i>
                                         Supprimer
                                       </Button>
@@ -382,7 +390,9 @@ export default function AdminDashboard() {
                                       <AlertDialogHeader>
                                         <AlertDialogTitle>Supprimer utilisateur</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                          Êtes-vous sûr de vouloir supprimer l'utilisateur "{userItem.firstName} {userItem.lastName}" ? Cette action est irréversible.
+                                          Êtes-vous sûr de vouloir supprimer l'utilisateur "
+                                          {userItem.firstName} {userItem.lastName}" ? Cette action
+                                          est irréversible.
                                         </AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>

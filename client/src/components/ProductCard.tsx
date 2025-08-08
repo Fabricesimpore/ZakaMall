@@ -24,13 +24,13 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const addToCartMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('POST', '/api/cart', {
+      return await apiRequest("POST", "/api/cart", {
         productId: product.id,
         quantity: 1,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
       toast({
         title: "Succès",
         description: "Produit ajouté au panier",
@@ -64,7 +64,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     if (product.images && product.images.length > 0) {
       const imageUrl = product.images[0];
       // If it's an object storage path, convert to proper URL
-      if (imageUrl.startsWith('/objects/')) {
+      if (imageUrl.startsWith("/objects/")) {
         return imageUrl; // Will be served by our object storage route
       }
       return imageUrl;
@@ -77,34 +77,30 @@ export default function ProductCard({ product }: ProductCardProps) {
       <CardContent className="p-0">
         <div className="relative">
           {getFirstImage() ? (
-            <img 
-              src={getFirstImage()!} 
+            <img
+              src={getFirstImage()!}
               alt={product.name}
-              className="w-full h-48 object-cover rounded-t-lg" 
+              className="w-full h-48 object-cover rounded-t-lg"
             />
           ) : (
             <div className="w-full h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
               <i className="fas fa-image text-3xl text-gray-400"></i>
             </div>
           )}
-          
+
           {product.quantity <= 5 && product.quantity > 0 && (
-            <Badge className="absolute top-2 right-2 bg-orange-500 text-white">
-              Stock faible
-            </Badge>
+            <Badge className="absolute top-2 right-2 bg-orange-500 text-white">Stock faible</Badge>
           )}
-          
+
           {product.quantity === 0 && (
-            <Badge className="absolute top-2 right-2 bg-red-500 text-white">
-              Rupture
-            </Badge>
+            <Badge className="absolute top-2 right-2 bg-red-500 text-white">Rupture</Badge>
           )}
         </div>
-        
+
         <div className="p-4">
           <h3 className="font-semibold text-zaka-dark mb-2 line-clamp-2">{product.name}</h3>
           <p className="text-sm text-zaka-gray mb-3 line-clamp-2">{product.description}</p>
-          
+
           <div className="flex justify-between items-center mb-3">
             <span className="text-lg font-bold text-zaka-orange">
               {formatPrice(product.price)} CFA
@@ -116,12 +112,10 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between">
-            <span className="text-xs text-zaka-gray">
-              Stock: {product.quantity}
-            </span>
-            <Button 
+            <span className="text-xs text-zaka-gray">Stock: {product.quantity}</span>
+            <Button
               className="bg-zaka-blue hover:bg-zaka-blue text-white text-sm px-4 py-2"
               onClick={() => addToCartMutation.mutate()}
               disabled={product.quantity === 0 || addToCartMutation.isPending}

@@ -4,7 +4,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import UnreadBadge from "@/components/UnreadBadge";
 
@@ -25,8 +31,8 @@ export default function Navbar() {
       { href: "/driver", label: "Livraison", icon: "fas fa-motorcycle" },
       { href: "/chat", label: "Messages", icon: "fas fa-comments" },
     ];
-    
-    if (user?.role === 'admin') {
+
+    if (user?.role === "admin") {
       baseLinks.push({ href: "/admin", label: "Admin", icon: "fas fa-cog" });
     }
 
@@ -65,7 +71,7 @@ export default function Navbar() {
               </div>
             </Link>
           </div>
-          
+
           {/* Mobile menu button */}
           <div className="md:hidden">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -79,13 +85,13 @@ export default function Navbar() {
                   <div className="flex items-center mb-8">
                     <h2 className="text-xl font-bold text-zaka-orange">Menu</h2>
                   </div>
-                  
+
                   {user && (
                     <div className="flex items-center mb-6 p-4 bg-zaka-light rounded-lg">
                       <Avatar className="w-12 h-12 mr-3">
                         <AvatarImage src={user.profileImageUrl || undefined} />
                         <AvatarFallback className="bg-zaka-orange text-white">
-                          {user.firstName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                          {user.firstName?.charAt(0) || user.email?.charAt(0) || "U"}
                         </AvatarFallback>
                       </Avatar>
                       <div>
@@ -96,7 +102,7 @@ export default function Navbar() {
                       </div>
                     </div>
                   )}
-                  
+
                   <div className="flex-1 space-y-2">
                     {navLinks.map((link) => (
                       <Link key={link.href} href={link.href}>
@@ -111,10 +117,10 @@ export default function Navbar() {
                       </Link>
                     ))}
                   </div>
-                  
+
                   <div className="mt-auto pt-4 border-t">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full text-red-600 border-red-600 hover:bg-red-50"
                       onClick={handleLogout}
                     >
@@ -126,7 +132,7 @@ export default function Navbar() {
               </SheetContent>
             </Sheet>
           </div>
-          
+
           {/* Desktop navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
@@ -134,15 +140,15 @@ export default function Navbar() {
                 <Button
                   variant={location === link.href ? "secondary" : "ghost"}
                   className="text-zaka-dark hover:text-zaka-orange transition-colors relative"
-                  style={location === link.href ? { color: 'var(--zaka-orange)' } : {}}
+                  style={location === link.href ? { color: "var(--zaka-orange)" } : {}}
                 >
                   <i className={`${link.icon} mr-2`}></i>
                   {link.label}
-                  {link.href === '/chat' && <UnreadBadge />}
+                  {link.href === "/chat" && <UnreadBadge />}
                 </Button>
               </Link>
             ))}
-            
+
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -150,7 +156,7 @@ export default function Navbar() {
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user.profileImageUrl || undefined} />
                       <AvatarFallback className="bg-zaka-orange text-white">
-                        {user.firstName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                        {user.firstName?.charAt(0) || user.email?.charAt(0) || "U"}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -160,9 +166,7 @@ export default function Navbar() {
                     <p className="text-sm font-medium leading-none">
                       {user.firstName} {user.lastName}
                     </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
-                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                     <p className="text-xs leading-none text-muted-foreground capitalize">
                       {user.role}
                     </p>

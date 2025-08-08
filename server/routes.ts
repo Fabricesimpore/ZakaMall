@@ -6,7 +6,20 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import { PaymentServiceFactory } from "./paymentService";
-import { insertVendorSchema, insertDriverSchema, insertProductSchema, insertCartSchema, insertOrderSchema, insertReviewSchema, insertChatRoomSchema, insertMessageSchema, insertChatParticipantSchema, insertPhoneVerificationSchema, insertEmailVerificationSchema, insertPaymentSchema } from "@shared/schema";
+import {
+  insertVendorSchema,
+  insertDriverSchema,
+  insertProductSchema,
+  insertCartSchema,
+  insertOrderSchema,
+  insertReviewSchema,
+  insertChatRoomSchema,
+  insertMessageSchema,
+  insertChatParticipantSchema,
+  insertPhoneVerificationSchema,
+  insertEmailVerificationSchema,
+  insertPaymentSchema,
+} from "@shared/schema";
 import { z } from "zod";
 import { randomInt } from "crypto";
 
@@ -15,147 +28,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     await setupAuth(app);
   } catch (error) {
-    console.warn('Auth setup failed, continuing without auth for testing:', (error as Error).message);
+    console.warn(
+      "Auth setup failed, continuing without auth for testing:",
+      (error as Error).message
+    );
   }
 
   // Test route to simulate authenticated user for payment testing
-  app.post('/api/test/login', async (req, res) => {
+  app.post("/api/test/login", async (req, res) => {
     const testUser = {
-      id: 'test-user-123',
-      email: 'test@example.com',
-      firstName: 'Test',
-      lastName: 'User',
-      profileImageUrl: null
+      id: "test-user-123",
+      email: "test@example.com",
+      firstName: "Test",
+      lastName: "User",
+      profileImageUrl: null,
     };
-    
+
     // Create test user in storage if doesn't exist
     try {
       await storage.upsertUser(testUser);
-      
+
       // Simulate user session
       (req as any).user = {
         claims: { sub: testUser.id },
-        isAuthenticated: true
+        isAuthenticated: true,
       };
-      
+
       res.json({ success: true, user: testUser });
     } catch (error) {
-      console.error('Test login error:', error);
-      res.status(500).json({ error: 'Failed to create test user' });
+      console.error("Test login error:", error);
+      res.status(500).json({ error: "Failed to create test user" });
     }
   });
 
   // Test route to create a test order for payment testing
-  app.post('/api/test/order', async (req, res) => {
+  app.post("/api/test/order", async (req, res) => {
     const { amount, items } = req.body;
-    
+
     try {
       const testOrder = {
-        customerId: 'test-user-123',
-        vendorId: 'test-vendor-1',
-        status: 'pending' as const,
+        customerId: "test-user-123",
+        vendorId: "test-vendor-1",
+        status: "pending" as const,
         subtotal: amount.toString(),
-        deliveryFee: '2000',
+        deliveryFee: "2000",
         totalAmount: amount.toString(),
         deliveryAddress: {
-          address: 'Adresse de test, Ouagadougou, Burkina Faso',
-          phone: '+226 70 12 34 56',
-          name: 'Test User'
-        }
+          address: "Adresse de test, Ouagadougou, Burkina Faso",
+          phone: "+226 70 12 34 56",
+          name: "Test User",
+        },
       };
-      
+
       const testOrderItems = items.map((item: any) => ({
-        productId: 'test-product-1',
+        productId: "test-product-1",
         quantity: item.quantity || 1,
         unitPrice: item.price || 1000,
-        totalPrice: (item.quantity || 1) * (item.price || 1000)
+        totalPrice: (item.quantity || 1) * (item.price || 1000),
       }));
-      
+
       const createdOrder = await storage.createOrder(testOrder, testOrderItems);
       res.json({ success: true, orderId: createdOrder.id });
     } catch (error) {
-      console.error('Test order creation error:', error);
-      res.status(500).json({ error: 'Failed to create test order' });
+      console.error("Test order creation error:", error);
+      res.status(500).json({ error: "Failed to create test order" });
     }
   });
 
   // Test payment routes (unprotected for testing)
-  app.post('/api/test/payments/orange-money', async (req, res) => {
+  app.post("/api/test/payments/orange-money", async (req, res) => {
     try {
       const { phoneNumber } = req.body;
-      const paymentService = PaymentServiceFactory.getService('orange_money');
+      const paymentService = PaymentServiceFactory.getService("orange_money");
       const result = await paymentService.initiatePayment({
-        orderId: 'test-order-123',
+        orderId: "test-order-123",
         amount: 25000,
-        phoneNumber: phoneNumber || '+226 70 12 34 56',
-        paymentMethod: 'orange_money'
+        phoneNumber: phoneNumber || "+226 70 12 34 56",
+        paymentMethod: "orange_money",
       });
       res.json(result);
     } catch (error) {
-      console.error('Orange Money test error:', error);
-      res.status(500).json({ error: 'Orange Money test failed' });
+      console.error("Orange Money test error:", error);
+      res.status(500).json({ error: "Orange Money test failed" });
     }
   });
 
-  app.post('/api/test/payments/moov-money', async (req, res) => {
+  app.post("/api/test/payments/moov-money", async (req, res) => {
     try {
       const { phoneNumber } = req.body;
-      const paymentService = PaymentServiceFactory.getService('moov_money');
+      const paymentService = PaymentServiceFactory.getService("moov_money");
       const result = await paymentService.initiatePayment({
-        orderId: 'test-order-124',
+        orderId: "test-order-124",
         amount: 25000,
-        phoneNumber: phoneNumber || '+226 75 56 78 90',
-        paymentMethod: 'moov_money'
+        phoneNumber: phoneNumber || "+226 75 56 78 90",
+        paymentMethod: "moov_money",
       });
       res.json(result);
     } catch (error) {
-      console.error('Moov Money test error:', error);
-      res.status(500).json({ error: 'Moov Money test failed' });
+      console.error("Moov Money test error:", error);
+      res.status(500).json({ error: "Moov Money test failed" });
     }
   });
 
-  app.post('/api/test/payments/cash-on-delivery', async (req, res) => {
+  app.post("/api/test/payments/cash-on-delivery", async (req, res) => {
     try {
-      const paymentService = PaymentServiceFactory.getService('cash_on_delivery');
+      const paymentService = PaymentServiceFactory.getService("cash_on_delivery");
       const result = await paymentService.initiatePayment({
-        orderId: 'test-order-125',
+        orderId: "test-order-125",
         amount: 25000,
-        phoneNumber: '',
-        paymentMethod: 'cash_on_delivery'
+        phoneNumber: "",
+        paymentMethod: "cash_on_delivery",
       });
       res.json(result);
     } catch (error) {
-      console.error('Cash on delivery test error:', error);
-      res.status(500).json({ error: 'Cash on delivery test failed' });
+      console.error("Cash on delivery test error:", error);
+      res.status(500).json({ error: "Cash on delivery test failed" });
     }
   });
 
-  app.get('/api/test/payments/:paymentId/status', async (req, res) => {
+  app.get("/api/test/payments/:paymentId/status", async (req, res) => {
     try {
       const { paymentId } = req.params;
       const transactionId = paymentId;
-      
+
       // Determine payment method from transaction ID prefix
-      let paymentMethod: 'orange_money' | 'moov_money' | 'cash_on_delivery';
-      if (transactionId.startsWith('OM_')) {
-        paymentMethod = 'orange_money';
-      } else if (transactionId.startsWith('MM_')) {
-        paymentMethod = 'moov_money';
+      let paymentMethod: "orange_money" | "moov_money" | "cash_on_delivery";
+      if (transactionId.startsWith("OM_")) {
+        paymentMethod = "orange_money";
+      } else if (transactionId.startsWith("MM_")) {
+        paymentMethod = "moov_money";
       } else {
-        paymentMethod = 'cash_on_delivery';
+        paymentMethod = "cash_on_delivery";
       }
-      
+
       const paymentService = PaymentServiceFactory.getService(paymentMethod);
       const status = await paymentService.checkPaymentStatus(transactionId);
       res.json(status);
     } catch (error) {
-      console.error('Payment status check error:', error);
-      res.status(500).json({ error: 'Payment status check failed' });
+      console.error("Payment status check error:", error);
+      res.status(500).json({ error: "Payment status check failed" });
     }
   });
 
   // Real Payment API Routes
-  app.post('/api/payments/initiate', isAuthenticated, async (req: any, res) => {
+  app.post("/api/payments/initiate", isAuthenticated, async (req: any, res) => {
     try {
       const { orderId, paymentMethod, phoneNumber } = req.body;
       const userId = req.user.claims.sub;
@@ -163,22 +179,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate order exists and belongs to user
       const order = await storage.getOrder(orderId);
       if (!order || order.customerId !== userId) {
-        return res.status(404).json({ error: 'Commande introuvable' });
+        return res.status(404).json({ error: "Commande introuvable" });
       }
 
-      if (order.status !== 'pending') {
-        return res.status(400).json({ error: 'Cette commande ne peut plus être payée' });
+      if (order.status !== "pending") {
+        return res.status(400).json({ error: "Cette commande ne peut plus être payée" });
       }
 
       // Get payment service
       const paymentService = PaymentServiceFactory.getService(paymentMethod);
-      
+
       // Initiate payment
       const paymentResult = await paymentService.initiatePayment({
         orderId,
         amount: parseInt(order.totalAmount),
-        phoneNumber: phoneNumber || '',
-        paymentMethod
+        phoneNumber: phoneNumber || "",
+        paymentMethod,
       });
 
       if (!paymentResult.success) {
@@ -190,11 +206,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         orderId,
         amount: order.totalAmount,
         paymentMethod,
-        status: 'pending',
+        status: "pending",
         transactionId: paymentResult.transactionId!,
         operatorReference: paymentResult.operatorReference,
         phoneNumber: phoneNumber || null,
-        expiresAt: paymentResult.expiresAt || null
+        expiresAt: paymentResult.expiresAt || null,
       });
 
       res.json({
@@ -202,34 +218,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         paymentId: payment.id,
         transactionId: paymentResult.transactionId,
         message: paymentResult.message,
-        expiresAt: paymentResult.expiresAt
+        expiresAt: paymentResult.expiresAt,
       });
-
     } catch (error) {
-      console.error('Payment initiation error:', error);
-      res.status(500).json({ error: 'Erreur lors de l\'initiation du paiement' });
+      console.error("Payment initiation error:", error);
+      res.status(500).json({ error: "Erreur lors de l'initiation du paiement" });
     }
   });
 
-  app.get('/api/payments/:paymentId/status', isAuthenticated, async (req: any, res) => {
+  app.get("/api/payments/:paymentId/status", isAuthenticated, async (req: any, res) => {
     try {
       const { paymentId } = req.params;
       const userId = req.user.claims.sub;
 
       const payment = await storage.getPayment(paymentId);
       if (!payment) {
-        return res.status(404).json({ error: 'Paiement introuvable' });
+        return res.status(404).json({ error: "Paiement introuvable" });
       }
 
       // Verify order belongs to user
       const order = await storage.getOrder(payment.orderId);
       if (!order || order.customerId !== userId) {
-        return res.status(403).json({ error: 'Accès refusé' });
+        return res.status(403).json({ error: "Accès refusé" });
       }
 
       // Check real payment status
-      const paymentService = PaymentServiceFactory.getService(payment.paymentMethod as 'orange_money' | 'moov_money' | 'cash_on_delivery');
-      const statusResult = await paymentService.checkPaymentStatus(payment.transactionId || '');
+      const paymentService = PaymentServiceFactory.getService(
+        payment.paymentMethod as "orange_money" | "moov_money" | "cash_on_delivery"
+      );
+      const statusResult = await paymentService.checkPaymentStatus(payment.transactionId || "");
 
       // Update payment status if changed
       if (statusResult.status !== payment.status) {
@@ -240,8 +257,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
 
         // Update order status if payment completed
-        if (statusResult.status === 'completed' && order.status === 'pending') {
-          await storage.updateOrderStatus(order.id, 'confirmed');
+        if (statusResult.status === "completed" && order.status === "pending") {
+          await storage.updateOrderStatus(order.id, "confirmed");
         }
       }
 
@@ -250,134 +267,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
         transactionId: payment.transactionId,
         operatorReference: statusResult.operatorReference,
         failureReason: statusResult.failureReason,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
-
     } catch (error) {
-      console.error('Payment status check error:', error);
-      res.status(500).json({ error: 'Erreur lors de la vérification du statut' });
+      console.error("Payment status check error:", error);
+      res.status(500).json({ error: "Erreur lors de la vérification du statut" });
     }
   });
 
   // Orange Money Webhook Handlers
-  app.post('/api/payments/orange-money/notify', async (req, res) => {
+  app.post("/api/payments/orange-money/notify", async (req, res) => {
     try {
       const { txnid, status, reference, amount } = req.body;
-      
-      console.log('Orange Money notification received:', req.body);
+
+      console.log("Orange Money notification received:", req.body);
 
       // Find payment by transaction reference
       const payments = await storage.getOrderPayments(reference);
-      const payment = payments.find(p => p.transactionId === reference);
+      const payment = payments.find((p) => p.transactionId === reference);
 
       if (!payment) {
-        console.warn('Payment not found for Orange Money notification:', reference);
-        return res.status(404).send('Payment not found');
+        console.warn("Payment not found for Orange Money notification:", reference);
+        return res.status(404).send("Payment not found");
       }
 
       // Update payment status
-      let paymentStatus: 'pending' | 'completed' | 'failed' = 'pending';
-      if (status === 'SUCCESS' || status === 'SUCCESSFUL') {
-        paymentStatus = 'completed';
-      } else if (status === 'FAILED' || status === 'FAILURE') {
-        paymentStatus = 'failed';
+      let paymentStatus: "pending" | "completed" | "failed" = "pending";
+      if (status === "SUCCESS" || status === "SUCCESSFUL") {
+        paymentStatus = "completed";
+      } else if (status === "FAILED" || status === "FAILURE") {
+        paymentStatus = "failed";
       }
 
       await storage.updatePaymentStatus(payment.id, paymentStatus);
       await storage.updatePaymentTransaction(payment.id, reference, txnid);
 
       // Update order status if payment completed
-      if (paymentStatus === 'completed') {
-        await storage.updateOrderStatus(payment.orderId, 'confirmed');
+      if (paymentStatus === "completed") {
+        await storage.updateOrderStatus(payment.orderId, "confirmed");
       }
 
-      res.status(200).send('OK');
+      res.status(200).send("OK");
     } catch (error) {
-      console.error('Orange Money notification error:', error);
-      res.status(500).send('Error');
+      console.error("Orange Money notification error:", error);
+      res.status(500).send("Error");
     }
   });
 
-  app.get('/api/payments/orange-money/callback', async (req, res) => {
+  app.get("/api/payments/orange-money/callback", async (req, res) => {
     try {
       const { reference, status } = req.query;
-      
+
       // Redirect to order status page with payment result
-      const redirectUrl = status === 'SUCCESS' 
-        ? `/orders/${reference}?payment=success`
-        : `/orders/${reference}?payment=failed`;
-      
+      const redirectUrl =
+        status === "SUCCESS"
+          ? `/orders/${reference}?payment=success`
+          : `/orders/${reference}?payment=failed`;
+
       res.redirect(redirectUrl);
     } catch (error) {
-      console.error('Orange Money callback error:', error);
-      res.redirect('/orders?payment=error');
+      console.error("Orange Money callback error:", error);
+      res.redirect("/orders?payment=error");
     }
   });
 
-  app.get('/api/payments/orange-money/cancel', async (req, res) => {
+  app.get("/api/payments/orange-money/cancel", async (req, res) => {
     try {
       const { reference } = req.query;
       res.redirect(`/orders/${reference}?payment=cancelled`);
     } catch (error) {
-      console.error('Orange Money cancel error:', error);
-      res.redirect('/orders?payment=error');
+      console.error("Orange Money cancel error:", error);
+      res.redirect("/orders?payment=error");
     }
   });
 
-  // Moov Money Webhook Handlers  
-  app.post('/api/payments/moov-money/callback', async (req, res) => {
+  // Moov Money Webhook Handlers
+  app.post("/api/payments/moov-money/callback", async (req, res) => {
     try {
       const { reference, status, transactionId } = req.body;
-      
-      console.log('Moov Money notification received:', req.body);
+
+      console.log("Moov Money notification received:", req.body);
 
       // Find payment by transaction reference
       const payments = await storage.getOrderPayments(reference);
-      const payment = payments.find(p => p.transactionId === reference);
+      const payment = payments.find((p) => p.transactionId === reference);
 
       if (!payment) {
-        console.warn('Payment not found for Moov Money notification:', reference);
-        return res.status(404).send('Payment not found');
+        console.warn("Payment not found for Moov Money notification:", reference);
+        return res.status(404).send("Payment not found");
       }
 
       // Update payment status
-      let paymentStatus: 'pending' | 'completed' | 'failed' = 'pending';
-      if (status === 'SUCCESSFUL' || status === 'COMPLETED') {
-        paymentStatus = 'completed';
-      } else if (status === 'FAILED' || status === 'REJECTED') {
-        paymentStatus = 'failed';
+      let paymentStatus: "pending" | "completed" | "failed" = "pending";
+      if (status === "SUCCESSFUL" || status === "COMPLETED") {
+        paymentStatus = "completed";
+      } else if (status === "FAILED" || status === "REJECTED") {
+        paymentStatus = "failed";
       }
 
       await storage.updatePaymentStatus(payment.id, paymentStatus);
       await storage.updatePaymentTransaction(payment.id, reference, transactionId);
 
       // Update order status if payment completed
-      if (paymentStatus === 'completed') {
-        await storage.updateOrderStatus(payment.orderId, 'confirmed');
+      if (paymentStatus === "completed") {
+        await storage.updateOrderStatus(payment.orderId, "confirmed");
       }
 
-      res.status(200).send('OK');
+      res.status(200).send("OK");
     } catch (error) {
-      console.error('Moov Money notification error:', error);
-      res.status(500).send('Error');
+      console.error("Moov Money notification error:", error);
+      res.status(500).send("Error");
     }
   });
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
       // Get additional role-specific data
       let roleData = null;
-      if (user.role === 'vendor') {
+      if (user.role === "vendor") {
         roleData = await storage.getVendorByUserId(userId);
-      } else if (user.role === 'driver') {
+      } else if (user.role === "driver") {
         roleData = await storage.getDriverByUserId(userId);
       }
 
@@ -388,11 +405,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/auth/setup-status', isAuthenticated, async (req: any, res) => {
+  app.get("/api/auth/setup-status", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -404,14 +421,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         driverStatus: null,
       };
 
-      if (user.role === 'vendor') {
+      if (user.role === "vendor") {
         const vendor = await storage.getVendorByUserId(userId);
         setupStatus.hasVendorProfile = !!vendor;
-        setupStatus.vendorStatus = vendor?.status as any || null;
-      } else if (user.role === 'driver') {
+        setupStatus.vendorStatus = (vendor?.status as any) || null;
+      } else if (user.role === "driver") {
         const driver = await storage.getDriverByUserId(userId);
         setupStatus.hasDriverProfile = !!driver;
-        setupStatus.driverStatus = driver?.status as any || null;
+        setupStatus.driverStatus = (driver?.status as any) || null;
       }
 
       res.json(setupStatus);
@@ -422,12 +439,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User role management
-  app.post('/api/auth/set-role', isAuthenticated, async (req: any, res) => {
+  app.post("/api/auth/set-role", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { role } = req.body;
 
-      if (!['customer', 'vendor', 'driver'].includes(role)) {
+      if (!["customer", "vendor", "driver"].includes(role)) {
         return res.status(400).json({ message: "Invalid role" });
       }
 
@@ -440,26 +457,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin user management - only for admins to promote other users
-  app.post('/api/admin/promote-user', isAuthenticated, async (req: any, res) => {
+  app.post("/api/admin/promote-user", isAuthenticated, async (req: any, res) => {
     try {
       const currentUserId = req.user.claims.sub;
       const currentUser = await storage.getUser(currentUserId);
-      
+
       // Only existing admins can promote users
-      if (currentUser?.role !== 'admin') {
+      if (currentUser?.role !== "admin") {
         return res.status(403).json({ message: "Only admins can promote users" });
       }
 
       const { userId, role } = req.body;
 
-      if (!['customer', 'vendor', 'driver', 'admin'].includes(role)) {
+      if (!["customer", "vendor", "driver", "admin"].includes(role)) {
         return res.status(400).json({ message: "Invalid role" });
       }
 
       const updatedUser = await storage.updateUserRole(userId, role);
-      res.json({ 
+      res.json({
         message: `User promoted to ${role} successfully`,
-        user: updatedUser 
+        user: updatedUser,
       });
     } catch (error) {
       console.error("Error promoting user:", error);
@@ -468,23 +485,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Emergency admin creation - only works if no admins exist
-  app.post('/api/admin/emergency-create', isAuthenticated, async (req: any, res) => {
+  app.post("/api/admin/emergency-create", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
+
       // Check if any admin users already exist
-      const existingAdmins = await storage.getUsersByRole('admin');
+      const existingAdmins = await storage.getUsersByRole("admin");
       if (existingAdmins.length > 0) {
-        return res.status(403).json({ 
-          message: "Admin users already exist. Contact an existing admin for promotion." 
+        return res.status(403).json({
+          message: "Admin users already exist. Contact an existing admin for promotion.",
         });
       }
 
       // Make the current user an admin
-      const updatedUser = await storage.updateUserRole(userId, 'admin');
-      res.json({ 
+      const updatedUser = await storage.updateUserRole(userId, "admin");
+      res.json({
         message: "Emergency admin created successfully",
-        user: updatedUser 
+        user: updatedUser,
       });
     } catch (error) {
       console.error("Error creating emergency admin:", error);
@@ -493,14 +510,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Vendor routes
-  app.post('/api/vendors', isAuthenticated, async (req: any, res) => {
+  app.post("/api/vendors", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const vendorData = insertVendorSchema.parse({ ...req.body, userId });
-      
+
       const vendor = await storage.createVendor(vendorData);
-      await storage.updateUserRole(userId, 'vendor');
-      
+      await storage.updateUserRole(userId, "vendor");
+
       res.json(vendor);
     } catch (error) {
       console.error("Error creating vendor:", error);
@@ -508,10 +525,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/vendors', isAuthenticated, async (req: any, res) => {
+  app.get("/api/vendors", isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
+      if (user?.role !== "admin") {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
@@ -524,16 +541,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/vendors/:id/status', isAuthenticated, async (req: any, res) => {
+  app.patch("/api/vendors/:id/status", isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
+      if (user?.role !== "admin") {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
       const { id } = req.params;
       const { status } = req.body;
-      
+
       const vendor = await storage.updateVendorStatus(id, status);
       res.json(vendor);
     } catch (error) {
@@ -543,14 +560,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Driver routes
-  app.post('/api/drivers', isAuthenticated, async (req: any, res) => {
+  app.post("/api/drivers", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const driverData = insertDriverSchema.parse({ ...req.body, userId });
-      
+
       const driver = await storage.createDriver(driverData);
-      await storage.updateUserRole(userId, 'driver');
-      
+      await storage.updateUserRole(userId, "driver");
+
       res.json(driver);
     } catch (error) {
       console.error("Error creating driver:", error);
@@ -558,7 +575,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/drivers/available', async (req, res) => {
+  app.get("/api/drivers/available", async (req, res) => {
     try {
       const drivers = await storage.getAvailableDrivers();
       res.json(drivers);
@@ -568,11 +585,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/drivers/:id/location', isAuthenticated, async (req: any, res) => {
+  app.patch("/api/drivers/:id/location", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { lat, lng } = req.body;
-      
+
       const driver = await storage.updateDriverLocation(id, lat, lng);
       res.json(driver);
     } catch (error) {
@@ -581,11 +598,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/drivers/:id/status', isAuthenticated, async (req: any, res) => {
+  app.patch("/api/drivers/:id/status", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { isOnline } = req.body;
-      
+
       const driver = await storage.updateDriverStatus(id, isOnline);
       res.json(driver);
     } catch (error) {
@@ -595,7 +612,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Category routes
-  app.get('/api/categories', async (req, res) => {
+  app.get("/api/categories", async (req, res) => {
     try {
       const categories = await storage.getCategories();
       res.json(categories);
@@ -606,18 +623,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Product routes
-  app.post('/api/products', isAuthenticated, async (req: any, res) => {
+  app.post("/api/products", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const vendor = await storage.getVendorByUserId(userId);
-      
+
       if (!vendor) {
         return res.status(403).json({ message: "Only vendors can create products" });
       }
 
       const productData = insertProductSchema.parse({ ...req.body, vendorId: vendor.id });
       const product = await storage.createProduct(productData);
-      
+
       res.json(product);
     } catch (error) {
       console.error("Error creating product:", error);
@@ -625,17 +642,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/products', async (req, res) => {
+  app.get("/api/products", async (req, res) => {
     try {
       const { vendorId, categoryId, search, limit } = req.query;
-      
+
       const products = await storage.getProducts({
         vendorId: vendorId as string,
         categoryId: categoryId as string,
         search: search as string,
         limit: limit ? parseInt(limit as string) : undefined,
       });
-      
+
       res.json(products);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -643,15 +660,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/products/:id', async (req, res) => {
+  app.get("/api/products/:id", async (req, res) => {
     try {
       const { id } = req.params;
       const product = await storage.getProduct(id);
-      
+
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
-      
+
       res.json(product);
     } catch (error) {
       console.error("Error fetching product:", error);
@@ -659,12 +676,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/products/:id', isAuthenticated, async (req: any, res) => {
+  app.patch("/api/products/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const userId = req.user.claims.sub;
       const vendor = await storage.getVendorByUserId(userId);
-      
+
       if (!vendor) {
         return res.status(403).json({ message: "Only vendors can update products" });
       }
@@ -678,11 +695,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Cart routes
-  app.post('/api/cart', isAuthenticated, async (req: any, res) => {
+  app.post("/api/cart", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const cartData = insertCartSchema.parse({ ...req.body, userId });
-      
+
       const cartItem = await storage.addToCart(cartData);
       res.json(cartItem);
     } catch (error) {
@@ -691,7 +708,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/cart', isAuthenticated, async (req: any, res) => {
+  app.get("/api/cart", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const cartItems = await storage.getCartItems(userId);
@@ -702,11 +719,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/cart/:id', isAuthenticated, async (req: any, res) => {
+  app.patch("/api/cart/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { quantity } = req.body;
-      
+
       const cartItem = await storage.updateCartItem(id, quantity);
       res.json(cartItem);
     } catch (error) {
@@ -715,7 +732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/cart/:id', isAuthenticated, async (req: any, res) => {
+  app.delete("/api/cart/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       await storage.removeFromCart(id);
@@ -726,7 +743,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/cart', isAuthenticated, async (req: any, res) => {
+  app.delete("/api/cart", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       await storage.clearCart(userId);
@@ -738,19 +755,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Order routes
-  app.post('/api/orders', isAuthenticated, async (req: any, res) => {
+  app.post("/api/orders", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { items, ...orderData } = req.body;
-      
-      const order = await storage.createOrder(
-        { ...orderData, customerId: userId },
-        items
-      );
-      
+
+      const order = await storage.createOrder({ ...orderData, customerId: userId }, items);
+
       // Clear cart after successful order
       await storage.clearCart(userId);
-      
+
       res.json(order);
     } catch (error) {
       console.error("Error creating order:", error);
@@ -758,24 +772,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/orders', isAuthenticated, async (req: any, res) => {
+  app.get("/api/orders", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       const { status } = req.query;
-      
+
       let filters: any = { status };
-      
-      if (user?.role === 'customer') {
+
+      if (user?.role === "customer") {
         filters.customerId = userId;
-      } else if (user?.role === 'vendor') {
+      } else if (user?.role === "vendor") {
         const vendor = await storage.getVendorByUserId(userId);
         filters.vendorId = vendor?.id;
-      } else if (user?.role === 'driver') {
+      } else if (user?.role === "driver") {
         const driver = await storage.getDriverByUserId(userId);
         filters.driverId = driver?.id;
       }
-      
+
       const orders = await storage.getOrders(filters);
       res.json(orders);
     } catch (error) {
@@ -784,15 +798,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/orders/:id', isAuthenticated, async (req: any, res) => {
+  app.get("/api/orders/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const order = await storage.getOrder(id);
-      
+
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
-      
+
       res.json(order);
     } catch (error) {
       console.error("Error fetching order:", error);
@@ -800,11 +814,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/orders/:id/status', isAuthenticated, async (req: any, res) => {
+  app.patch("/api/orders/:id/status", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { status } = req.body;
-      
+
       const order = await storage.updateOrderStatus(id, status);
       res.json(order);
     } catch (error) {
@@ -813,11 +827,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/orders/:id/assign-driver', isAuthenticated, async (req: any, res) => {
+  app.patch("/api/orders/:id/assign-driver", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { driverId } = req.body;
-      
+
       const order = await storage.assignOrderToDriver(id, driverId);
       res.json(order);
     } catch (error) {
@@ -827,11 +841,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Review routes
-  app.post('/api/reviews', isAuthenticated, async (req: any, res) => {
+  app.post("/api/reviews", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const reviewData = insertReviewSchema.parse({ ...req.body, userId });
-      
+
       const review = await storage.createReview(reviewData);
       res.json(review);
     } catch (error) {
@@ -840,7 +854,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/products/:id/reviews', async (req, res) => {
+  app.get("/api/products/:id/reviews", async (req, res) => {
     try {
       const { id } = req.params;
       const reviews = await storage.getProductReviews(id);
@@ -852,7 +866,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Analytics routes
-  app.get('/api/analytics/vendor/:id', isAuthenticated, async (req: any, res) => {
+  app.get("/api/analytics/vendor/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const stats = await storage.getVendorStats(id);
@@ -863,7 +877,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/analytics/driver/:id', isAuthenticated, async (req: any, res) => {
+  app.get("/api/analytics/driver/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const stats = await storage.getDriverStats(id);
@@ -874,15 +888,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/analytics/admin', isAuthenticated, async (req: any, res) => {
+  app.get("/api/analytics/admin", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
-      if (user?.role !== 'admin') {
+
+      if (user?.role !== "admin") {
         return res.status(403).json({ message: "Unauthorized" });
       }
-      
+
       const stats = await storage.getAdminStats();
       res.json(stats);
     } catch (error) {
@@ -892,7 +906,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Chat routes
-  app.get('/api/chat/rooms', isAuthenticated, async (req: any, res) => {
+  app.get("/api/chat/rooms", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const chatRooms = await storage.getUserChatRooms(userId);
@@ -903,23 +917,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/chat/rooms', isAuthenticated, async (req: any, res) => {
+  app.post("/api/chat/rooms", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { participantIds, name } = req.body;
-      
+
       const chatRoom = await storage.createChatRoom({
         name,
-        type: participantIds.length > 1 ? 'group' : 'direct',
+        type: participantIds.length > 1 ? "group" : "direct",
         createdBy: userId,
       });
-      
+
       // Add creator as participant
       await storage.addChatParticipant({
         chatRoomId: chatRoom.id,
         userId,
       });
-      
+
       // Add other participants
       for (const participantId of participantIds) {
         if (participantId !== userId) {
@@ -929,7 +943,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
-      
+
       res.json(chatRoom);
     } catch (error) {
       console.error("Error creating chat room:", error);
@@ -937,18 +951,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/chat/rooms/:roomId/messages', isAuthenticated, async (req: any, res) => {
+  app.get("/api/chat/rooms/:roomId/messages", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { roomId } = req.params;
       const { limit = 50, offset = 0 } = req.query;
-      
+
       // Check if user is participant
       const isParticipant = await storage.isUserInChatRoom(userId, roomId);
       if (!isParticipant) {
         return res.status(403).json({ message: "Access denied" });
       }
-      
+
       const messages = await storage.getChatMessages(roomId, parseInt(limit), parseInt(offset));
       res.json(messages);
     } catch (error) {
@@ -957,18 +971,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/chat/rooms/:roomId/messages', isAuthenticated, async (req: any, res) => {
+  app.post("/api/chat/rooms/:roomId/messages", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { roomId } = req.params;
-      const messageData = insertMessageSchema.parse({ ...req.body, chatRoomId: roomId, senderId: userId });
-      
+      const messageData = insertMessageSchema.parse({
+        ...req.body,
+        chatRoomId: roomId,
+        senderId: userId,
+      });
+
       // Check if user is participant
       const isParticipant = await storage.isUserInChatRoom(userId, roomId);
       if (!isParticipant) {
         return res.status(403).json({ message: "Access denied" });
       }
-      
+
       const message = await storage.createMessage(messageData);
       res.json(message);
     } catch (error) {
@@ -977,13 +995,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/users/search', isAuthenticated, async (req: any, res) => {
+  app.get("/api/users/search", isAuthenticated, async (req: any, res) => {
     try {
       const { q } = req.query;
       if (!q || q.length < 2) {
         return res.json([]);
       }
-      
+
       const users = await storage.searchUsers(q as string);
       res.json(users);
     } catch (error) {
@@ -992,11 +1010,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/chat/rooms/:roomId/read', isAuthenticated, async (req: any, res) => {
+  app.post("/api/chat/rooms/:roomId/read", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { roomId } = req.params;
-      
+
       await storage.markMessagesAsRead(userId, roomId);
       res.json({ success: true });
     } catch (error) {
@@ -1005,7 +1023,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/notifications/unread-count', isAuthenticated, async (req: any, res) => {
+  app.get("/api/notifications/unread-count", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const unreadCount = await storage.getTotalUnreadCount(userId);
@@ -1017,31 +1035,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Phone authentication routes
-  app.post('/api/auth/phone-signup', async (req, res) => {
+  app.post("/api/auth/phone-signup", async (req, res) => {
     try {
       const { firstName, lastName, phone, operator, role } = req.body;
-      
+
       // Validate Burkina Faso phone number format
-      if (!phone || !phone.startsWith('+226') || phone.length !== 12) {
-        return res.status(400).json({ message: "Format de téléphone invalide. Utilisez +226XXXXXXXX" });
+      if (!phone || !phone.startsWith("+226") || phone.length !== 12) {
+        return res
+          .status(400)
+          .json({ message: "Format de téléphone invalide. Utilisez +226XXXXXXXX" });
       }
-      
+
       // Check if phone already exists
       const existingUser = await storage.getUserByPhone(phone);
       if (existingUser) {
         return res.status(400).json({ message: "Ce numéro de téléphone est déjà utilisé" });
       }
-      
+
       // Generate verification code
       const verificationCode = randomInt(100000, 999999).toString();
-      
+
       // Store user data temporarily and create verification record
       await storage.createPhoneVerification({
         phone,
         code: verificationCode,
         expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
       });
-      
+
       // Store pending user data (in production, you'd store this in a temporary table)
       await storage.storePendingUser({
         phone,
@@ -1050,33 +1070,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phoneOperator: operator,
         role,
       });
-      
+
       // In production, send SMS via Orange/Moov API
       console.log(`SMS Verification Code for ${phone}: ${verificationCode}`);
-      
+
       res.json({ message: "Code de vérification envoyé", phone });
     } catch (error) {
       console.error("Error in phone signup:", error);
       res.status(500).json({ message: "Erreur lors de l'inscription" });
     }
   });
-  
-  app.post('/api/auth/verify-phone', async (req, res) => {
+
+  app.post("/api/auth/verify-phone", async (req, res) => {
     try {
       const { phone, code } = req.body;
-      
+
       // Verify the code
       const verification = await storage.verifyPhoneCode(phone, code);
       if (!verification) {
         return res.status(400).json({ message: "Code incorrect ou expiré" });
       }
-      
+
       // Get pending user data
       const pendingUser = await storage.getPendingUser(phone);
       if (!pendingUser) {
         return res.status(400).json({ message: "Données d'utilisateur introuvables" });
       }
-      
+
       // Create the user
       const user = await storage.createUserWithPhone({
         ...pendingUser,
@@ -1084,42 +1104,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phoneVerified: true,
         id: undefined, // Let the database generate the ID
       });
-      
+
       // Mark verification as used
       await storage.markPhoneVerificationUsed(verification.id);
-      
+
       // Clean up pending user data
       await storage.deletePendingUser(phone);
-      
+
       res.json({ message: "Compte créé avec succès", user: { id: user.id, phone: user.phone } });
     } catch (error) {
       console.error("Error in phone verification:", error);
       res.status(500).json({ message: "Erreur lors de la vérification" });
     }
   });
-  
-  app.post('/api/auth/phone-login', async (req, res) => {
+
+  app.post("/api/auth/phone-login", async (req, res) => {
     try {
       const { phone } = req.body;
-      
+
       // Check if user exists
       const user = await storage.getUserByPhone(phone);
       if (!user || !user.phoneVerified) {
         return res.status(400).json({ message: "Utilisateur non trouvé ou téléphone non vérifié" });
       }
-      
+
       // Generate login code
       const loginCode = randomInt(100000, 999999).toString();
-      
+
       await storage.createPhoneVerification({
         phone,
         code: loginCode,
         expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
       });
-      
+
       // In production, send SMS
       console.log(`SMS Login Code for ${phone}: ${loginCode}`);
-      
+
       res.json({ message: "Code de connexion envoyé", phone });
     } catch (error) {
       console.error("Error in phone login:", error);
@@ -1128,31 +1148,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Email authentication routes
-  app.post('/api/auth/email-signup', async (req, res) => {
+  app.post("/api/auth/email-signup", async (req, res) => {
     try {
       const { firstName, lastName, email, role } = req.body;
-      
+
       // Validate email format
-      if (!email || !email.includes('@')) {
+      if (!email || !email.includes("@")) {
         return res.status(400).json({ message: "Format d'email invalide" });
       }
-      
+
       // Check if email already exists
       const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
         return res.status(400).json({ message: "Cette adresse email est déjà utilisée" });
       }
-      
+
       // Generate verification code
       const verificationCode = randomInt(100000, 999999).toString();
-      
+
       // Store email verification record
       await storage.createEmailVerification({
         email,
         code: verificationCode,
         expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
       });
-      
+
       // Store pending user data
       await storage.storePendingUser({
         email,
@@ -1160,46 +1180,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName,
         role,
       });
-      
+
       // In production, send email via email service
       console.log(`Email Verification Code for ${email}: ${verificationCode}`);
-      
+
       res.json({ message: "Code de vérification envoyé", email });
     } catch (error) {
       console.error("Error in email signup:", error);
       res.status(500).json({ message: "Erreur lors de l'inscription" });
     }
   });
-  
-  app.post('/api/auth/verify-email', async (req, res) => {
+
+  app.post("/api/auth/verify-email", async (req, res) => {
     try {
       const { email, code } = req.body;
-      
+
       // Verify the code
       const verification = await storage.verifyEmailCode(email, code);
       if (!verification) {
         return res.status(400).json({ message: "Code incorrect ou expiré" });
       }
-      
+
       // Get pending user data
       const pendingUser = await storage.getPendingUser(email);
       if (!pendingUser) {
         return res.status(400).json({ message: "Données d'utilisateur introuvables" });
       }
-      
+
       // Create the user
       const user = await storage.createUserWithEmail({
         ...pendingUser,
         email,
         id: undefined, // Let the database generate the ID
       });
-      
+
       // Mark verification as used
       await storage.markEmailVerificationUsed(verification.id);
-      
+
       // Clean up pending user data
       await storage.deletePendingUser(email);
-      
+
       res.json({ message: "Compte créé avec succès", user: { id: user.id, email: user.email } });
     } catch (error) {
       console.error("Error in email verification:", error);
@@ -1208,7 +1228,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Object Storage Routes for Product Images
-  
+
   // Serve public objects (product images)
   app.get("/public-objects/:filePath(*)", async (req, res) => {
     const filePath = req.params.filePath;
@@ -1230,9 +1250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const userId = req.user?.claims?.sub;
     const objectStorageService = new ObjectStorageService();
     try {
-      const objectFile = await objectStorageService.getObjectEntityFile(
-        req.path,
-      );
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
       const canAccess = await objectStorageService.canAccessObjectEntity({
         objectFile,
         userId: userId,
@@ -1264,11 +1282,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Vendor-specific routes
-  app.get('/api/vendor/stats', isAuthenticated, async (req: any, res) => {
+  app.get("/api/vendor/stats", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const vendor = await storage.getVendorByUserId(userId);
-      
+
       if (!vendor) {
         return res.status(403).json({ message: "Only vendors can access stats" });
       }
@@ -1281,11 +1299,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/vendor/products', isAuthenticated, async (req: any, res) => {
+  app.get("/api/vendor/products", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const vendor = await storage.getVendorByUserId(userId);
-      
+
       if (!vendor) {
         return res.status(403).json({ message: "Only vendors can access products" });
       }
@@ -1298,18 +1316,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/vendor/products', isAuthenticated, async (req: any, res) => {
+  app.post("/api/vendor/products", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const vendor = await storage.getVendorByUserId(userId);
-      
+
       if (!vendor) {
         return res.status(403).json({ message: "Only vendors can create products" });
       }
 
       const productData = insertProductSchema.parse({ ...req.body, vendorId: vendor.id });
       const product = await storage.createProduct(productData);
-      
+
       res.json(product);
     } catch (error) {
       console.error("Error creating vendor product:", error);
@@ -1317,11 +1335,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/vendor/products/low-stock', isAuthenticated, async (req: any, res) => {
+  app.get("/api/vendor/products/low-stock", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const vendor = await storage.getVendorByUserId(userId);
-      
+
       if (!vendor) {
         return res.status(403).json({ message: "Only vendors can access low stock data" });
       }
@@ -1334,18 +1352,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/vendor/products/:id', isAuthenticated, async (req: any, res) => {
+  app.get("/api/vendor/products/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const userId = req.user.claims.sub;
       const vendor = await storage.getVendorByUserId(userId);
-      
+
       if (!vendor) {
         return res.status(403).json({ message: "Only vendors can access products" });
       }
 
       const product = await storage.getProduct(id);
-      
+
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
@@ -1354,7 +1372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (product.vendorId !== vendor.id) {
         return res.status(403).json({ message: "Product does not belong to this vendor" });
       }
-      
+
       res.json(product);
     } catch (error) {
       console.error("Error fetching vendor product:", error);
@@ -1362,12 +1380,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/vendor/products/:id', isAuthenticated, async (req: any, res) => {
+  app.put("/api/vendor/products/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const userId = req.user.claims.sub;
       const vendor = await storage.getVendorByUserId(userId);
-      
+
       if (!vendor) {
         return res.status(403).json({ message: "Only vendors can update products" });
       }
@@ -1385,12 +1403,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/vendor/products/:id', isAuthenticated, async (req: any, res) => {
+  app.patch("/api/vendor/products/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const userId = req.user.claims.sub;
       const vendor = await storage.getVendorByUserId(userId);
-      
+
       if (!vendor) {
         return res.status(403).json({ message: "Only vendors can update products" });
       }
@@ -1408,12 +1426,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/vendor/products/:id', isAuthenticated, async (req: any, res) => {
+  app.delete("/api/vendor/products/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const userId = req.user.claims.sub;
       const vendor = await storage.getVendorByUserId(userId);
-      
+
       if (!vendor) {
         return res.status(403).json({ message: "Only vendors can delete products" });
       }
@@ -1431,26 +1449,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/vendor/orders', isAuthenticated, async (req: any, res) => {
+  app.get("/api/vendor/orders", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const vendor = await storage.getVendorByUserId(userId);
-      
+
       if (!vendor) {
         return res.status(403).json({ message: "Only vendors can access orders" });
       }
 
       const { status, limit } = req.query;
       const filters: any = { vendorId: vendor.id };
-      if (status && status !== 'all') {
+      if (status && status !== "all") {
         filters.status = status;
       }
 
       const orders = await storage.getOrders(filters);
-      
+
       // Apply limit if specified
       const limitedOrders = limit ? orders.slice(0, parseInt(limit as string)) : orders;
-      
+
       res.json(limitedOrders);
     } catch (error) {
       console.error("Error fetching vendor orders:", error);
@@ -1458,13 +1476,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/vendor/orders/:id/status', isAuthenticated, async (req: any, res) => {
+  app.patch("/api/vendor/orders/:id/status", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { status } = req.body;
       const userId = req.user.claims.sub;
       const vendor = await storage.getVendorByUserId(userId);
-      
+
       if (!vendor) {
         return res.status(403).json({ message: "Only vendors can update order status" });
       }
@@ -1483,15 +1501,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Driver assignment and tracking routes
-  app.post('/api/orders/:id/assign-driver', isAuthenticated, async (req: any, res) => {
+  app.post("/api/orders/:id/assign-driver", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { driverId } = req.body;
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       // Only admins or vendors can assign drivers
-      if (user?.role !== 'admin' && user?.role !== 'vendor') {
+      if (user?.role !== "admin" && user?.role !== "vendor") {
         return res.status(403).json({ message: "Unauthorized to assign drivers" });
       }
 
@@ -1501,7 +1519,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // If vendor, verify they own the order
-      if (user.role === 'vendor') {
+      if (user.role === "vendor") {
         const vendor = await storage.getVendorByUserId(userId);
         if (!vendor || order.vendorId !== vendor.id) {
           return res.status(403).json({ message: "Order not found or access denied" });
@@ -1509,8 +1527,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedOrder = await storage.assignOrderToDriver(id, driverId);
-      await storage.updateOrderStatus(id, 'in_transit');
-      
+      await storage.updateOrderStatus(id, "in_transit");
+
       res.json(updatedOrder);
     } catch (error) {
       console.error("Error assigning driver:", error);
@@ -1518,13 +1536,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/orders/auto-assign', isAuthenticated, async (req: any, res) => {
+  app.post("/api/orders/auto-assign", isAuthenticated, async (req: any, res) => {
     try {
       const { orderId } = req.body;
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
-      if (user?.role !== 'admin' && user?.role !== 'vendor') {
+
+      if (user?.role !== "admin" && user?.role !== "vendor") {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
@@ -1542,8 +1560,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Simple assignment: pick the first available driver
       const assignedDriver = availableDrivers[0];
       const updatedOrder = await storage.assignOrderToDriver(orderId, assignedDriver.id);
-      await storage.updateOrderStatus(orderId, 'in_transit');
-      
+      await storage.updateOrderStatus(orderId, "in_transit");
+
       res.json({ order: updatedOrder, driver: assignedDriver });
     } catch (error) {
       console.error("Error auto-assigning driver:", error);
@@ -1552,11 +1570,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Driver-specific routes
-  app.get('/api/driver/orders', isAuthenticated, async (req: any, res) => {
+  app.get("/api/driver/orders", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const driver = await storage.getDriverByUserId(userId);
-      
+
       if (!driver) {
         return res.status(403).json({ message: "Only drivers can access driver orders" });
       }
@@ -1569,11 +1587,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/driver/stats', isAuthenticated, async (req: any, res) => {
+  app.get("/api/driver/stats", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const driver = await storage.getDriverByUserId(userId);
-      
+
       if (!driver) {
         return res.status(403).json({ message: "Only drivers can access driver stats" });
       }
@@ -1586,12 +1604,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/driver/location', isAuthenticated, async (req: any, res) => {
+  app.patch("/api/driver/location", isAuthenticated, async (req: any, res) => {
     try {
       const { lat, lng } = req.body;
       const userId = req.user.claims.sub;
       const driver = await storage.getDriverByUserId(userId);
-      
+
       if (!driver) {
         return res.status(403).json({ message: "Only drivers can update location" });
       }
@@ -1604,12 +1622,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/driver/status', isAuthenticated, async (req: any, res) => {
+  app.patch("/api/driver/status", isAuthenticated, async (req: any, res) => {
     try {
       const { isOnline } = req.body;
       const userId = req.user.claims.sub;
       const driver = await storage.getDriverByUserId(userId);
-      
+
       if (!driver) {
         return res.status(403).json({ message: "Only drivers can update status" });
       }
@@ -1623,11 +1641,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Customer order tracking
-  app.get('/api/customer/orders/:id/tracking', isAuthenticated, async (req: any, res) => {
+  app.get("/api/customer/orders/:id/tracking", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const userId = req.user.claims.sub;
-      
+
       const order = await storage.getOrder(id);
       if (!order || order.customerId !== userId) {
         return res.status(404).json({ message: "Order not found or access denied" });
@@ -1642,7 +1660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         order,
         driver: driverInfo,
-        trackingHistory: await storage.getOrderTrackingHistory(id)
+        trackingHistory: await storage.getOrderTrackingHistory(id),
       });
     } catch (error) {
       console.error("Error fetching order tracking:", error);
@@ -1651,12 +1669,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes
-  app.get('/api/admin/dashboard', isAuthenticated, async (req: any, res) => {
+  app.get("/api/admin/dashboard", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
-      if (user?.role !== 'admin') {
+
+      if (user?.role !== "admin") {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -1668,12 +1686,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {
+  app.get("/api/admin/users", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
-      if (user?.role !== 'admin') {
+
+      if (user?.role !== "admin") {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -1685,16 +1703,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/admins', isAuthenticated, async (req: any, res) => {
+  app.get("/api/admin/admins", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
-      if (user?.role !== 'admin') {
+
+      if (user?.role !== "admin") {
         return res.status(403).json({ message: "Admin access required" });
       }
 
-      const admins = await storage.getUsersByRole('admin');
+      const admins = await storage.getUsersByRole("admin");
       res.json(admins);
     } catch (error) {
       console.error("Error fetching admins:", error);
@@ -1702,18 +1720,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/admin/users/:id/role', isAuthenticated, async (req: any, res) => {
+  app.patch("/api/admin/users/:id/role", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { role } = req.body;
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
-      if (user?.role !== 'admin') {
+
+      if (user?.role !== "admin") {
         return res.status(403).json({ message: "Admin access required" });
       }
 
-      if (!['customer', 'vendor', 'driver', 'admin'].includes(role)) {
+      if (!["customer", "vendor", "driver", "admin"].includes(role)) {
         return res.status(400).json({ message: "Invalid role" });
       }
 
@@ -1725,13 +1743,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/admin/users/:id', isAuthenticated, async (req: any, res) => {
+  app.delete("/api/admin/users/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
-      if (user?.role !== 'admin') {
+
+      if (user?.role !== "admin") {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -1760,7 +1778,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Verify user owns this product (vendors only)
       const user = await storage.getUser(userId);
-      if (!user || user.role !== 'vendor') {
+      if (!user || user.role !== "vendor") {
         return res.status(403).json({ error: "Only vendors can update product images" });
       }
 
@@ -1775,13 +1793,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Process each uploaded image
       for (const imageURL of req.body.imageURLs) {
         try {
-          const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
-            imageURL,
-            {
-              owner: userId,
-              visibility: "public", // Product images are public
-            },
-          );
+          const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(imageURL, {
+            owner: userId,
+            visibility: "public", // Product images are public
+          });
           normalizedPaths.push(objectPath);
         } catch (error) {
           console.error("Error setting ACL for image:", error);
@@ -1803,7 +1818,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Payment Routes
-  
+
   // Initiate payment
   app.post("/api/payments/initiate", isAuthenticated, async (req: any, res) => {
     try {
@@ -1821,8 +1836,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Phone number is required for mobile money payments
-      if ((paymentMethod === 'orange_money' || paymentMethod === 'moov_money') && !phoneNumber) {
-        return res.status(400).json({ error: "Phone number is required for mobile money payments" });
+      if ((paymentMethod === "orange_money" || paymentMethod === "moov_money") && !phoneNumber) {
+        return res
+          .status(400)
+          .json({ error: "Phone number is required for mobile money payments" });
       }
 
       // Create payment record
@@ -1830,7 +1847,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         orderId,
         paymentMethod,
         amount: order.totalAmount,
-        currency: order.currency || 'CFA',
+        currency: order.currency || "CFA",
         phoneNumber: phoneNumber || null,
         expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
       });
@@ -1840,8 +1857,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await paymentService.initiatePayment({
         orderId,
         amount: parseFloat(order.totalAmount),
-        phoneNumber: phoneNumber || '',
-        paymentMethod
+        phoneNumber: phoneNumber || "",
+        paymentMethod,
       });
 
       if (result.success) {
@@ -1853,25 +1870,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
 
         // Update order payment method and status
-        await storage.updateOrderStatus(orderId, 'confirmed');
+        await storage.updateOrderStatus(orderId, "confirmed");
 
         res.json({
           success: true,
           paymentId: payment.id,
           transactionId: result.transactionId,
           message: result.message,
-          expiresAt: result.expiresAt
+          expiresAt: result.expiresAt,
         });
       } else {
         // Update payment status to failed
-        await storage.updatePaymentStatus(payment.id, 'failed', result.message);
-        
+        await storage.updatePaymentStatus(payment.id, "failed", result.message);
+
         res.status(400).json({
           success: false,
-          message: result.message
+          message: result.message,
         });
       }
-
     } catch (error) {
       console.error("Payment initiation error:", error);
       res.status(500).json({ error: "Failed to initiate payment" });
@@ -1896,10 +1912,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check status with payment service if still pending
-      if (payment.status === 'pending' && payment.transactionId) {
+      if (payment.status === "pending" && payment.transactionId) {
         const paymentService = PaymentServiceFactory.getService(payment.paymentMethod);
         const statusResult = await paymentService.checkPaymentStatus(payment.transactionId);
-        
+
         // Update payment status if changed
         if (statusResult.status !== payment.status) {
           await storage.updatePaymentStatus(
@@ -1907,10 +1923,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             statusResult.status,
             statusResult.failureReason
           );
-          
+
           // Update order payment status
-          if (statusResult.status === 'completed') {
-            await storage.updateOrderStatus(order.id, 'preparing');
+          if (statusResult.status === "completed") {
+            await storage.updateOrderStatus(order.id, "preparing");
           }
         }
 
@@ -1918,17 +1934,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: statusResult.status,
           transactionId: payment.transactionId,
           operatorReference: payment.operatorReference,
-          failureReason: statusResult.failureReason
+          failureReason: statusResult.failureReason,
         });
       } else {
         res.json({
           status: payment.status,
           transactionId: payment.transactionId,
           operatorReference: payment.operatorReference,
-          failureReason: payment.failureReason
+          failureReason: payment.failureReason,
         });
       }
-
     } catch (error) {
       console.error("Payment status check error:", error);
       res.status(500).json({ error: "Failed to check payment status" });
@@ -1949,7 +1964,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const payments = await storage.getOrderPayments(orderId);
       res.json(payments);
-
     } catch (error) {
       console.error("Get order payments error:", error);
       res.status(500).json({ error: "Failed to get order payments" });
@@ -1980,66 +1994,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
-  
+
   // WebSocket server for real-time chat
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
+  const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
+
   // Store connected clients with user info
   const clients = new Map<string, { ws: WebSocket; userId: string }>();
-  
-  wss.on('connection', (ws: WebSocket, req: any) => {
-    console.log('WebSocket client connected');
-    
-    ws.on('message', async (message: string) => {
+
+  wss.on("connection", (ws: WebSocket, req: any) => {
+    console.log("WebSocket client connected");
+
+    ws.on("message", async (message: string) => {
       try {
         const data = JSON.parse(message);
-        
-        if (data.type === 'auth') {
+
+        if (data.type === "auth") {
           // Store client with user ID
           clients.set(data.userId, { ws, userId: data.userId });
-          ws.send(JSON.stringify({ type: 'auth_success' }));
-        } else if (data.type === 'join_room') {
+          ws.send(JSON.stringify({ type: "auth_success" }));
+        } else if (data.type === "join_room") {
           // Join a chat room (for future use)
-          ws.send(JSON.stringify({ type: 'room_joined', roomId: data.roomId }));
-        } else if (data.type === 'new_message') {
+          ws.send(JSON.stringify({ type: "room_joined", roomId: data.roomId }));
+        } else if (data.type === "new_message") {
           // Broadcast new message to all participants in the room
           const roomParticipants = await storage.getChatRoomParticipants(data.roomId);
           const messageWithSender = {
             ...data.message,
-            sender: await storage.getUser(data.message.senderId)
+            sender: await storage.getUser(data.message.senderId),
           };
-          
-          roomParticipants.forEach(participant => {
+
+          roomParticipants.forEach((participant) => {
             const client = clients.get(participant.userId);
             if (client && client.ws.readyState === WebSocket.OPEN) {
               // Send message to participant
-              client.ws.send(JSON.stringify({
-                type: 'message_received',
-                message: messageWithSender,
-                roomId: data.roomId
-              }));
-              
+              client.ws.send(
+                JSON.stringify({
+                  type: "message_received",
+                  message: messageWithSender,
+                  roomId: data.roomId,
+                })
+              );
+
               // Send notification if not the sender
               if (participant.userId !== data.message.senderId) {
-                client.ws.send(JSON.stringify({
-                  type: 'new_notification',
-                  notification: {
-                    title: `${messageWithSender.sender?.firstName || 'Someone'} sent a message`,
-                    body: messageWithSender.content,
-                    roomId: data.roomId,
-                    senderId: data.message.senderId
-                  }
-                }));
+                client.ws.send(
+                  JSON.stringify({
+                    type: "new_notification",
+                    notification: {
+                      title: `${messageWithSender.sender?.firstName || "Someone"} sent a message`,
+                      body: messageWithSender.content,
+                      roomId: data.roomId,
+                      senderId: data.message.senderId,
+                    },
+                  })
+                );
               }
             }
           });
         }
       } catch (error) {
-        console.error('WebSocket message error:', error);
+        console.error("WebSocket message error:", error);
       }
     });
-    
-    ws.on('close', () => {
+
+    ws.on("close", () => {
       // Remove client from active connections
       for (const [userId, client] of Array.from(clients.entries())) {
         if (client.ws === ws) {
@@ -2047,9 +2065,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           break;
         }
       }
-      console.log('WebSocket client disconnected');
+      console.log("WebSocket client disconnected");
     });
   });
-  
+
   return httpServer;
 }

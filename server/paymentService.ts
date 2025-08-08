@@ -4,7 +4,7 @@ export interface PaymentRequest {
   orderId: string;
   amount: number;
   phoneNumber: string;
-  paymentMethod: 'orange_money' | 'moov_money' | 'cash_on_delivery';
+  paymentMethod: "orange_money" | "moov_money" | "cash_on_delivery";
 }
 
 export interface PaymentResponse {
@@ -16,7 +16,7 @@ export interface PaymentResponse {
 }
 
 export interface PaymentStatus {
-  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  status: "pending" | "completed" | "failed" | "refunded";
   transactionId: string;
   operatorReference?: string;
   failureReason?: string;
@@ -31,12 +31,15 @@ export class OrangeMoneyService {
   private tokenExpiry: Date | null = null;
 
   constructor() {
-    this.baseUrl = process.env.ORANGE_MONEY_API_URL || 'https://api.orange.com/orange-money-webpay/v1';
+    this.baseUrl =
+      process.env.ORANGE_MONEY_API_URL || "https://api.orange.com/orange-money-webpay/v1";
     this.merchantCode = process.env.ORANGE_MONEY_MERCHANT_CODE!;
     this.apiKey = process.env.ORANGE_MONEY_API_KEY!;
-    
+
     if (!this.merchantCode || !this.apiKey) {
-      throw new Error('Orange Money credentials not configured. Set ORANGE_MONEY_MERCHANT_CODE and ORANGE_MONEY_API_KEY');
+      throw new Error(
+        "Orange Money credentials not configured. Set ORANGE_MONEY_MERCHANT_CODE and ORANGE_MONEY_API_KEY"
+      );
     }
   }
 
@@ -47,26 +50,26 @@ export class OrangeMoneyService {
       }
 
       const response = await fetch(`${this.baseUrl}/oauth/token`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': `Basic ${Buffer.from(`${this.merchantCode}:${this.apiKey}`).toString('base64')}`
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${Buffer.from(`${this.merchantCode}:${this.apiKey}`).toString("base64")}`,
         },
-        body: 'grant_type=client_credentials'
+        body: "grant_type=client_credentials",
       });
 
       if (!response.ok) {
-        console.error('Orange Money token request failed:', response.status, await response.text());
+        console.error("Orange Money token request failed:", response.status, await response.text());
         return null;
       }
 
       const tokenData = await response.json();
       this.accessToken = tokenData.access_token;
-      this.tokenExpiry = new Date(Date.now() + (tokenData.expires_in * 1000));
-      
+      this.tokenExpiry = new Date(Date.now() + tokenData.expires_in * 1000);
+
       return this.accessToken;
     } catch (error) {
-      console.error('Error getting Orange Money access token:', error);
+      console.error("Error getting Orange Money access token:", error);
       return null;
     }
   }
@@ -75,11 +78,11 @@ export class OrangeMoneyService {
     try {
       // Validate phone number format for Orange (Burkina Faso: +226 XX XX XX XX)
       const phoneRegex = /^(\+226|226)?[0-9]{8}$/;
-      const cleanPhone = request.phoneNumber.replace(/\s/g, '');
+      const cleanPhone = request.phoneNumber.replace(/\s/g, "");
       if (!phoneRegex.test(cleanPhone)) {
         return {
           success: false,
-          message: "Numéro Orange Money invalide. Format attendu: +226 XX XX XX XX"
+          message: "Numéro Orange Money invalide. Format attendu: +226 XX XX XX XX",
         };
       }
 
@@ -87,60 +90,61 @@ export class OrangeMoneyService {
       if (!accessToken) {
         return {
           success: false,
-          message: "Erreur d'authentification Orange Money"
+          message: "Erreur d'authentification Orange Money",
         };
       }
 
       const transactionId = `OM_${randomUUID()}`;
-      const normalizedPhone = cleanPhone.startsWith('+226') ? cleanPhone : `+226${cleanPhone.replace(/^226/, '')}`;
-      
+      const normalizedPhone = cleanPhone.startsWith("+226")
+        ? cleanPhone
+        : `+226${cleanPhone.replace(/^226/, "")}`;
+
       // Real Orange Money API call
       const payload = {
         merchant_key: this.merchantCode,
-        currency: 'XOF',
+        currency: "XOF",
         order_id: request.orderId,
         amount: request.amount,
-        return_url: `${process.env.BASE_URL || 'http://localhost:5000'}/api/payments/orange-money/callback`,
-        cancel_url: `${process.env.BASE_URL || 'http://localhost:5000'}/api/payments/orange-money/cancel`,
-        notif_url: `${process.env.BASE_URL || 'http://localhost:5000'}/api/payments/orange-money/notify`,
-        lang: 'fr',
+        return_url: `${process.env.BASE_URL || "http://localhost:5000"}/api/payments/orange-money/callback`,
+        cancel_url: `${process.env.BASE_URL || "http://localhost:5000"}/api/payments/orange-money/cancel`,
+        notif_url: `${process.env.BASE_URL || "http://localhost:5000"}/api/payments/orange-money/notify`,
+        lang: "fr",
         reference: transactionId,
         customer_msisdn: normalizedPhone,
       };
 
       const response = await fetch(`${this.baseUrl}/webpayment`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
-          'Accept': 'application/json'
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       const responseData = await response.json();
 
-      if (!response.ok || responseData.status !== 'SUCCESS') {
-        console.error('Orange Money payment initiation failed:', responseData);
+      if (!response.ok || responseData.status !== "SUCCESS") {
+        console.error("Orange Money payment initiation failed:", responseData);
         return {
           success: false,
-          message: responseData.message || "Erreur lors de l'initiation du paiement Orange Money"
+          message: responseData.message || "Erreur lors de l'initiation du paiement Orange Money",
         };
       }
-      
+
       return {
         success: true,
         transactionId,
         operatorReference: responseData.pay_token || responseData.txnid,
         message: "Paiement Orange Money initié. Vérifiez votre téléphone pour confirmer.",
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes expiry
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes expiry
       };
-
     } catch (error) {
-      console.error('Orange Money payment error:', error);
+      console.error("Orange Money payment error:", error);
       return {
         success: false,
-        message: "Erreur lors de l'initiation du paiement Orange Money"
+        message: "Erreur lors de l'initiation du paiement Orange Money",
       };
     }
   }
@@ -150,51 +154,52 @@ export class OrangeMoneyService {
       const accessToken = await this.getAccessToken();
       if (!accessToken) {
         return {
-          status: 'failed',
+          status: "failed",
           transactionId,
-          failureReason: "Erreur d'authentification Orange Money"
+          failureReason: "Erreur d'authentification Orange Money",
         };
       }
 
       // Real Orange Money status check API call
       const response = await fetch(`${this.baseUrl}/transactions/${transactionId}/status`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Accept': 'application/json'
-        }
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+        },
       });
 
       if (!response.ok) {
-        console.error('Orange Money status check failed:', response.status);
+        console.error("Orange Money status check failed:", response.status);
         return {
-          status: 'failed',
+          status: "failed",
           transactionId,
-          failureReason: 'Erreur de vérification du statut'
+          failureReason: "Erreur de vérification du statut",
         };
       }
 
       const statusData = await response.json();
-      
-      let status: PaymentStatus['status'] = 'pending';
-      if (statusData.status === 'SUCCESS' || statusData.transaction_status === 'SUCCESSFUL') {
-        status = 'completed';
-      } else if (statusData.status === 'FAILED' || statusData.transaction_status === 'FAILED') {
-        status = 'failed';
+
+      let status: PaymentStatus["status"] = "pending";
+      if (statusData.status === "SUCCESS" || statusData.transaction_status === "SUCCESSFUL") {
+        status = "completed";
+      } else if (statusData.status === "FAILED" || statusData.transaction_status === "FAILED") {
+        status = "failed";
       }
-      
+
       return {
         status,
         transactionId,
         operatorReference: statusData.txnid || statusData.operator_reference,
-        failureReason: status === 'failed' ? (statusData.message || 'Transaction échouée') : undefined
+        failureReason:
+          status === "failed" ? statusData.message || "Transaction échouée" : undefined,
       };
     } catch (error) {
-      console.error('Orange Money status check error:', error);
+      console.error("Orange Money status check error:", error);
       return {
-        status: 'failed',
+        status: "failed",
         transactionId,
-        failureReason: 'Erreur de vérification du statut'
+        failureReason: "Erreur de vérification du statut",
       };
     }
   }
@@ -210,13 +215,15 @@ export class MoovMoneyService {
   private tokenExpiry: Date | null = null;
 
   constructor() {
-    this.baseUrl = process.env.MOOV_MONEY_API_URL || 'https://api.moov-africa.bf/v1';
+    this.baseUrl = process.env.MOOV_MONEY_API_URL || "https://api.moov-africa.bf/v1";
     this.merchantId = process.env.MOOV_MONEY_MERCHANT_ID!;
     this.apiKey = process.env.MOOV_MONEY_API_KEY!;
     this.apiSecret = process.env.MOOV_MONEY_API_SECRET!;
-    
+
     if (!this.merchantId || !this.apiKey || !this.apiSecret) {
-      throw new Error('Moov Money credentials not configured. Set MOOV_MONEY_MERCHANT_ID, MOOV_MONEY_API_KEY, and MOOV_MONEY_API_SECRET');
+      throw new Error(
+        "Moov Money credentials not configured. Set MOOV_MONEY_MERCHANT_ID, MOOV_MONEY_API_KEY, and MOOV_MONEY_API_SECRET"
+      );
     }
   }
 
@@ -226,32 +233,32 @@ export class MoovMoneyService {
         return this.accessToken;
       }
 
-      const credentials = Buffer.from(`${this.apiKey}:${this.apiSecret}`).toString('base64');
-      
+      const credentials = Buffer.from(`${this.apiKey}:${this.apiSecret}`).toString("base64");
+
       const response = await fetch(`${this.baseUrl}/oauth/token`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${credentials}`
+          "Content-Type": "application/json",
+          Authorization: `Basic ${credentials}`,
         },
         body: JSON.stringify({
-          'grant_type': 'client_credentials',
-          'scope': 'collect'
-        })
+          grant_type: "client_credentials",
+          scope: "collect",
+        }),
       });
 
       if (!response.ok) {
-        console.error('Moov Money token request failed:', response.status, await response.text());
+        console.error("Moov Money token request failed:", response.status, await response.text());
         return null;
       }
 
       const tokenData = await response.json();
       this.accessToken = tokenData.access_token;
-      this.tokenExpiry = new Date(Date.now() + (tokenData.expires_in * 1000));
-      
+      this.tokenExpiry = new Date(Date.now() + tokenData.expires_in * 1000);
+
       return this.accessToken;
     } catch (error) {
-      console.error('Error getting Moov Money access token:', error);
+      console.error("Error getting Moov Money access token:", error);
       return null;
     }
   }
@@ -260,11 +267,11 @@ export class MoovMoneyService {
     try {
       // Validate phone number format for Moov (Burkina Faso)
       const phoneRegex = /^(\+226|226)?[0-9]{8}$/;
-      const cleanPhone = request.phoneNumber.replace(/\s/g, '');
+      const cleanPhone = request.phoneNumber.replace(/\s/g, "");
       if (!phoneRegex.test(cleanPhone)) {
         return {
           success: false,
-          message: "Numéro Moov Money invalide. Format attendu: +226 XX XX XX XX"
+          message: "Numéro Moov Money invalide. Format attendu: +226 XX XX XX XX",
         };
       }
 
@@ -272,65 +279,66 @@ export class MoovMoneyService {
       if (!accessToken) {
         return {
           success: false,
-          message: "Erreur d'authentification Moov Money"
+          message: "Erreur d'authentification Moov Money",
         };
       }
 
       const transactionId = `MM_${randomUUID()}`;
-      const normalizedPhone = cleanPhone.startsWith('+226') ? cleanPhone : `+226${cleanPhone.replace(/^226/, '')}`;
-      
+      const normalizedPhone = cleanPhone.startsWith("+226")
+        ? cleanPhone
+        : `+226${cleanPhone.replace(/^226/, "")}`;
+
       // Real Moov Money API call
       const payload = {
         reference: transactionId,
         subscriber: {
-          country: 'BF',
-          currency: 'XOF',
-          msisdn: normalizedPhone
+          country: "BF",
+          currency: "XOF",
+          msisdn: normalizedPhone,
         },
         transaction: {
           amount: request.amount,
-          currency: 'XOF',
-          type: 'collection'
+          currency: "XOF",
+          type: "collection",
         },
         partner: {
-          id: this.merchantId
-        }
+          id: this.merchantId,
+        },
       };
 
       const response = await fetch(`${this.baseUrl}/payins`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
-          'Accept': 'application/json',
-          'X-Target-Environment': 'bf'
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+          "X-Target-Environment": "bf",
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       const responseData = await response.json();
 
-      if (!response.ok || responseData.status !== 'PENDING') {
-        console.error('Moov Money payment initiation failed:', responseData);
+      if (!response.ok || responseData.status !== "PENDING") {
+        console.error("Moov Money payment initiation failed:", responseData);
         return {
           success: false,
-          message: responseData.message || "Erreur lors de l'initiation du paiement Moov Money"
+          message: responseData.message || "Erreur lors de l'initiation du paiement Moov Money",
         };
       }
-      
+
       return {
         success: true,
         transactionId,
         operatorReference: responseData.transactionId || responseData.reference,
         message: "Paiement Moov Money initié. Composez *155# pour confirmer.",
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
       };
-
     } catch (error) {
-      console.error('Moov Money payment error:', error);
+      console.error("Moov Money payment error:", error);
       return {
         success: false,
-        message: "Erreur lors de l'initiation du paiement Moov Money"
+        message: "Erreur lors de l'initiation du paiement Moov Money",
       };
     }
   }
@@ -340,52 +348,52 @@ export class MoovMoneyService {
       const accessToken = await this.getAccessToken();
       if (!accessToken) {
         return {
-          status: 'failed',
+          status: "failed",
           transactionId,
-          failureReason: "Erreur d'authentification Moov Money"
+          failureReason: "Erreur d'authentification Moov Money",
         };
       }
 
       // Real Moov Money status check API call
       const response = await fetch(`${this.baseUrl}/payins/${transactionId}`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Accept': 'application/json',
-          'X-Target-Environment': 'bf'
-        }
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+          "X-Target-Environment": "bf",
+        },
       });
 
       if (!response.ok) {
-        console.error('Moov Money status check failed:', response.status);
+        console.error("Moov Money status check failed:", response.status);
         return {
-          status: 'failed',
+          status: "failed",
           transactionId,
-          failureReason: 'Erreur de vérification du statut'
+          failureReason: "Erreur de vérification du statut",
         };
       }
 
       const statusData = await response.json();
-      
-      let status: PaymentStatus['status'] = 'pending';
-      if (statusData.status === 'SUCCESSFUL' || statusData.status === 'COMPLETED') {
-        status = 'completed';
-      } else if (statusData.status === 'FAILED' || statusData.status === 'REJECTED') {
-        status = 'failed';
+
+      let status: PaymentStatus["status"] = "pending";
+      if (statusData.status === "SUCCESSFUL" || statusData.status === "COMPLETED") {
+        status = "completed";
+      } else if (statusData.status === "FAILED" || statusData.status === "REJECTED") {
+        status = "failed";
       }
-      
+
       return {
         status,
         transactionId,
         operatorReference: statusData.transactionId || statusData.reference,
-        failureReason: status === 'failed' ? (statusData.reason || 'Transaction échouée') : undefined
+        failureReason: status === "failed" ? statusData.reason || "Transaction échouée" : undefined,
       };
     } catch (error) {
-      console.error('Moov Money status check error:', error);
+      console.error("Moov Money status check error:", error);
       return {
-        status: 'failed',
+        status: "failed",
         transactionId,
-        failureReason: 'Erreur de vérification du statut'
+        failureReason: "Erreur de vérification du statut",
       };
     }
   }
@@ -396,32 +404,32 @@ export class CashOnDeliveryService {
   async initiatePayment(request: PaymentRequest): Promise<PaymentResponse> {
     // Cash on delivery always succeeds immediately
     const transactionId = `COD_${randomUUID()}`;
-    
+
     return {
       success: true,
       transactionId,
-      message: "Paiement à la livraison confirmé. Payez au livreur lors de la réception."
+      message: "Paiement à la livraison confirmé. Payez au livreur lors de la réception.",
     };
   }
 
   async checkPaymentStatus(transactionId: string): Promise<PaymentStatus> {
     // COD payments are always pending until manual confirmation by driver
     return {
-      status: 'pending',
-      transactionId
+      status: "pending",
+      transactionId,
     };
   }
 }
 
 // Main Payment Service Factory
 export class PaymentServiceFactory {
-  static getService(paymentMethod: 'orange_money' | 'moov_money' | 'cash_on_delivery') {
+  static getService(paymentMethod: "orange_money" | "moov_money" | "cash_on_delivery") {
     switch (paymentMethod) {
-      case 'orange_money':
+      case "orange_money":
         return new OrangeMoneyService();
-      case 'moov_money':
+      case "moov_money":
         return new MoovMoneyService();
-      case 'cash_on_delivery':
+      case "cash_on_delivery":
         return new CashOnDeliveryService();
       default:
         throw new Error(`Unsupported payment method: ${paymentMethod}`);

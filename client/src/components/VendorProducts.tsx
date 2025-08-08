@@ -25,16 +25,16 @@ export default function VendorProducts() {
   const queryClient = useQueryClient();
 
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ['/api/vendor/products'],
+    queryKey: ["/api/vendor/products"],
   });
 
   const deleteProductMutation = useMutation({
     mutationFn: async (productId: string) => {
-      return await apiRequest('DELETE', `/api/vendor/products/${productId}`);
+      return await apiRequest("DELETE", `/api/vendor/products/${productId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/vendor/products'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/vendor/stats'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/vendor/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/vendor/stats"] });
       toast({
         title: "Produit supprimé",
         description: "Le produit a été supprimé avec succès",
@@ -51,10 +51,10 @@ export default function VendorProducts() {
 
   const toggleProductStatusMutation = useMutation({
     mutationFn: async ({ productId, isActive }: { productId: string; isActive: boolean }) => {
-      return await apiRequest('PATCH', `/api/vendor/products/${productId}`, { isActive });
+      return await apiRequest("PATCH", `/api/vendor/products/${productId}`, { isActive });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/vendor/products'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/vendor/products"] });
       toast({
         title: "Statut mis à jour",
         description: "Le statut du produit a été mis à jour",
@@ -69,10 +69,13 @@ export default function VendorProducts() {
     },
   });
 
-  const filteredProducts = Array.isArray(products) ? products.filter((product: any) =>
-    product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.sku?.toLowerCase().includes(searchTerm.toLowerCase())
-  ) : [];
+  const filteredProducts = Array.isArray(products)
+    ? products.filter(
+        (product: any) =>
+          product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.sku?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : [];
 
   const getStockStatus = (quantity: number) => {
     if (quantity === 0) return { label: "Rupture", variant: "destructive" as const };
@@ -128,10 +131,9 @@ export default function VendorProducts() {
               {searchTerm ? "Aucun produit trouvé" : "Aucun produit"}
             </h3>
             <p className="text-gray-500 mb-6">
-              {searchTerm 
+              {searchTerm
                 ? "Essayez un autre terme de recherche"
-                : "Commencez par ajouter votre premier produit"
-              }
+                : "Commencez par ajouter votre premier produit"}
             </p>
             {!searchTerm && (
               <Link href="/vendor/products/new">
@@ -147,17 +149,17 @@ export default function VendorProducts() {
         <div className="space-y-4">
           {filteredProducts.map((product: any) => {
             const stockStatus = getStockStatus(product.quantity);
-            
+
             return (
               <Card key={product.id}>
                 <CardContent className="p-6">
                   <div className="flex items-start space-x-4">
                     <img
-                      src={product.images?.[0] || '/placeholder-product.jpg'}
+                      src={product.images?.[0] || "/placeholder-product.jpg"}
                       alt={product.name}
                       className="w-20 h-20 object-cover rounded-lg border"
                     />
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -169,56 +171,58 @@ export default function VendorProducts() {
                           </p>
                           <div className="flex items-center space-x-4 mt-2">
                             <span className="text-lg font-bold text-zaka-orange">
-                              {parseInt(product.price).toLocaleString('fr-BF')} CFA
+                              {parseInt(product.price).toLocaleString("fr-BF")} CFA
                             </span>
                             {product.sku && (
-                              <span className="text-sm text-gray-500">
-                                SKU: {product.sku}
-                              </span>
+                              <span className="text-sm text-gray-500">SKU: {product.sku}</span>
                             )}
                           </div>
                         </div>
-                        
+
                         <div className="flex flex-col items-end space-y-2">
                           <div className="flex items-center space-x-2">
-                            <Badge variant={stockStatus.variant}>
-                              {stockStatus.label}
-                            </Badge>
+                            <Badge variant={stockStatus.variant}>{stockStatus.label}</Badge>
                             <Badge variant={product.isActive ? "default" : "secondary"}>
                               {product.isActive ? "Actif" : "Inactif"}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-600">
-                            Stock: {product.quantity} unités
-                          </p>
+                          <p className="text-sm text-gray-600">Stock: {product.quantity} unités</p>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center justify-between mt-4">
                         <div className="flex items-center space-x-2">
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => toggleProductStatusMutation.mutate({
-                              productId: product.id,
-                              isActive: !product.isActive
-                            })}
+                            onClick={() =>
+                              toggleProductStatusMutation.mutate({
+                                productId: product.id,
+                                isActive: !product.isActive,
+                              })
+                            }
                             disabled={toggleProductStatusMutation.isPending}
                           >
-                            <i className={`fas ${product.isActive ? 'fa-eye-slash' : 'fa-eye'} mr-1`}></i>
-                            {product.isActive ? 'Désactiver' : 'Activer'}
+                            <i
+                              className={`fas ${product.isActive ? "fa-eye-slash" : "fa-eye"} mr-1`}
+                            ></i>
+                            {product.isActive ? "Désactiver" : "Activer"}
                           </Button>
-                          
+
                           <Link href={`/vendor/products/${product.id}/edit`}>
                             <Button variant="outline" size="sm">
                               <i className="fas fa-edit mr-1"></i>
                               Modifier
                             </Button>
                           </Link>
-                          
+
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700"
+                              >
                                 <i className="fas fa-trash mr-1"></i>
                                 Supprimer
                               </Button>
@@ -227,8 +231,8 @@ export default function VendorProducts() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Supprimer le produit</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Êtes-vous sûr de vouloir supprimer "{product.name}" ? 
-                                  Cette action est irréversible.
+                                  Êtes-vous sûr de vouloir supprimer "{product.name}" ? Cette action
+                                  est irréversible.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -244,9 +248,9 @@ export default function VendorProducts() {
                             </AlertDialogContent>
                           </AlertDialog>
                         </div>
-                        
+
                         <div className="text-sm text-gray-500">
-                          Créé le {new Date(product.createdAt).toLocaleDateString('fr-BF')}
+                          Créé le {new Date(product.createdAt).toLocaleDateString("fr-BF")}
                         </div>
                       </div>
                     </div>

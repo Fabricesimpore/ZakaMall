@@ -7,14 +7,28 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Phone number schema for Burkina Faso
 const phoneSignupSchema = z.object({
   firstName: z.string().min(2, "Le prénom doit avoir au moins 2 caractères"),
   lastName: z.string().min(2, "Le nom doit avoir au moins 2 caractères"),
-  phone: z.string()
+  phone: z
+    .string()
     .min(8, "Le numéro de téléphone doit avoir 8 chiffres")
     .max(8, "Le numéro de téléphone doit avoir 8 chiffres")
     .regex(/^[0-9]{8}$/, "Le numéro doit contenir uniquement des chiffres"),
@@ -48,7 +62,7 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
   const signupMutation = useMutation({
     mutationFn: async (data: PhoneSignupForm) => {
       const fullPhone = `+226${data.phone}`;
-      return await apiRequest('POST', '/api/auth/phone-signup', {
+      return await apiRequest("POST", "/api/auth/phone-signup", {
         ...data,
         phone: fullPhone,
       });
@@ -71,7 +85,7 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
 
   const verifyMutation = useMutation({
     mutationFn: async ({ phone, code }: { phone: string; code: string }) => {
-      return await apiRequest('POST', '/api/auth/verify-phone', { phone, code });
+      return await apiRequest("POST", "/api/auth/verify-phone", { phone, code });
     },
     onSuccess: (data) => {
       toast({
@@ -79,12 +93,12 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
         description: "Vous pouvez maintenant compléter votre profil",
       });
       onSuccess();
-      
+
       // Redirect based on user role to setup pages
       const userData = form.getValues();
-      if (userData.role === 'vendor') {
+      if (userData.role === "vendor") {
         window.location.href = "/vendor-setup";
-      } else if (userData.role === 'driver') {
+      } else if (userData.role === "driver") {
         window.location.href = "/driver-setup";
       } else {
         // Customer role goes directly to login
@@ -128,7 +142,8 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
           </div>
           <h3 className="text-lg font-semibold mb-2">Vérification du téléphone</h3>
           <p className="text-sm text-gray-600">
-            Entrez le code à 6 chiffres envoyé au numéro<br />
+            Entrez le code à 6 chiffres envoyé au numéro
+            <br />
             <strong>+226 {formatPhoneDisplay(form.getValues("phone"))}</strong>
           </p>
         </div>

@@ -17,24 +17,29 @@ export default function Home() {
 
   const getDashboardLink = () => {
     switch (user?.role) {
-      case 'vendor': return '/vendor';
-      case 'driver': return '/driver';
-      case 'admin': return '/admin';
-      default: return '/customer';
+      case "vendor":
+        return "/vendor";
+      case "driver":
+        return "/driver";
+      case "admin":
+        return "/admin";
+      default:
+        return "/customer";
     }
   };
 
   return (
     <div className="min-h-screen bg-zaka-light">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-zaka-dark mb-4">
-            Bienvenue, {user?.firstName || 'Utilisateur'} !
+            Bienvenue, {user?.firstName || "Utilisateur"} !
           </h1>
           <p className="text-xl text-zaka-gray mb-8">
-            Votre rôle: <span className="font-semibold text-zaka-orange capitalize">{user?.role}</span>
+            Votre rôle:{" "}
+            <span className="font-semibold text-zaka-orange capitalize">{user?.role}</span>
           </p>
         </div>
 
@@ -96,11 +101,9 @@ export default function Home() {
 
         {/* Role-specific quick actions */}
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-zaka-dark mb-8 text-center">
-            Actions rapides
-          </h2>
+          <h2 className="text-2xl font-bold text-zaka-dark mb-8 text-center">Actions rapides</h2>
           <div className="grid md:grid-cols-3 gap-6">
-            {user?.role === 'vendor' && (
+            {user?.role === "vendor" && (
               <>
                 <Button className="p-6 bg-zaka-blue hover:bg-zaka-blue text-white text-left h-auto">
                   <div>
@@ -125,8 +128,8 @@ export default function Home() {
                 </Button>
               </>
             )}
-            
-            {user?.role === 'driver' && (
+
+            {user?.role === "driver" && (
               <>
                 <Button className="p-6 bg-zaka-green hover:bg-zaka-green text-white text-left h-auto">
                   <div>
@@ -152,7 +155,7 @@ export default function Home() {
               </>
             )}
 
-            {user?.role === 'customer' && (
+            {user?.role === "customer" && (
               <>
                 <Link href="/customer">
                   <Button className="p-6 bg-zaka-blue hover:bg-zaka-blue text-white text-left h-auto">
@@ -184,7 +187,7 @@ export default function Home() {
               </>
             )}
 
-            {user?.role === 'admin' && (
+            {user?.role === "admin" && (
               <>
                 <Button className="p-6 bg-zaka-green hover:bg-zaka-green text-white text-left h-auto">
                   <div>

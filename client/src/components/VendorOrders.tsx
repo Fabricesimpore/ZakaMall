@@ -5,7 +5,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const orderStatusConfig = {
@@ -24,15 +30,15 @@ export default function VendorOrders() {
   const queryClient = useQueryClient();
 
   const { data: orders = [], isLoading } = useQuery({
-    queryKey: ['/api/vendor/orders', statusFilter !== "all" ? { status: statusFilter } : {}],
+    queryKey: ["/api/vendor/orders", statusFilter !== "all" ? { status: statusFilter } : {}],
   });
 
   const updateOrderStatusMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
-      return await apiRequest('PATCH', `/api/vendor/orders/${orderId}/status`, { status });
+      return await apiRequest("PATCH", `/api/vendor/orders/${orderId}/status`, { status });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/vendor/orders'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/vendor/orders"] });
       toast({
         title: "Statut mis à jour",
         description: "Le statut de la commande a été mis à jour",
@@ -47,23 +53,25 @@ export default function VendorOrders() {
     },
   });
 
-  const filteredOrders = Array.isArray(orders) ? orders.filter((order: any) => {
-    if (statusFilter === "all") return true;
-    return order.status === statusFilter;
-  }) : [];
+  const filteredOrders = Array.isArray(orders)
+    ? orders.filter((order: any) => {
+        if (statusFilter === "all") return true;
+        return order.status === statusFilter;
+      })
+    : [];
 
   const ordersByStatus = {
-    pending: filteredOrders.filter((order: any) => order.status === 'pending'),
-    confirmed: filteredOrders.filter((order: any) => order.status === 'confirmed'),
-    preparing: filteredOrders.filter((order: any) => order.status === 'preparing'),
-    ready: filteredOrders.filter((order: any) => order.status === 'ready_for_pickup'),
-    transit: filteredOrders.filter((order: any) => order.status === 'in_transit'),
-    delivered: filteredOrders.filter((order: any) => order.status === 'delivered'),
+    pending: filteredOrders.filter((order: any) => order.status === "pending"),
+    confirmed: filteredOrders.filter((order: any) => order.status === "confirmed"),
+    preparing: filteredOrders.filter((order: any) => order.status === "preparing"),
+    ready: filteredOrders.filter((order: any) => order.status === "ready_for_pickup"),
+    transit: filteredOrders.filter((order: any) => order.status === "in_transit"),
+    delivered: filteredOrders.filter((order: any) => order.status === "delivered"),
   };
 
   const OrderCard = ({ order }: { order: any }) => {
     const statusConfig = orderStatusConfig[order.status as keyof typeof orderStatusConfig];
-    
+
     return (
       <Card key={order.id} className="mb-4">
         <CardContent className="p-6">
@@ -71,18 +79,18 @@ export default function VendorOrders() {
             <div>
               <h3 className="text-lg font-semibold">{order.orderNumber}</h3>
               <p className="text-sm text-gray-600">
-                {new Date(order.createdAt).toLocaleDateString('fr-BF', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
+                {new Date(order.createdAt).toLocaleDateString("fr-BF", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })}
               </p>
             </div>
             <div className="text-right">
               <p className="text-lg font-bold text-zaka-orange">
-                {parseInt(order.totalAmount).toLocaleString('fr-BF')} CFA
+                {parseInt(order.totalAmount).toLocaleString("fr-BF")} CFA
               </p>
               <Badge variant={statusConfig.variant} className="mt-1">
                 {statusConfig.label}
@@ -94,10 +102,9 @@ export default function VendorOrders() {
             <div className="bg-gray-50 p-3 rounded-lg mb-4">
               <h4 className="font-medium text-sm mb-2">Adresse de livraison:</h4>
               <p className="text-sm text-gray-700">
-                {typeof order.deliveryAddress === 'string' 
-                  ? order.deliveryAddress 
-                  : order.deliveryAddress.address
-                }
+                {typeof order.deliveryAddress === "string"
+                  ? order.deliveryAddress
+                  : order.deliveryAddress.address}
               </p>
               {order.deliveryAddress.phone && (
                 <p className="text-sm text-gray-600 mt-1">
@@ -113,7 +120,7 @@ export default function VendorOrders() {
               <span className="text-sm text-gray-600">Changer le statut:</span>
               <Select
                 value={order.status}
-                onValueChange={(newStatus) => 
+                onValueChange={(newStatus) =>
                   updateOrderStatusMutation.mutate({ orderId: order.id, status: newStatus })
                 }
                 disabled={updateOrderStatusMutation.isPending}
@@ -253,10 +260,9 @@ export default function VendorOrders() {
                   Aucune commande trouvée
                 </h3>
                 <p className="text-gray-500">
-                  {statusFilter === "all" 
+                  {statusFilter === "all"
                     ? "Vous n'avez encore reçu aucune commande"
-                    : `Aucune commande avec le statut "${orderStatusConfig[statusFilter as keyof typeof orderStatusConfig]?.label}"`
-                  }
+                    : `Aucune commande avec le statut "${orderStatusConfig[statusFilter as keyof typeof orderStatusConfig]?.label}"`}
                 </p>
               </CardContent>
             </Card>

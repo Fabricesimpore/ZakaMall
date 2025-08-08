@@ -6,7 +6,10 @@ export default function VendorPending() {
   const { user } = useAuth();
 
   const handleContact = () => {
-    window.open("https://wa.me/22670000000?text=Bonjour, je suis en attente d'approbation pour mon compte vendeur ZakaMall", "_blank");
+    window.open(
+      "https://wa.me/22670000000?text=Bonjour, je suis en attente d'approbation pour mon compte vendeur ZakaMall",
+      "_blank"
+    );
   };
 
   return (
@@ -17,18 +20,17 @@ export default function VendorPending() {
             <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <i className="fas fa-clock text-3xl text-yellow-600"></i>
             </div>
-            <CardTitle className="text-2xl">
-              Demande en cours d'examen
-            </CardTitle>
+            <CardTitle className="text-2xl">Demande en cours d'examen</CardTitle>
           </CardHeader>
-          
+
           <CardContent className="text-center space-y-6">
             <div>
               <p className="text-lg text-gray-700 mb-4">
                 Merci {user?.firstName} ! Votre demande de compte vendeur a été reçue.
               </p>
               <p className="text-gray-600">
-                Notre équipe examine actuellement votre dossier. Vous recevrez une confirmation par téléphone sous 24-48 heures.
+                Notre équipe examine actuellement votre dossier. Vous recevrez une confirmation par
+                téléphone sous 24-48 heures.
               </p>
             </div>
 
@@ -63,11 +65,9 @@ export default function VendorPending() {
             </div>
 
             <div className="bg-zaka-light p-4 rounded-lg">
-              <p className="text-sm text-gray-600 mb-3">
-                Des questions ? Contactez-nous :
-              </p>
+              <p className="text-sm text-gray-600 mb-3">Des questions ? Contactez-nous :</p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button 
+                <Button
                   onClick={handleContact}
                   className="bg-green-500 hover:bg-green-600 text-white"
                 >

@@ -11,9 +11,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 const productFormSchema = z.object({
   name: z.string().min(1, "Le nom du produit est requis"),
@@ -48,11 +61,11 @@ export default function ProductForm({ productId }: ProductFormProps) {
   const isEdit = !!productId;
 
   const { data: categories = [] } = useQuery({
-    queryKey: ['/api/categories'],
+    queryKey: ["/api/categories"],
   });
 
   const { data: product, isLoading: productLoading } = useQuery({
-    queryKey: ['/api/vendor/products', productId],
+    queryKey: ["/api/vendor/products", productId],
     enabled: isEdit,
   });
 
@@ -105,19 +118,21 @@ export default function ProductForm({ productId }: ProductFormProps) {
       };
 
       if (isEdit) {
-        return await apiRequest('PUT', `/api/vendor/products/${productId}`, productData);
+        return await apiRequest("PUT", `/api/vendor/products/${productId}`, productData);
       } else {
-        return await apiRequest('POST', '/api/vendor/products', productData);
+        return await apiRequest("POST", "/api/vendor/products", productData);
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/vendor/products'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/vendor/stats'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/vendor/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/vendor/stats"] });
       toast({
         title: isEdit ? "Produit mis à jour" : "Produit créé",
-        description: isEdit ? "Le produit a été mis à jour avec succès" : "Le produit a été créé avec succès",
+        description: isEdit
+          ? "Le produit a été mis à jour avec succès"
+          : "Le produit a été créé avec succès",
       });
-      setLocation('/vendor/dashboard');
+      setLocation("/vendor/dashboard");
     },
     onError: (error: Error) => {
       toast({
@@ -138,7 +153,10 @@ export default function ProductForm({ productId }: ProductFormProps) {
     const newUrls = [...imageUrls];
     newUrls[index] = url;
     setImageUrls(newUrls);
-    form.setValue("images", newUrls.filter(u => u.trim()));
+    form.setValue(
+      "images",
+      newUrls.filter((u) => u.trim())
+    );
   };
 
   const removeImageUrl = (index: number) => {
@@ -148,7 +166,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
   };
 
   const onSubmit = (data: ProductFormData) => {
-    const validImages = imageUrls.filter(url => url.trim());
+    const validImages = imageUrls.filter((url) => url.trim());
     if (validImages.length === 0) {
       toast({
         title: "Erreur",
@@ -157,7 +175,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       });
       return;
     }
-    
+
     saveProductMutation.mutate({
       ...data,
       images: validImages,
@@ -196,7 +214,9 @@ export default function ProductForm({ productId }: ProductFormProps) {
             {isEdit ? "Modifier le produit" : "Ajouter un nouveau produit"}
           </h1>
           <p className="text-gray-600 mt-2">
-            {isEdit ? "Modifiez les informations de votre produit" : "Remplissez les informations pour ajouter un nouveau produit"}
+            {isEdit
+              ? "Modifiez les informations de votre produit"
+              : "Remplissez les informations pour ajouter un nouveau produit"}
           </p>
         </div>
 
@@ -228,7 +248,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                     <FormItem>
                       <FormLabel>Description *</FormLabel>
                       <FormControl>
-                        <Textarea 
+                        <Textarea
                           placeholder="Décrivez votre produit en détail..."
                           className="min-h-32"
                           {...field}
@@ -295,11 +315,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                       <FormItem>
                         <FormLabel>Prix de vente (CFA) *</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="Ex: 185000"
-                            {...field}
-                          />
+                          <Input type="number" placeholder="Ex: 185000" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -313,11 +329,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                       <FormItem>
                         <FormLabel>Prix de comparaison (CFA)</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="Ex: 200000"
-                            {...field}
-                          />
+                          <Input type="number" placeholder="Ex: 200000" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -333,11 +345,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                       <FormItem>
                         <FormLabel>Quantité en stock *</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="Ex: 15"
-                            {...field}
-                          />
+                          <Input type="number" placeholder="Ex: 15" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -351,12 +359,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                       <FormItem>
                         <FormLabel>Poids (kg)</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            step="0.1"
-                            placeholder="Ex: 0.5"
-                            {...field}
-                          />
+                          <Input type="number" step="0.1" placeholder="Ex: 0.5" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -391,31 +394,28 @@ export default function ProductForm({ productId }: ProductFormProps) {
                       </Button>
                     </div>
                   ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addImageUrl}
-                    className="w-full"
-                  >
+                  <Button type="button" variant="outline" onClick={addImageUrl} className="w-full">
                     <i className="fas fa-plus mr-2"></i>
                     Ajouter une image
                   </Button>
                 </div>
 
-                {imageUrls.some(url => url.trim()) && (
+                {imageUrls.some((url) => url.trim()) && (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {imageUrls.filter(url => url.trim()).map((url, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={url}
-                          alt={`Aperçu ${index + 1}`}
-                          className="w-full h-24 object-cover rounded border"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/placeholder-product.jpg';
-                          }}
-                        />
-                      </div>
-                    ))}
+                    {imageUrls
+                      .filter((url) => url.trim())
+                      .map((url, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={url}
+                            alt={`Aperçu ${index + 1}`}
+                            className="w-full h-24 object-cover rounded border"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "/placeholder-product.jpg";
+                            }}
+                          />
+                        </div>
+                      ))}
                   </div>
                 )}
               </CardContent>
@@ -439,10 +439,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                           </p>
                         </div>
                         <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
                         </FormControl>
                       </FormItem>
                     )}
@@ -460,10 +457,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                           </p>
                         </div>
                         <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
                         </FormControl>
                       </FormItem>
                     )}
@@ -481,10 +475,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                           </p>
                         </div>
                         <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
                         </FormControl>
                       </FormItem>
                     )}
@@ -497,7 +488,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setLocation('/vendor/dashboard')}
+                onClick={() => setLocation("/vendor/dashboard")}
               >
                 Annuler
               </Button>

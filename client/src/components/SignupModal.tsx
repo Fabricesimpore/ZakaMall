@@ -8,14 +8,14 @@ interface SignupModalProps {
 }
 
 export default function SignupModal({ onSuccess }: SignupModalProps) {
-  const [signupType, setSignupType] = useState<'choice' | 'phone' | 'email'>('choice');
+  const [signupType, setSignupType] = useState<"choice" | "phone" | "email">("choice");
 
-  if (signupType === 'phone') {
+  if (signupType === "phone") {
     return (
       <div>
         <div className="flex items-center mb-6">
           <button
-            onClick={() => setSignupType('choice')}
+            onClick={() => setSignupType("choice")}
             className="text-zaka-orange hover:text-zaka-orange mr-3"
           >
             <i className="fas fa-arrow-left"></i>
@@ -27,12 +27,12 @@ export default function SignupModal({ onSuccess }: SignupModalProps) {
     );
   }
 
-  if (signupType === 'email') {
+  if (signupType === "email") {
     return (
       <div>
         <div className="flex items-center mb-6">
           <button
-            onClick={() => setSignupType('choice')}
+            onClick={() => setSignupType("choice")}
             className="text-zaka-orange hover:text-zaka-orange mr-3"
           >
             <i className="fas fa-arrow-left"></i>
@@ -47,13 +47,15 @@ export default function SignupModal({ onSuccess }: SignupModalProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h3 className="text-xl font-bold text-zaka-dark mb-2">Comment souhaitez-vous vous inscrire ?</h3>
+        <h3 className="text-xl font-bold text-zaka-dark mb-2">
+          Comment souhaitez-vous vous inscrire ?
+        </h3>
         <p className="text-gray-600">Choisissez votre méthode d'inscription préférée</p>
       </div>
 
       <div className="space-y-4">
         <Button
-          onClick={() => setSignupType('phone')}
+          onClick={() => setSignupType("phone")}
           className="w-full bg-white border border-gray-200 text-zaka-dark hover:bg-gray-50 h-auto p-6"
           variant="outline"
         >
@@ -72,7 +74,7 @@ export default function SignupModal({ onSuccess }: SignupModalProps) {
         </Button>
 
         <Button
-          onClick={() => setSignupType('email')}
+          onClick={() => setSignupType("email")}
           className="w-full bg-white border border-gray-200 text-zaka-dark hover:bg-gray-50 h-auto p-6"
           variant="outline"
         >

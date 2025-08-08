@@ -30,22 +30,24 @@ export default function PaymentModal({
   totalAmount,
   onPaymentSuccess,
 }: PaymentModalProps) {
-  const [paymentMethod, setPaymentMethod] = useState<'orange_money' | 'moov_money' | 'cash_on_delivery'>('orange_money');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<
+    "orange_money" | "moov_money" | "cash_on_delivery"
+  >("orange_money");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentId, setPaymentId] = useState<string | null>(null);
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const initiatePaymentMutation = useMutation({
     mutationFn: async (data: { orderId: string; paymentMethod: string; phoneNumber?: string }) => {
-      return await apiRequest('POST', '/api/payments/initiate', data);
+      return await apiRequest("POST", "/api/payments/initiate", data);
     },
     onSuccess: async (data: any) => {
       setPaymentId(data.paymentId);
-      
-      if (paymentMethod === 'cash_on_delivery') {
+
+      if (paymentMethod === "cash_on_delivery") {
         toast({
           title: "Commande confirmée",
           description: "Votre commande sera payée à la livraison",
@@ -75,19 +77,19 @@ export default function PaymentModal({
 
   const checkPaymentStatusMutation = useMutation({
     mutationFn: async (paymentId: string) => {
-      return await apiRequest('GET', `/api/payments/${paymentId}/status`);
+      return await apiRequest("GET", `/api/payments/${paymentId}/status`);
     },
     onSuccess: (data: any) => {
-      if (data.status === 'completed') {
+      if (data.status === "completed") {
         setIsProcessing(false);
         toast({
           title: "Paiement réussi",
           description: "Votre commande a été confirmée",
         });
         onPaymentSuccess();
-        queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+        queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
         onClose();
-      } else if (data.status === 'failed') {
+      } else if (data.status === "failed") {
         setIsProcessing(false);
         toast({
           title: "Paiement échoué",
@@ -128,8 +130,8 @@ export default function PaymentModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (paymentMethod !== 'cash_on_delivery' && !phoneNumber.trim()) {
+
+    if (paymentMethod !== "cash_on_delivery" && !phoneNumber.trim()) {
       toast({
         title: "Erreur",
         description: "Veuillez saisir votre numéro de téléphone",
@@ -139,9 +141,9 @@ export default function PaymentModal({
     }
 
     // Validate phone number format
-    if (paymentMethod !== 'cash_on_delivery') {
+    if (paymentMethod !== "cash_on_delivery") {
       const phoneRegex = /^(\+226|226)?[0-9]{8}$/;
-      if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
+      if (!phoneRegex.test(phoneNumber.replace(/\s/g, ""))) {
         toast({
           title: "Numéro invalide",
           description: "Format attendu: +226 XX XX XX XX",
@@ -154,12 +156,12 @@ export default function PaymentModal({
     initiatePaymentMutation.mutate({
       orderId,
       paymentMethod,
-      phoneNumber: phoneNumber.trim()
+      phoneNumber: phoneNumber.trim(),
     });
   };
 
   const formatAmount = (amount: number) => {
-    return amount.toLocaleString('fr-BF') + ' CFA';
+    return amount.toLocaleString("fr-BF") + " CFA";
   };
 
   return (
@@ -178,10 +180,9 @@ export default function PaymentModal({
             <div className="text-center">
               <p className="font-medium">Traitement du paiement en cours...</p>
               <p className="text-sm text-gray-600 mt-1">
-                {paymentMethod === 'orange_money' 
+                {paymentMethod === "orange_money"
                   ? "Vérifiez votre téléphone et suivez les instructions"
-                  : "Composez *155# pour confirmer le paiement"
-                }
+                  : "Composez *155# pour confirmer le paiement"}
               </p>
             </div>
           </div>
@@ -189,7 +190,10 @@ export default function PaymentModal({
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <Label className="text-base font-medium">Méthode de paiement</Label>
-              <RadioGroup value={paymentMethod} onValueChange={(value: any) => setPaymentMethod(value)}>
+              <RadioGroup
+                value={paymentMethod}
+                onValueChange={(value: any) => setPaymentMethod(value)}
+              >
                 <div className="flex items-center space-x-3 p-3 border rounded-lg">
                   <RadioGroupItem value="orange_money" id="orange_money" />
                   <Label htmlFor="orange_money" className="flex items-center cursor-pointer">
@@ -199,7 +203,7 @@ export default function PaymentModal({
                     Orange Money
                   </Label>
                 </div>
-                
+
                 <div className="flex items-center space-x-3 p-3 border rounded-lg">
                   <RadioGroupItem value="moov_money" id="moov_money" />
                   <Label htmlFor="moov_money" className="flex items-center cursor-pointer">
@@ -209,7 +213,7 @@ export default function PaymentModal({
                     Moov Money
                   </Label>
                 </div>
-                
+
                 <div className="flex items-center space-x-3 p-3 border rounded-lg">
                   <RadioGroupItem value="cash_on_delivery" id="cash_on_delivery" />
                   <Label htmlFor="cash_on_delivery" className="flex items-center cursor-pointer">
@@ -222,7 +226,7 @@ export default function PaymentModal({
               </RadioGroup>
             </div>
 
-            {paymentMethod !== 'cash_on_delivery' && (
+            {paymentMethod !== "cash_on_delivery" && (
               <div className="space-y-2">
                 <Label htmlFor="phone">Numéro de téléphone</Label>
                 <Input
@@ -234,10 +238,9 @@ export default function PaymentModal({
                   className="w-full"
                 />
                 <p className="text-xs text-gray-500">
-                  {paymentMethod === 'orange_money' 
+                  {paymentMethod === "orange_money"
                     ? "Numéro Orange Money pour recevoir la demande de paiement"
-                    : "Numéro Moov Money pour recevoir la demande de paiement"
-                  }
+                    : "Numéro Moov Money pour recevoir la demande de paiement"}
                 </p>
               </div>
             )}

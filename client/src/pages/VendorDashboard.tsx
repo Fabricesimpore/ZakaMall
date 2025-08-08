@@ -9,15 +9,15 @@ import VendorOrders from "@/components/VendorOrders";
 
 export default function VendorDashboard() {
   const { data: stats = {}, isLoading: statsLoading } = useQuery({
-    queryKey: ['/api/vendor/stats'],
+    queryKey: ["/api/vendor/stats"],
   });
 
   const { data: recentOrders = [], isLoading: ordersLoading } = useQuery({
-    queryKey: ['/api/vendor/orders', { limit: 5 }],
+    queryKey: ["/api/vendor/orders", { limit: 5 }],
   });
 
   const { data: lowStockProducts = [], isLoading: stockLoading } = useQuery({
-    queryKey: ['/api/vendor/products/low-stock'],
+    queryKey: ["/api/vendor/products/low-stock"],
   });
 
   return (
@@ -47,7 +47,7 @@ export default function VendorDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Commandes du mois</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? '...' : stats.monthlyOrders || 0}
+                    {statsLoading ? "..." : stats.monthlyOrders || 0}
                   </p>
                 </div>
               </div>
@@ -63,7 +63,9 @@ export default function VendorDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Ventes totales</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? '...' : `${(stats.totalSales || 0).toLocaleString('fr-BF')} CFA`}
+                    {statsLoading
+                      ? "..."
+                      : `${(stats.totalSales || 0).toLocaleString("fr-BF")} CFA`}
                   </p>
                 </div>
               </div>
@@ -79,7 +81,7 @@ export default function VendorDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Produits actifs</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? '...' : stats.totalProducts || 0}
+                    {statsLoading ? "..." : stats.totalProducts || 0}
                   </p>
                 </div>
               </div>
@@ -95,7 +97,7 @@ export default function VendorDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Note moyenne</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? '...' : (stats.averageRating || 0).toFixed(1)}/5
+                    {statsLoading ? "..." : (stats.averageRating || 0).toFixed(1)}/5
                   </p>
                 </div>
               </div>
@@ -115,9 +117,12 @@ export default function VendorDashboard() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {lowStockProducts.slice(0, 6).map((product: any) => (
-                  <div key={product.id} className="flex items-center p-3 bg-white rounded-lg border">
-                    <img 
-                      src={product.images?.[0] || '/placeholder-product.jpg'} 
+                  <div
+                    key={product.id}
+                    className="flex items-center p-3 bg-white rounded-lg border"
+                  >
+                    <img
+                      src={product.images?.[0] || "/placeholder-product.jpg"}
                       alt={product.name}
                       className="w-12 h-12 object-cover rounded mr-3"
                     />
@@ -154,7 +159,9 @@ export default function VendorDashboard() {
                   <CardTitle className="flex items-center justify-between">
                     <span>Commandes récentes</span>
                     <Link href="/vendor/orders">
-                      <Button variant="outline" size="sm">Voir tout</Button>
+                      <Button variant="outline" size="sm">
+                        Voir tout
+                      </Button>
                     </Link>
                   </CardTitle>
                 </CardHeader>
@@ -171,19 +178,29 @@ export default function VendorDashboard() {
                   ) : recentOrders.length > 0 ? (
                     <div className="space-y-4">
                       {recentOrders.map((order: any) => (
-                        <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div
+                          key={order.id}
+                          className="flex items-center justify-between p-3 border rounded-lg"
+                        >
                           <div>
                             <p className="font-medium">{order.orderNumber}</p>
                             <p className="text-sm text-gray-600">
-                              {new Date(order.createdAt).toLocaleDateString('fr-BF')}
+                              {new Date(order.createdAt).toLocaleDateString("fr-BF")}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium">{parseInt(order.totalAmount).toLocaleString('fr-BF')} CFA</p>
-                            <Badge variant={
-                              order.status === 'delivered' ? 'default' :
-                              order.status === 'pending' ? 'secondary' : 'destructive'
-                            }>
+                            <p className="font-medium">
+                              {parseInt(order.totalAmount).toLocaleString("fr-BF")} CFA
+                            </p>
+                            <Badge
+                              variant={
+                                order.status === "delivered"
+                                  ? "default"
+                                  : order.status === "pending"
+                                    ? "secondary"
+                                    : "destructive"
+                              }
+                            >
                               {order.status}
                             </Badge>
                           </div>

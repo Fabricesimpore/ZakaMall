@@ -10,7 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Progress } from "@/components/ui/progress";
 import { isUnauthorizedError } from "@/lib/authUtils";
 
@@ -18,7 +25,8 @@ const vendorSetupSchema = z.object({
   businessName: z.string().min(3, "Le nom de l'entreprise doit avoir au moins 3 caractères"),
   businessDescription: z.string().min(10, "La description doit avoir au moins 10 caractères"),
   businessAddress: z.string().min(10, "L'adresse complète est requise"),
-  businessPhone: z.string()
+  businessPhone: z
+    .string()
     .min(8, "Numéro de téléphone professionnel requis")
     .regex(/^(\+226)?[0-9]{8}$/, "Format: +226XXXXXXXX ou 8 chiffres"),
   taxId: z.string().optional(),
@@ -53,12 +61,13 @@ export default function VendorSetup() {
 
   const setupMutation = useMutation({
     mutationFn: async (data: VendorSetupForm) => {
-      return await apiRequest('POST', '/api/vendors', data);
+      return await apiRequest("POST", "/api/vendors", data);
     },
     onSuccess: () => {
       toast({
         title: "Demande soumise!",
-        description: "Votre demande de vendeur sera examinée par notre équipe. Nous vous contacterons bientôt.",
+        description:
+          "Votre demande de vendeur sera examinée par notre équipe. Nous vous contacterons bientôt.",
       });
       // Redirect to pending approval page
       window.location.href = "/vendor-pending";
@@ -110,14 +119,14 @@ export default function VendorSetup() {
             </CardTitle>
             <Progress value={(step / 3) * 100} className="w-full" />
           </CardHeader>
-          
+
           <CardContent className="space-y-6">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 {step === 1 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Informations sur l'entreprise</h3>
-                    
+
                     <FormField
                       control={form.control}
                       name="businessName"
@@ -139,10 +148,10 @@ export default function VendorSetup() {
                         <FormItem>
                           <FormLabel>Description de l'activité *</FormLabel>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Décrivez vos produits et services..."
                               className="min-h-[100px]"
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />
@@ -157,10 +166,7 @@ export default function VendorSetup() {
                         <FormItem>
                           <FormLabel>Adresse complète *</FormLabel>
                           <FormControl>
-                            <Textarea 
-                              placeholder="Secteur, rue, ville..."
-                              {...field} 
-                            />
+                            <Textarea placeholder="Secteur, rue, ville..." {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -186,7 +192,7 @@ export default function VendorSetup() {
                 {step === 2 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Informations financières</h3>
-                    
+
                     <FormField
                       control={form.control}
                       name="bankName"
@@ -237,7 +243,7 @@ export default function VendorSetup() {
                     <p className="text-sm text-gray-600">
                       Les documents peuvent être fournis plus tard ou envoyés par WhatsApp.
                     </p>
-                    
+
                     <FormField
                       control={form.control}
                       name="identityDocument"
@@ -245,10 +251,7 @@ export default function VendorSetup() {
                         <FormItem>
                           <FormLabel>Pièce d'identité (CNI, Passeport)</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Numéro de la pièce d'identité"
-                              {...field} 
-                            />
+                            <Input placeholder="Numéro de la pièce d'identité" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -262,10 +265,7 @@ export default function VendorSetup() {
                         <FormItem>
                           <FormLabel>Registre du commerce (optionnel)</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Numéro du registre de commerce"
-                              {...field} 
-                            />
+                            <Input placeholder="Numéro du registre de commerce" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -289,18 +289,14 @@ export default function VendorSetup() {
 
                 <div className="flex justify-between pt-4">
                   {step > 1 && (
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={prevStep}
-                    >
+                    <Button type="button" variant="outline" onClick={prevStep}>
                       Précédent
                     </Button>
                   )}
-                  
+
                   {step < 3 ? (
-                    <Button 
-                      type="button" 
+                    <Button
+                      type="button"
                       onClick={nextStep}
                       className="ml-auto bg-zaka-green hover:bg-zaka-green"
                     >

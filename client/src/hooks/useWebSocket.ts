@@ -1,5 +1,5 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { useAuth } from './useAuth';
+import { useEffect, useRef, useCallback } from "react";
+import { useAuth } from "./useAuth";
 
 interface WebSocketMessage {
   type: string;
@@ -17,20 +17,22 @@ export function useWebSocket(onMessage?: (message: WebSocketMessage) => void) {
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
-    
+
     try {
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log('WebSocket connected');
+        console.log("WebSocket connected");
         isConnectedRef.current = true;
-        
+
         // Authenticate with user ID
-        ws.send(JSON.stringify({
-          type: 'auth',
-          userId: user.id
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "auth",
+            userId: user.id,
+          })
+        );
       };
 
       ws.onmessage = (event) => {
@@ -40,19 +42,19 @@ export function useWebSocket(onMessage?: (message: WebSocketMessage) => void) {
             onMessage(message);
           }
         } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+          console.error("Error parsing WebSocket message:", error);
         }
       };
 
       ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        console.error("WebSocket error:", error);
       };
 
       ws.onclose = () => {
-        console.log('WebSocket disconnected');
+        console.log("WebSocket disconnected");
         isConnectedRef.current = false;
         wsRef.current = null;
-        
+
         // Attempt to reconnect after 3 seconds
         if (user?.id) {
           reconnectTimeoutRef.current = setTimeout(() => {
@@ -61,7 +63,7 @@ export function useWebSocket(onMessage?: (message: WebSocketMessage) => void) {
         }
       };
     } catch (error) {
-      console.error('Error creating WebSocket connection:', error);
+      console.error("Error creating WebSocket connection:", error);
     }
   }, [user?.id, onMessage]);
 
@@ -75,7 +77,7 @@ export function useWebSocket(onMessage?: (message: WebSocketMessage) => void) {
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
     }
-    
+
     if (wsRef.current) {
       isConnectedRef.current = false;
       wsRef.current.close();
@@ -96,6 +98,6 @@ export function useWebSocket(onMessage?: (message: WebSocketMessage) => void) {
   return {
     sendMessage,
     isConnected: isConnectedRef.current,
-    disconnect
+    disconnect,
   };
 }

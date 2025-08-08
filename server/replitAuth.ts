@@ -38,7 +38,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === "production",
       maxAge: sessionTtl,
     },
   });
@@ -54,9 +54,7 @@ function updateUserSession(
   user.expires_at = user.claims?.exp;
 }
 
-async function upsertUser(
-  claims: any,
-) {
+async function upsertUser(claims: any) {
   await storage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
@@ -86,12 +84,12 @@ export async function setupAuth(app: Express) {
 
   const domains = process.env.REPLIT_DOMAINS!.split(",");
   // Add localhost for development
-  if (process.env.NODE_ENV === 'development' && !domains.includes('localhost')) {
-    domains.push('localhost');
+  if (process.env.NODE_ENV === "development" && !domains.includes("localhost")) {
+    domains.push("localhost");
   }
-  
+
   for (const domain of domains) {
-    const protocol = domain === 'localhost' ? 'http' : 'https';
+    const protocol = domain === "localhost" ? "http" : "https";
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
@@ -99,7 +97,7 @@ export async function setupAuth(app: Express) {
         scope: "openid email profile offline_access",
         callbackURL: `${protocol}://${domain}/api/callback`,
       },
-      verify,
+      verify
     );
     passport.use(strategy);
   }

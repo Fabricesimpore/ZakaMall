@@ -13,10 +13,10 @@ interface ProductImageUploaderProps {
   onImagesUpdated?: (images: string[]) => void;
 }
 
-export default function ProductImageUploader({ 
-  productId, 
-  currentImages = [], 
-  onImagesUpdated 
+export default function ProductImageUploader({
+  productId,
+  currentImages = [],
+  onImagesUpdated,
 }: ProductImageUploaderProps) {
   const [uploadedImages, setUploadedImages] = useState<string[]>(currentImages);
   const { toast } = useToast();
@@ -24,15 +24,15 @@ export default function ProductImageUploader({
 
   const updateProductImagesMutation = useMutation({
     mutationFn: async (imageURLs: string[]) => {
-      return await apiRequest('PUT', `/api/products/${productId}/images`, {
-        imageURLs
+      return await apiRequest("PUT", `/api/products/${productId}/images`, {
+        imageURLs,
       });
     },
     onSuccess: (data: any) => {
       const newImages = data?.imagePaths || [];
       setUploadedImages(newImages);
       onImagesUpdated?.(newImages);
-      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       toast({
         title: "Images mises à jour",
         description: "Les images du produit ont été mises à jour avec succès",
@@ -47,16 +47,18 @@ export default function ProductImageUploader({
     },
   });
 
-  const handleUploadComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    const uploadedURLs = result.successful?.map(file => file.uploadURL).filter(Boolean) || [];
+  const handleUploadComplete = (
+    result: UploadResult<Record<string, unknown>, Record<string, unknown>>
+  ) => {
+    const uploadedURLs = result.successful?.map((file) => file.uploadURL).filter(Boolean) || [];
     const allImages = [...uploadedImages, ...uploadedURLs];
     updateProductImagesMutation.mutate(allImages);
   };
 
   const handleGetUploadParameters = async () => {
-    const response: any = await apiRequest('POST', '/api/objects/upload');
+    const response: any = await apiRequest("POST", "/api/objects/upload");
     return {
-      method: 'PUT' as const,
+      method: "PUT" as const,
       url: response.uploadURL,
     };
   };
@@ -108,12 +110,8 @@ export default function ProductImageUploader({
           >
             <div className="text-center">
               <i className="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
-              <p className="text-gray-600">
-                Cliquez pour ajouter des images
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                Maximum 5 images, 5MB chacune
-              </p>
+              <p className="text-gray-600">Cliquez pour ajouter des images</p>
+              <p className="text-sm text-gray-500 mt-1">Maximum 5 images, 5MB chacune</p>
             </div>
           </ObjectUploader>
         )}
@@ -130,8 +128,8 @@ export default function ProductImageUploader({
         <div className="bg-blue-50 p-3 rounded-lg">
           <p className="text-sm text-blue-700">
             <i className="fas fa-info-circle mr-2"></i>
-            Ajoutez jusqu'à 5 images de haute qualité pour présenter votre produit. 
-            La première image sera utilisée comme image principale.
+            Ajoutez jusqu'à 5 images de haute qualité pour présenter votre produit. La première
+            image sera utilisée comme image principale.
           </p>
         </div>
       </CardContent>

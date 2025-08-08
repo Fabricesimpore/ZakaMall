@@ -12,7 +12,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
@@ -29,32 +35,37 @@ export default function Chat() {
   const { showNotification, requestPermission, permission } = useNotifications();
 
   // WebSocket message handler
-  const handleWebSocketMessage = useCallback((message: any) => {
-    if (message.type === 'message_received' && message.roomId === selectedRoom?.id) {
-      // Invalidate messages query to fetch new messages
-      queryClient.invalidateQueries({ queryKey: ['/api/chat/rooms', selectedRoom.id, 'messages'] });
-    } else if (message.type === 'new_notification') {
-      // Show browser notification
-      if (permission === 'granted') {
-        showNotification(message.notification.title, {
-          body: message.notification.body,
-          tag: `chat-${message.notification.roomId}`,
+  const handleWebSocketMessage = useCallback(
+    (message: any) => {
+      if (message.type === "message_received" && message.roomId === selectedRoom?.id) {
+        // Invalidate messages query to fetch new messages
+        queryClient.invalidateQueries({
+          queryKey: ["/api/chat/rooms", selectedRoom.id, "messages"],
         });
+      } else if (message.type === "new_notification") {
+        // Show browser notification
+        if (permission === "granted") {
+          showNotification(message.notification.title, {
+            body: message.notification.body,
+            tag: `chat-${message.notification.roomId}`,
+          });
+        }
+        // Refresh chat rooms to update unread counts
+        queryClient.invalidateQueries({ queryKey: ["/api/chat/rooms"] });
       }
-      // Refresh chat rooms to update unread counts
-      queryClient.invalidateQueries({ queryKey: ['/api/chat/rooms'] });
-    }
-    // Always refresh chat rooms list for any message
-    if (message.type === 'message_received') {
-      queryClient.invalidateQueries({ queryKey: ['/api/chat/rooms'] });
-    }
-  }, [selectedRoom?.id, showNotification, permission]);
+      // Always refresh chat rooms list for any message
+      if (message.type === "message_received") {
+        queryClient.invalidateQueries({ queryKey: ["/api/chat/rooms"] });
+      }
+    },
+    [selectedRoom?.id, showNotification, permission]
+  );
 
   const { sendMessage: sendWebSocketMessage } = useWebSocket(handleWebSocketMessage);
 
   // Request notification permission on component mount
   useEffect(() => {
-    if (permission === 'default') {
+    if (permission === "default") {
       requestPermission();
     }
   }, [permission, requestPermission]);
@@ -62,10 +73,10 @@ export default function Chat() {
   // Mark messages as read when selecting a room
   const markAsReadMutation = useMutation({
     mutationFn: async (roomId: string) => {
-      return await apiRequest('POST', `/api/chat/rooms/${roomId}/read`);
+      return await apiRequest("POST", `/api/chat/rooms/${roomId}/read`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/chat/rooms'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat/rooms"] });
     },
   });
 
@@ -91,31 +102,33 @@ export default function Chat() {
   }, [user, authLoading, toast]);
 
   const { data: chatRooms = [], isLoading: roomsLoading } = useQuery<any[]>({
-    queryKey: ['/api/chat/rooms'],
+    queryKey: ["/api/chat/rooms"],
     enabled: !!user,
   });
 
   const { data: messages = [], isLoading: messagesLoading } = useQuery<any[]>({
-    queryKey: ['/api/chat/rooms', selectedRoom?.id, 'messages'],
+    queryKey: ["/api/chat/rooms", selectedRoom?.id, "messages"],
     enabled: !!selectedRoom?.id,
   });
 
   const { data: searchResults = [] } = useQuery<any[]>({
-    queryKey: ['/api/users/search', searchQuery],
+    queryKey: ["/api/users/search", searchQuery],
     enabled: searchQuery.length > 2,
   });
 
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
-      return await apiRequest('POST', `/api/chat/rooms/${selectedRoom.id}/messages`, { content });
+      return await apiRequest("POST", `/api/chat/rooms/${selectedRoom.id}/messages`, { content });
     },
     onSuccess: (newMessage) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/chat/rooms', selectedRoom?.id, 'messages'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/chat/rooms", selectedRoom?.id, "messages"],
+      });
       // Send WebSocket message to notify other participants
       sendWebSocketMessage({
-        type: 'new_message',
+        type: "new_message",
         roomId: selectedRoom.id,
-        message: newMessage
+        message: newMessage,
       });
       setMessageText("");
       scrollToBottom();
@@ -142,10 +155,10 @@ export default function Chat() {
 
   const createChatMutation = useMutation({
     mutationFn: async ({ participantIds, name }: { participantIds: string[]; name?: string }) => {
-      return await apiRequest('POST', '/api/chat/rooms', { participantIds, name });
+      return await apiRequest("POST", "/api/chat/rooms", { participantIds, name });
     },
     onSuccess: (newRoom) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/chat/rooms'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat/rooms"] });
       setIsNewChatOpen(false);
       setSelectedUsers([]);
       setSearchQuery("");
@@ -190,29 +203,30 @@ export default function Chat() {
   };
 
   const handleUserSelect = (selectedUser: any) => {
-    if (!selectedUsers.find(u => u.id === selectedUser.id)) {
+    if (!selectedUsers.find((u) => u.id === selectedUser.id)) {
       setSelectedUsers([...selectedUsers, selectedUser]);
     }
   };
 
   const handleUserRemove = (userId: string) => {
-    setSelectedUsers(selectedUsers.filter(u => u.id !== userId));
+    setSelectedUsers(selectedUsers.filter((u) => u.id !== userId));
   };
 
   const handleCreateChat = () => {
     if (selectedUsers.length === 0) return;
-    
-    const participantIds = selectedUsers.map(u => u.id);
-    const chatName = selectedUsers.length === 1 
-      ? `${selectedUsers[0].firstName} ${selectedUsers[0].lastName}`
-      : `Chat de groupe`;
-      
+
+    const participantIds = selectedUsers.map((u) => u.id);
+    const chatName =
+      selectedUsers.length === 1
+        ? `${selectedUsers[0].firstName} ${selectedUsers[0].lastName}`
+        : `Chat de groupe`;
+
     createChatMutation.mutate({ participantIds, name: chatName });
   };
 
   const formatMessageTime = (timestamp: string) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
   };
 
   if (authLoading) {
@@ -226,7 +240,7 @@ export default function Chat() {
   return (
     <div className="min-h-screen bg-zaka-light">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex h-[calc(100vh-12rem)] bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Chat Rooms Sidebar */}
@@ -251,14 +265,18 @@ export default function Chat() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                       />
-                      
+
                       {/* Selected Users */}
                       {selectedUsers.length > 0 && (
                         <div className="space-y-2">
                           <h4 className="font-medium text-sm">Participants sélectionnés:</h4>
                           <div className="flex flex-wrap gap-2">
                             {selectedUsers.map((user) => (
-                              <Badge key={user.id} variant="secondary" className="flex items-center gap-1">
+                              <Badge
+                                key={user.id}
+                                variant="secondary"
+                                className="flex items-center gap-1"
+                              >
                                 {user.firstName} {user.lastName}
                                 <button
                                   onClick={() => handleUserRemove(user.id)}
@@ -271,7 +289,7 @@ export default function Chat() {
                           </div>
                         </div>
                       )}
-                      
+
                       {/* Search Results */}
                       <ScrollArea className="h-48">
                         {searchResults && searchResults.length > 0 ? (
@@ -285,12 +303,16 @@ export default function Chat() {
                                 <Avatar className="w-8 h-8 mr-3">
                                   <AvatarImage src={searchUser.profileImageUrl || undefined} />
                                   <AvatarFallback className="bg-zaka-orange text-white text-xs">
-                                    {searchUser.firstName?.charAt(0) || 'U'}
+                                    {searchUser.firstName?.charAt(0) || "U"}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <p className="font-medium text-sm">{searchUser.firstName} {searchUser.lastName}</p>
-                                  <p className="text-xs text-gray-500 capitalize">{searchUser.role}</p>
+                                  <p className="font-medium text-sm">
+                                    {searchUser.firstName} {searchUser.lastName}
+                                  </p>
+                                  <p className="text-xs text-gray-500 capitalize">
+                                    {searchUser.role}
+                                  </p>
                                 </div>
                               </div>
                             ))}
@@ -299,12 +321,12 @@ export default function Chat() {
                           <p className="text-center text-gray-500 py-4">Aucun utilisateur trouvé</p>
                         ) : null}
                       </ScrollArea>
-                      
+
                       <div className="flex justify-end space-x-2">
                         <Button variant="outline" onClick={() => setIsNewChatOpen(false)}>
                           Annuler
                         </Button>
-                        <Button 
+                        <Button
                           onClick={handleCreateChat}
                           disabled={selectedUsers.length === 0 || createChatMutation.isPending}
                           className="bg-zaka-orange hover:bg-zaka-orange"
@@ -317,7 +339,7 @@ export default function Chat() {
                 </Dialog>
               </div>
             </div>
-            
+
             <ScrollArea className="flex-1">
               {roomsLoading ? (
                 <div className="space-y-2 p-4">
@@ -339,7 +361,9 @@ export default function Chat() {
                     <div
                       key={room.id}
                       className={`p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
-                        selectedRoom?.id === room.id ? 'bg-zaka-light border-l-4 border-l-zaka-orange' : ''
+                        selectedRoom?.id === room.id
+                          ? "bg-zaka-light border-l-4 border-l-zaka-orange"
+                          : ""
                       }`}
                       onClick={() => setSelectedRoom(room)}
                     >
@@ -347,32 +371,34 @@ export default function Chat() {
                         <div className="relative">
                           <Avatar className="w-10 h-10">
                             <AvatarFallback className="bg-zaka-blue text-white">
-                              {room.type === 'group' ? (
+                              {room.type === "group" ? (
                                 <i className="fas fa-users"></i>
                               ) : (
-                                room.name?.charAt(0) || 'C'
+                                room.name?.charAt(0) || "C"
                               )}
                             </AvatarFallback>
                           </Avatar>
                           {room.unreadCount > 0 && (
                             <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs min-w-5 h-5 flex items-center justify-center rounded-full">
-                              {room.unreadCount > 99 ? '99+' : room.unreadCount}
+                              {room.unreadCount > 99 ? "99+" : room.unreadCount}
                             </Badge>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
-                            <h3 className={`font-medium text-sm truncate ${
-                              room.unreadCount > 0 ? 'font-bold text-zaka-dark' : ''
-                            }`}>
-                              {room.name || 'Conversation'}
+                            <h3
+                              className={`font-medium text-sm truncate ${
+                                room.unreadCount > 0 ? "font-bold text-zaka-dark" : ""
+                              }`}
+                            >
+                              {room.name || "Conversation"}
                             </h3>
                             {room.unreadCount > 0 && (
                               <div className="w-2 h-2 bg-zaka-orange rounded-full flex-shrink-0"></div>
                             )}
                           </div>
                           <p className="text-xs text-gray-500">
-                            {room.type === 'group' ? 'Groupe' : 'Direct'}
+                            {room.type === "group" ? "Groupe" : "Direct"}
                           </p>
                         </div>
                       </div>
@@ -397,15 +423,15 @@ export default function Chat() {
                   <div className="flex items-center space-x-3">
                     <Avatar className="w-10 h-10">
                       <AvatarFallback className="bg-zaka-orange text-white">
-                        {selectedRoom.type === 'group' ? (
+                        {selectedRoom.type === "group" ? (
                           <i className="fas fa-users"></i>
                         ) : (
-                          selectedRoom.name?.charAt(0) || 'C'
+                          selectedRoom.name?.charAt(0) || "C"
                         )}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h3 className="font-semibold">{selectedRoom.name || 'Conversation'}</h3>
+                      <h3 className="font-semibold">{selectedRoom.name || "Conversation"}</h3>
                       <p className="text-sm text-gray-500 capitalize">{selectedRoom.type}</p>
                     </div>
                   </div>
@@ -434,22 +460,20 @@ export default function Chat() {
                         return (
                           <div
                             key={message.id}
-                            className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                            className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
                           >
                             <div className={`flex items-start space-x-2 max-w-xs lg:max-w-md`}>
                               {!isOwn && (
                                 <Avatar className="w-8 h-8">
                                   <AvatarImage src={message.sender?.profileImageUrl || undefined} />
                                   <AvatarFallback className="bg-zaka-blue text-white text-xs">
-                                    {message.sender?.firstName?.charAt(0) || 'U'}
+                                    {message.sender?.firstName?.charAt(0) || "U"}
                                   </AvatarFallback>
                                 </Avatar>
                               )}
                               <div
                                 className={`p-3 rounded-lg ${
-                                  isOwn
-                                    ? 'bg-zaka-orange text-white'
-                                    : 'bg-gray-100 text-gray-800'
+                                  isOwn ? "bg-zaka-orange text-white" : "bg-gray-100 text-gray-800"
                                 }`}
                               >
                                 {!isOwn && (
@@ -458,7 +482,9 @@ export default function Chat() {
                                   </p>
                                 )}
                                 <p className="text-sm">{message.content}</p>
-                                <p className={`text-xs mt-1 ${isOwn ? 'text-orange-100' : 'text-gray-500'}`}>
+                                <p
+                                  className={`text-xs mt-1 ${isOwn ? "text-orange-100" : "text-gray-500"}`}
+                                >
                                   {formatMessageTime(message.createdAt)}
                                 </p>
                               </div>

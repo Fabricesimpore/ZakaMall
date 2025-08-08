@@ -21,22 +21,24 @@ export default function DriverDashboard() {
   const queryClient = useQueryClient();
 
   const { data: orders = [], isLoading: ordersLoading } = useQuery({
-    queryKey: ['/api/driver/orders'],
+    queryKey: ["/api/driver/orders"],
   });
 
   const { data: stats = {}, isLoading: statsLoading } = useQuery({
-    queryKey: ['/api/driver/stats'],
+    queryKey: ["/api/driver/stats"],
   });
 
   const updateStatusMutation = useMutation({
     mutationFn: async (isOnline: boolean) => {
-      return await apiRequest('PATCH', '/api/driver/status', { isOnline });
+      return await apiRequest("PATCH", "/api/driver/status", { isOnline });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/driver/stats'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/driver/stats"] });
       toast({
         title: isOnline ? "Vous êtes en ligne" : "Vous êtes hors ligne",
-        description: isOnline ? "Vous pouvez recevoir des commandes" : "Vous ne recevrez pas de nouvelles commandes",
+        description: isOnline
+          ? "Vous pouvez recevoir des commandes"
+          : "Vous ne recevrez pas de nouvelles commandes",
       });
     },
     onError: (error: Error) => {
@@ -50,7 +52,7 @@ export default function DriverDashboard() {
 
   const updateLocationMutation = useMutation({
     mutationFn: async (location: { lat: number; lng: number }) => {
-      return await apiRequest('PATCH', '/api/driver/location', location);
+      return await apiRequest("PATCH", "/api/driver/location", location);
     },
     onSuccess: () => {
       toast({
@@ -69,11 +71,11 @@ export default function DriverDashboard() {
 
   const updateOrderStatusMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
-      return await apiRequest('PATCH', `/api/orders/${orderId}/status`, { status });
+      return await apiRequest("PATCH", `/api/orders/${orderId}/status`, { status });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/driver/orders'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/driver/stats'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/driver/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/driver/stats"] });
       toast({
         title: "Statut mis à jour",
         description: "Le statut de la commande a été mis à jour",
@@ -95,7 +97,7 @@ export default function DriverDashboard() {
         (position) => {
           const newLocation = {
             lat: position.coords.latitude,
-            lng: position.coords.longitude
+            lng: position.coords.longitude,
           };
           setLocation(newLocation);
           updateLocationMutation.mutate(newLocation);
@@ -111,16 +113,14 @@ export default function DriverDashboard() {
   useEffect(() => {
     if (isOnline && navigator.geolocation) {
       const interval = setInterval(() => {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const newLocation = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            };
-            setLocation(newLocation);
-            updateLocationMutation.mutate(newLocation);
-          }
-        );
+        navigator.geolocation.getCurrentPosition((position) => {
+          const newLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          setLocation(newLocation);
+          updateLocationMutation.mutate(newLocation);
+        });
       }, 30000); // Update every 30 seconds
 
       return () => clearInterval(interval);
@@ -132,13 +132,15 @@ export default function DriverDashboard() {
     updateStatusMutation.mutate(online);
   };
 
-  const activeOrders = Array.isArray(orders) ? orders.filter((order: any) => 
-    order.status === 'ready_for_pickup' || order.status === 'in_transit'
-  ) : [];
+  const activeOrders = Array.isArray(orders)
+    ? orders.filter(
+        (order: any) => order.status === "ready_for_pickup" || order.status === "in_transit"
+      )
+    : [];
 
-  const completedOrders = Array.isArray(orders) ? orders.filter((order: any) => 
-    order.status === 'delivered'
-  ) : [];
+  const completedOrders = Array.isArray(orders)
+    ? orders.filter((order: any) => order.status === "delivered")
+    : [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -174,7 +176,9 @@ export default function DriverDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Gains du jour</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? '...' : `${(stats.dailyEarnings || 0).toLocaleString('fr-BF')} CFA`}
+                    {statsLoading
+                      ? "..."
+                      : `${(stats.dailyEarnings || 0).toLocaleString("fr-BF")} CFA`}
                   </p>
                 </div>
               </div>
@@ -190,7 +194,7 @@ export default function DriverDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Livraisons terminées</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? '...' : stats.completedDeliveries || 0}
+                    {statsLoading ? "..." : stats.completedDeliveries || 0}
                   </p>
                 </div>
               </div>
@@ -206,7 +210,7 @@ export default function DriverDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Note moyenne</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? '...' : (stats.averageRating || 0).toFixed(1)}/5
+                    {statsLoading ? "..." : (stats.averageRating || 0).toFixed(1)}/5
                   </p>
                 </div>
               </div>
@@ -244,15 +248,18 @@ export default function DriverDashboard() {
                     Aucune livraison en cours
                   </h3>
                   <p className="text-gray-500">
-                    {isOnline ? "Attendez qu'une nouvelle commande vous soit assignée" : "Activez votre statut pour recevoir des commandes"}
+                    {isOnline
+                      ? "Attendez qu'une nouvelle commande vous soit assignée"
+                      : "Activez votre statut pour recevoir des commandes"}
                   </p>
                 </CardContent>
               </Card>
             ) : (
               <div className="space-y-4">
                 {activeOrders.map((order: any) => {
-                  const statusConfig = orderStatusConfig[order.status as keyof typeof orderStatusConfig];
-                  
+                  const statusConfig =
+                    orderStatusConfig[order.status as keyof typeof orderStatusConfig];
+
                   return (
                     <Card key={order.id}>
                       <CardContent className="p-6">
@@ -260,18 +267,18 @@ export default function DriverDashboard() {
                           <div>
                             <h3 className="text-lg font-semibold">{order.orderNumber}</h3>
                             <p className="text-sm text-gray-600">
-                              {new Date(order.createdAt).toLocaleDateString('fr-BF', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
+                              {new Date(order.createdAt).toLocaleDateString("fr-BF", {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
                               })}
                             </p>
                           </div>
                           <div className="text-right">
                             <p className="text-lg font-bold text-zaka-orange">
-                              Frais: {parseInt(order.deliveryFee).toLocaleString('fr-BF')} CFA
+                              Frais: {parseInt(order.deliveryFee).toLocaleString("fr-BF")} CFA
                             </p>
                             <Badge variant={statusConfig?.variant} className="mt-1">
                               {statusConfig?.label}
@@ -283,10 +290,9 @@ export default function DriverDashboard() {
                           <div className="bg-gray-50 p-3 rounded-lg mb-4">
                             <h4 className="font-medium text-sm mb-2">Adresse de livraison:</h4>
                             <p className="text-sm text-gray-700">
-                              {typeof order.deliveryAddress === 'string' 
-                                ? order.deliveryAddress 
-                                : order.deliveryAddress.address
-                              }
+                              {typeof order.deliveryAddress === "string"
+                                ? order.deliveryAddress
+                                : order.deliveryAddress.address}
                             </p>
                             {order.deliveryAddress.phone && (
                               <p className="text-sm text-gray-600 mt-1">
@@ -299,12 +305,14 @@ export default function DriverDashboard() {
 
                         <div className="flex items-center justify-between">
                           <div className="flex space-x-2">
-                            {order.status === 'ready_for_pickup' && (
+                            {order.status === "ready_for_pickup" && (
                               <Button
-                                onClick={() => updateOrderStatusMutation.mutate({ 
-                                  orderId: order.id, 
-                                  status: 'in_transit' 
-                                })}
+                                onClick={() =>
+                                  updateOrderStatusMutation.mutate({
+                                    orderId: order.id,
+                                    status: "in_transit",
+                                  })
+                                }
                                 disabled={updateOrderStatusMutation.isPending}
                                 className="bg-zaka-orange hover:bg-zaka-orange"
                               >
@@ -312,12 +320,14 @@ export default function DriverDashboard() {
                                 Récupérée
                               </Button>
                             )}
-                            {order.status === 'in_transit' && (
+                            {order.status === "in_transit" && (
                               <Button
-                                onClick={() => updateOrderStatusMutation.mutate({ 
-                                  orderId: order.id, 
-                                  status: 'delivered' 
-                                })}
+                                onClick={() =>
+                                  updateOrderStatusMutation.mutate({
+                                    orderId: order.id,
+                                    status: "delivered",
+                                  })
+                                }
                                 disabled={updateOrderStatusMutation.isPending}
                                 className="bg-green-600 hover:bg-green-700"
                               >
@@ -326,7 +336,7 @@ export default function DriverDashboard() {
                               </Button>
                             )}
                           </div>
-                          
+
                           <Button variant="outline" size="sm">
                             <i className="fas fa-map-marker-alt mr-2"></i>
                             Navigation
@@ -348,9 +358,7 @@ export default function DriverDashboard() {
                   <h3 className="text-lg font-semibold text-gray-600 mb-2">
                     Aucune livraison terminée
                   </h3>
-                  <p className="text-gray-500">
-                    Vos livraisons terminées apparaîtront ici
-                  </p>
+                  <p className="text-gray-500">Vos livraisons terminées apparaîtront ici</p>
                 </CardContent>
               </Card>
             ) : (
@@ -362,12 +370,12 @@ export default function DriverDashboard() {
                         <div>
                           <h3 className="text-lg font-semibold">{order.orderNumber}</h3>
                           <p className="text-sm text-gray-600">
-                            Livrée le {new Date(order.updatedAt).toLocaleDateString('fr-BF')}
+                            Livrée le {new Date(order.updatedAt).toLocaleDateString("fr-BF")}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold text-green-600">
-                            +{parseInt(order.deliveryFee).toLocaleString('fr-BF')} CFA
+                            +{parseInt(order.deliveryFee).toLocaleString("fr-BF")} CFA
                           </p>
                           <Badge variant="default" className="bg-green-600">
                             Livrée

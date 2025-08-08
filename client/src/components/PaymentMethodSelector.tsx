@@ -8,22 +8,37 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
-const paymentFormSchema = z.object({
-  paymentMethod: z.enum(['orange_money', 'moov_money', 'cash_on_delivery']),
-  phoneNumber: z.string().optional(),
-}).refine((data) => {
-  if ((data.paymentMethod === 'orange_money' || data.paymentMethod === 'moov_money') && !data.phoneNumber) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Numéro de téléphone requis pour les paiements mobiles",
-  path: ["phoneNumber"],
-});
+const paymentFormSchema = z
+  .object({
+    paymentMethod: z.enum(["orange_money", "moov_money", "cash_on_delivery"]),
+    phoneNumber: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (
+        (data.paymentMethod === "orange_money" || data.paymentMethod === "moov_money") &&
+        !data.phoneNumber
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Numéro de téléphone requis pour les paiements mobiles",
+      path: ["phoneNumber"],
+    }
+  );
 
 type PaymentFormData = z.infer<typeof paymentFormSchema>;
 
@@ -38,7 +53,7 @@ export default function PaymentMethodSelector({
   orderId,
   totalAmount,
   onPaymentSuccess,
-  onPaymentError
+  onPaymentError,
 }: PaymentMethodSelectorProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
@@ -46,16 +61,16 @@ export default function PaymentMethodSelector({
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
     defaultValues: {
-      paymentMethod: 'orange_money',
-      phoneNumber: '',
+      paymentMethod: "orange_money",
+      phoneNumber: "",
     },
   });
 
-  const paymentMethod = form.watch('paymentMethod');
+  const paymentMethod = form.watch("paymentMethod");
 
   const initiatePaymentMutation = useMutation({
     mutationFn: async (data: PaymentFormData) => {
-      return await apiRequest('POST', '/api/payments/initiate', {
+      return await apiRequest("POST", "/api/payments/initiate", {
         orderId,
         paymentMethod: data.paymentMethod,
         phoneNumber: data.phoneNumber,
@@ -68,7 +83,7 @@ export default function PaymentMethodSelector({
           title: "Paiement initié",
           description: data.message,
         });
-        
+
         // Start polling for payment status
         pollPaymentStatus(data.paymentId, data.transactionId);
       } else {
@@ -87,20 +102,20 @@ export default function PaymentMethodSelector({
 
     const checkStatus = async () => {
       try {
-        const response: any = await apiRequest('GET', `/api/payments/${paymentId}/status`);
-        
-        if (response.status === 'completed') {
+        const response: any = await apiRequest("GET", `/api/payments/${paymentId}/status`);
+
+        if (response.status === "completed") {
           setIsProcessing(false);
           onPaymentSuccess(paymentId, transactionId);
           return;
         }
-        
-        if (response.status === 'failed') {
+
+        if (response.status === "failed") {
           setIsProcessing(false);
           onPaymentError(response.failureReason || "Paiement échoué");
           return;
         }
-        
+
         // Continue polling if still pending
         attempts++;
         if (attempts < maxAttempts) {
@@ -120,7 +135,7 @@ export default function PaymentMethodSelector({
   };
 
   const formatAmount = (amount: number) => {
-    return amount.toLocaleString('fr-BF') + ' CFA';
+    return amount.toLocaleString("fr-BF") + " CFA";
   };
 
   const onSubmit = (data: PaymentFormData) => {
@@ -136,8 +151,10 @@ export default function PaymentMethodSelector({
           </div>
           <h3 className="text-lg font-semibold mb-2">Traitement du paiement...</h3>
           <p className="text-gray-600 mb-4">
-            {paymentMethod === 'orange_money' && "Vérifiez votre téléphone pour confirmer le paiement Orange Money"}
-            {paymentMethod === 'moov_money' && "Composez *155# pour confirmer le paiement Moov Money"}
+            {paymentMethod === "orange_money" &&
+              "Vérifiez votre téléphone pour confirmer le paiement Orange Money"}
+            {paymentMethod === "moov_money" &&
+              "Composez *155# pour confirmer le paiement Moov Money"}
           </p>
           <div className="bg-yellow-50 p-3 rounded-lg">
             <p className="text-sm text-yellow-700">
@@ -167,7 +184,6 @@ export default function PaymentMethodSelector({
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            
             {/* Payment Method Selection */}
             <FormField
               control={form.control}
@@ -181,7 +197,6 @@ export default function PaymentMethodSelector({
                       defaultValue={field.value}
                       className="space-y-4"
                     >
-                      
                       {/* Orange Money */}
                       <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-orange-50 transition-colors">
                         <RadioGroupItem value="orange_money" id="orange_money" />
@@ -192,7 +207,9 @@ export default function PaymentMethodSelector({
                             </div>
                             <div>
                               <h4 className="font-semibold">Orange Money</h4>
-                              <p className="text-sm text-gray-600">Paiement sécurisé via Orange Money</p>
+                              <p className="text-sm text-gray-600">
+                                Paiement sécurisé via Orange Money
+                              </p>
                             </div>
                           </div>
                         </Label>
@@ -208,7 +225,9 @@ export default function PaymentMethodSelector({
                             </div>
                             <div>
                               <h4 className="font-semibold">Moov Money</h4>
-                              <p className="text-sm text-gray-600">Paiement sécurisé via Moov Money</p>
+                              <p className="text-sm text-gray-600">
+                                Paiement sécurisé via Moov Money
+                              </p>
                             </div>
                           </div>
                         </Label>
@@ -224,12 +243,13 @@ export default function PaymentMethodSelector({
                             </div>
                             <div>
                               <h4 className="font-semibold">Paiement à la livraison</h4>
-                              <p className="text-sm text-gray-600">Payez en espèces lors de la réception</p>
+                              <p className="text-sm text-gray-600">
+                                Payez en espèces lors de la réception
+                              </p>
                             </div>
                           </div>
                         </Label>
                       </div>
-                      
                     </RadioGroup>
                   </FormControl>
                   <FormMessage />
@@ -238,27 +258,24 @@ export default function PaymentMethodSelector({
             />
 
             {/* Phone Number Input for Mobile Money */}
-            {(paymentMethod === 'orange_money' || paymentMethod === 'moov_money') && (
+            {(paymentMethod === "orange_money" || paymentMethod === "moov_money") && (
               <FormField
                 control={form.control}
                 name="phoneNumber"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Numéro de téléphone {paymentMethod === 'orange_money' ? 'Orange' : 'Moov'}
+                      Numéro de téléphone {paymentMethod === "orange_money" ? "Orange" : "Moov"}
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="+226 XX XX XX XX"
-                        {...field}
-                        className="text-lg"
-                      />
+                      <Input placeholder="+226 XX XX XX XX" {...field} className="text-lg" />
                     </FormControl>
                     <FormMessage />
                     <div className="bg-blue-50 p-3 rounded-lg">
                       <p className="text-sm text-blue-700">
                         <i className="fas fa-info-circle mr-2"></i>
-                        Assurez-vous que votre compte {paymentMethod === 'orange_money' ? 'Orange Money' : 'Moov Money'} 
+                        Assurez-vous que votre compte{" "}
+                        {paymentMethod === "orange_money" ? "Orange Money" : "Moov Money"}
                         dispose du solde suffisant ({formatAmount(totalAmount)})
                       </p>
                     </div>
@@ -268,7 +285,7 @@ export default function PaymentMethodSelector({
             )}
 
             {/* Cash on Delivery Info */}
-            {paymentMethod === 'cash_on_delivery' && (
+            {paymentMethod === "cash_on_delivery" && (
               <div className="bg-green-50 p-4 rounded-lg">
                 <h4 className="font-semibold text-green-800 mb-2">
                   <i className="fas fa-info-circle mr-2"></i>

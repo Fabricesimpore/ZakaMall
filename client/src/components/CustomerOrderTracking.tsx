@@ -8,12 +8,12 @@ interface CustomerOrderTrackingProps {
 }
 
 const orderSteps = [
-  { status: 'pending', label: 'Commande reçue', icon: 'fas fa-receipt' },
-  { status: 'confirmed', label: 'Confirmée', icon: 'fas fa-check-circle' },
-  { status: 'preparing', label: 'En préparation', icon: 'fas fa-cog' },
-  { status: 'ready_for_pickup', label: 'Prête', icon: 'fas fa-box' },
-  { status: 'in_transit', label: 'En livraison', icon: 'fas fa-truck' },
-  { status: 'delivered', label: 'Livrée', icon: 'fas fa-home' }
+  { status: "pending", label: "Commande reçue", icon: "fas fa-receipt" },
+  { status: "confirmed", label: "Confirmée", icon: "fas fa-check-circle" },
+  { status: "preparing", label: "En préparation", icon: "fas fa-cog" },
+  { status: "ready_for_pickup", label: "Prête", icon: "fas fa-box" },
+  { status: "in_transit", label: "En livraison", icon: "fas fa-truck" },
+  { status: "delivered", label: "Livrée", icon: "fas fa-home" },
 ];
 
 const statusConfig = {
@@ -28,7 +28,7 @@ const statusConfig = {
 
 export default function CustomerOrderTracking({ orderId }: CustomerOrderTrackingProps) {
   const { data: trackingData, isLoading } = useQuery({
-    queryKey: ['/api/customer/orders', orderId, 'tracking'],
+    queryKey: ["/api/customer/orders", orderId, "tracking"],
     enabled: !!orderId,
   });
 
@@ -53,12 +53,8 @@ export default function CustomerOrderTracking({ orderId }: CustomerOrderTracking
       <Card>
         <CardContent className="p-12 text-center">
           <i className="fas fa-search text-6xl text-gray-300 mb-4"></i>
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">
-            Commande introuvable
-          </h3>
-          <p className="text-gray-500">
-            Vérifiez le numéro de commande et réessayez
-          </p>
+          <h3 className="text-lg font-semibold text-gray-600 mb-2">Commande introuvable</h3>
+          <p className="text-gray-500">Vérifiez le numéro de commande et réessayez</p>
         </CardContent>
       </Card>
     );
@@ -66,7 +62,7 @@ export default function CustomerOrderTracking({ orderId }: CustomerOrderTracking
 
   const { order, driver, trackingHistory } = trackingData;
   const currentStatus = order.status;
-  const currentStepIndex = orderSteps.findIndex(step => step.status === currentStatus);
+  const currentStepIndex = orderSteps.findIndex((step) => step.status === currentStatus);
 
   return (
     <div className="space-y-6">
@@ -75,8 +71,8 @@ export default function CustomerOrderTracking({ orderId }: CustomerOrderTracking
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Commande {order.orderNumber}</span>
-            <Badge 
-              variant="secondary" 
+            <Badge
+              variant="secondary"
               className={`${statusConfig[currentStatus as keyof typeof statusConfig]?.bg} ${statusConfig[currentStatus as keyof typeof statusConfig]?.color}`}
             >
               {statusConfig[currentStatus as keyof typeof statusConfig]?.label}
@@ -88,31 +84,40 @@ export default function CustomerOrderTracking({ orderId }: CustomerOrderTracking
             <div>
               <h4 className="font-medium mb-2">Détails de la commande</h4>
               <p className="text-sm text-gray-600">
-                Montant total: <span className="font-medium">{parseInt(order.totalAmount).toLocaleString('fr-BF')} CFA</span>
+                Montant total:{" "}
+                <span className="font-medium">
+                  {parseInt(order.totalAmount).toLocaleString("fr-BF")} CFA
+                </span>
               </p>
               <p className="text-sm text-gray-600">
-                Frais de livraison: <span className="font-medium">{parseInt(order.deliveryFee).toLocaleString('fr-BF')} CFA</span>
+                Frais de livraison:{" "}
+                <span className="font-medium">
+                  {parseInt(order.deliveryFee).toLocaleString("fr-BF")} CFA
+                </span>
               </p>
               <p className="text-sm text-gray-600">
-                Commandé le: <span className="font-medium">
-                  {new Date(order.createdAt).toLocaleDateString('fr-BF', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
+                Commandé le:{" "}
+                <span className="font-medium">
+                  {new Date(order.createdAt).toLocaleDateString("fr-BF", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
                   })}
                 </span>
               </p>
             </div>
-            
+
             {order.deliveryAddress && (
               <div>
                 <h4 className="font-medium mb-2">Adresse de livraison</h4>
                 <div className="text-sm text-gray-600">
-                  <p>{typeof order.deliveryAddress === 'string' 
-                    ? order.deliveryAddress 
-                    : order.deliveryAddress.address}</p>
+                  <p>
+                    {typeof order.deliveryAddress === "string"
+                      ? order.deliveryAddress
+                      : order.deliveryAddress.address}
+                  </p>
                   {order.deliveryAddress.phone && (
                     <p className="mt-1">
                       <i className="fas fa-phone mr-2"></i>
@@ -135,53 +140,64 @@ export default function CustomerOrderTracking({ orderId }: CustomerOrderTracking
           <div className="relative">
             {/* Progress Line */}
             <div className="absolute left-8 top-12 bottom-0 w-0.5 bg-gray-200"></div>
-            
+
             <div className="space-y-8">
               {orderSteps.map((step, index) => {
                 const isCompleted = index <= currentStepIndex;
                 const isCurrent = index === currentStepIndex;
                 const isUpcoming = index > currentStepIndex;
-                
+
                 return (
                   <div key={step.status} className="relative flex items-start">
                     {/* Step Circle */}
-                    <div className={`
+                    <div
+                      className={`
                       relative z-10 flex items-center justify-center w-16 h-16 rounded-full border-4 
-                      ${isCompleted 
-                        ? 'bg-zaka-orange border-zaka-orange text-white' 
-                        : isUpcoming 
-                        ? 'bg-gray-100 border-gray-200 text-gray-400'
-                        : 'bg-blue-100 border-blue-500 text-blue-600'
+                      ${
+                        isCompleted
+                          ? "bg-zaka-orange border-zaka-orange text-white"
+                          : isUpcoming
+                            ? "bg-gray-100 border-gray-200 text-gray-400"
+                            : "bg-blue-100 border-blue-500 text-blue-600"
                       }
-                    `}>
+                    `}
+                    >
                       <i className={`${step.icon} text-xl`}></i>
                     </div>
-                    
+
                     {/* Step Content */}
                     <div className="ml-6 flex-1">
-                      <h3 className={`text-lg font-medium ${
-                        isCompleted ? 'text-gray-900' : 
-                        isCurrent ? 'text-blue-600' : 'text-gray-400'
-                      }`}>
+                      <h3
+                        className={`text-lg font-medium ${
+                          isCompleted
+                            ? "text-gray-900"
+                            : isCurrent
+                              ? "text-blue-600"
+                              : "text-gray-400"
+                        }`}
+                      >
                         {step.label}
                       </h3>
-                      
+
                       {/* Show timestamp for completed/current steps */}
-                      {(isCompleted || isCurrent) && trackingHistory.find(h => h.status === step.status) && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          {new Date(trackingHistory.find(h => h.status === step.status)?.timestamp).toLocaleDateString('fr-BF', {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      )}
-                      
+                      {(isCompleted || isCurrent) &&
+                        trackingHistory.find((h) => h.status === step.status) && (
+                          <p className="text-sm text-gray-500 mt-1">
+                            {new Date(
+                              trackingHistory.find((h) => h.status === step.status)?.timestamp
+                            ).toLocaleDateString("fr-BF", {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        )}
+
                       {/* Show description for current step */}
                       {isCurrent && (
                         <p className="text-sm text-gray-600 mt-2">
-                          {trackingHistory.find(h => h.status === step.status)?.description}
+                          {trackingHistory.find((h) => h.status === step.status)?.description}
                         </p>
                       )}
                     </div>
@@ -194,7 +210,7 @@ export default function CustomerOrderTracking({ orderId }: CustomerOrderTracking
       </Card>
 
       {/* Driver Information */}
-      {driver && (currentStatus === 'in_transit' || currentStatus === 'ready_for_pickup') && (
+      {driver && (currentStatus === "in_transit" || currentStatus === "ready_for_pickup") && (
         <Card>
           <CardHeader>
             <CardTitle>Informations du chauffeur</CardTitle>
@@ -205,15 +221,17 @@ export default function CustomerOrderTracking({ orderId }: CustomerOrderTracking
                 <i className="fas fa-user text-2xl text-gray-600"></i>
               </div>
               <div className="flex-1">
-                <h3 className="font-medium">{driver.firstName} {driver.lastName}</h3>
+                <h3 className="font-medium">
+                  {driver.firstName} {driver.lastName}
+                </h3>
                 <p className="text-sm text-gray-600">Chauffeur ZakaMall</p>
                 <div className="flex items-center mt-2">
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
-                      <i 
-                        key={i} 
+                      <i
+                        key={i}
                         className={`fas fa-star text-sm ${
-                          i < Math.floor(driver.rating || 0) ? 'text-yellow-400' : 'text-gray-300'
+                          i < Math.floor(driver.rating || 0) ? "text-yellow-400" : "text-gray-300"
                         }`}
                       ></i>
                     ))}
@@ -239,19 +257,18 @@ export default function CustomerOrderTracking({ orderId }: CustomerOrderTracking
       )}
 
       {/* Estimated Delivery */}
-      {currentStatus !== 'delivered' && currentStatus !== 'cancelled' && (
+      {currentStatus !== "delivered" && currentStatus !== "cancelled" && (
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-medium text-gray-900">Livraison estimée</h3>
                 <p className="text-sm text-gray-600">
-                  {currentStatus === 'in_transit' 
-                    ? "Dans 15-30 minutes" 
-                    : currentStatus === 'ready_for_pickup'
-                    ? "Dans 30-45 minutes"
-                    : "Aujourd'hui avant 18h"
-                  }
+                  {currentStatus === "in_transit"
+                    ? "Dans 15-30 minutes"
+                    : currentStatus === "ready_for_pickup"
+                      ? "Dans 30-45 minutes"
+                      : "Aujourd'hui avant 18h"}
                 </p>
               </div>
               <div className="text-right">

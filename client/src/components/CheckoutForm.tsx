@@ -7,9 +7,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -33,7 +46,7 @@ interface CheckoutFormProps {
 }
 
 export default function CheckoutForm({ cartItems, total, onBack, onClose }: CheckoutFormProps) {
-  const [step, setStep] = useState<'delivery' | 'payment' | 'success'>('delivery');
+  const [step, setStep] = useState<"delivery" | "payment" | "success">("delivery");
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const { toast } = useToast();
@@ -53,14 +66,15 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
 
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
-      return await apiRequest('POST', '/api/orders', orderData);
+      return await apiRequest("POST", "/api/orders", orderData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
       toast({
         title: "Commande confirmée !",
-        description: "Votre commande a été passée avec succès. Vous recevrez bientôt une confirmation.",
+        description:
+          "Votre commande a été passée avec succès. Vous recevrez bientôt une confirmation.",
       });
       onClose();
     },
@@ -99,7 +113,10 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
       // Create separate orders for each vendor
       let firstOrderId = null;
       for (const [vendorId, items] of Object.entries(vendorGroups) as [string, any[]][]) {
-        const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.product.price) * item.quantity), 0);
+        const subtotal = items.reduce(
+          (sum, item) => sum + parseFloat(item.product.price) * item.quantity,
+          0
+        );
         const deliveryFee = 2000; // 2000 CFA per vendor
         const totalAmount = subtotal + deliveryFee;
 
@@ -110,7 +127,7 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
           totalAmount: totalAmount.toString(),
           deliveryAddress: JSON.stringify(values.deliveryAddress),
           deliveryInstructions: values.deliveryAddress.instructions,
-          items: items.map(item => ({
+          items: items.map((item) => ({
             productId: item.product.id,
             quantity: item.quantity,
             unitPrice: item.product.price,
@@ -124,10 +141,9 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
           firstOrderId = order.id;
         }
       }
-      
+
       setCreatedOrderId(firstOrderId);
       setShowPaymentModal(true);
-      
     } catch (error) {
       toast({
         title: "Erreur",
@@ -139,9 +155,9 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
 
   const handlePaymentSuccess = () => {
     setShowPaymentModal(false);
-    setStep('success');
-    queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+    setStep("success");
+    queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
   };
 
   const handlePaymentError = (error: string) => {
@@ -165,7 +181,7 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
           <i className="fas fa-times"></i>
         </Button>
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
         {/* Order Summary */}
         <div className="bg-zaka-light rounded-lg p-4">
@@ -173,7 +189,9 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
           <div className="space-y-2 text-sm">
             {cartItems.map((item: any) => (
               <div key={item.id} className="flex justify-between">
-                <span>{item.product.name} x{item.quantity}</span>
+                <span>
+                  {item.product.name} x{item.quantity}
+                </span>
                 <span>{(parseFloat(item.product.price) * item.quantity).toLocaleString()} CFA</span>
               </div>
             ))}
@@ -189,7 +207,7 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
           </div>
         </div>
 
-        {step === 'delivery' && (
+        {step === "delivery" && (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Delivery Address */}
@@ -274,8 +292,8 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
                 </div>
               </div>
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-zaka-green hover:bg-zaka-green text-white py-4 text-lg font-semibold"
                 disabled={createOrderMutation.isPending}
               >
@@ -285,10 +303,10 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
                     Création de la commande...
                   </>
                 ) : (
-                  'Continuer vers le paiement'
+                  "Continuer vers le paiement"
                 )}
               </Button>
-              
+
               <p className="text-center text-sm text-zaka-gray">
                 En continuant, vous acceptez nos conditions d'utilisation
               </p>
@@ -296,16 +314,17 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
           </Form>
         )}
 
-        {step === 'payment' && (
+        {step === "payment" && (
           <div className="text-center py-8">
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <i className="fas fa-credit-card text-2xl text-blue-600"></i>
             </div>
             <h3 className="text-xl font-semibold text-zaka-dark mb-2">Commande créée</h3>
             <p className="text-zaka-gray mb-6">
-              Votre commande a été créée avec succès. Cliquez sur "Procéder au paiement" pour finaliser.
+              Votre commande a été créée avec succès. Cliquez sur "Procéder au paiement" pour
+              finaliser.
             </p>
-            <Button 
+            <Button
               onClick={() => setShowPaymentModal(true)}
               className="bg-zaka-orange hover:bg-zaka-orange/90 text-white"
             >
@@ -315,7 +334,7 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
           </div>
         )}
 
-        {step === 'success' && (
+        {step === "success" && (
           <div className="text-center py-8">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <i className="fas fa-check text-2xl text-green-600"></i>

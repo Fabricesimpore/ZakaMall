@@ -22,15 +22,15 @@ export default function PaymentTest() {
 
   const createTestOrder = async () => {
     try {
-      const response = await fetch('/api/test/order', {
-        method: 'POST',
+      const response = await fetch("/api/test/order", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           amount: testAmount,
-          items: [{ quantity: 1, price: testAmount }]
-        })
+          items: [{ quantity: 1, price: testAmount }],
+        }),
       });
 
       const result = await response.json();
@@ -72,12 +72,16 @@ export default function PaymentTest() {
                   Variables d'environnement requises
                 </h3>
                 <div className="text-sm text-yellow-700 space-y-1">
-                  <p><strong>Orange Money:</strong></p>
+                  <p>
+                    <strong>Orange Money:</strong>
+                  </p>
                   <ul className="list-disc list-inside ml-4 space-y-1">
                     <li>ORANGE_MONEY_MERCHANT_CODE</li>
                     <li>ORANGE_MONEY_API_KEY</li>
                   </ul>
-                  <p className="mt-2"><strong>Moov Money:</strong></p>
+                  <p className="mt-2">
+                    <strong>Moov Money:</strong>
+                  </p>
                   <ul className="list-disc list-inside ml-4 space-y-1">
                     <li>MOOV_MONEY_MERCHANT_ID</li>
                     <li>MOOV_MONEY_API_KEY</li>
@@ -118,7 +122,7 @@ export default function PaymentTest() {
                   />
                 </div>
 
-                <Button 
+                <Button
                   onClick={createTestOrder}
                   className="w-full bg-zaka-orange hover:bg-zaka-orange/90 text-white"
                   size="lg"
@@ -138,7 +142,7 @@ export default function PaymentTest() {
                     <h4 className="font-medium">Orange Money</h4>
                     <p className="text-sm text-gray-600">API Orange Money Burkina Faso</p>
                   </div>
-                  
+
                   <div className="p-4 border rounded-lg text-center">
                     <div className="w-12 h-12 bg-blue-600 rounded-full mx-auto mb-2 flex items-center justify-center">
                       <span className="text-white font-bold">MM</span>
@@ -146,7 +150,7 @@ export default function PaymentTest() {
                     <h4 className="font-medium">Moov Money</h4>
                     <p className="text-sm text-gray-600">API Moov Africa Burkina Faso</p>
                   </div>
-                  
+
                   <div className="p-4 border rounded-lg text-center">
                     <div className="w-12 h-12 bg-gray-600 rounded-full mx-auto mb-2 flex items-center justify-center">
                       <i className="fas fa-money-bill-wave text-white"></i>
@@ -160,12 +164,16 @@ export default function PaymentTest() {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="font-semibold mb-2">URLs de webhook configurées:</h3>
                 <div className="text-sm text-gray-700 space-y-1">
-                  <p><strong>Orange Money:</strong></p>
+                  <p>
+                    <strong>Orange Money:</strong>
+                  </p>
                   <ul className="list-disc list-inside ml-4">
                     <li>/api/payments/orange-money/notify</li>
                     <li>/api/payments/orange-money/callback</li>
                   </ul>
-                  <p className="mt-2"><strong>Moov Money:</strong></p>
+                  <p className="mt-2">
+                    <strong>Moov Money:</strong>
+                  </p>
                   <ul className="list-disc list-inside ml-4">
                     <li>/api/payments/moov-money/callback</li>
                   </ul>

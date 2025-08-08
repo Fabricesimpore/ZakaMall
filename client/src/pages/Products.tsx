@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Products() {
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ['/api/products'],
+    queryKey: ["/api/products"],
   });
 
   return (
@@ -44,12 +44,8 @@ export default function Products() {
           <Card>
             <CardContent className="p-8 text-center">
               <i className="fas fa-box-open text-6xl text-gray-300 mb-4"></i>
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                Aucun produit trouvé
-              </h3>
-              <p className="text-gray-500">
-                Les vendeurs n'ont pas encore ajouté de produits.
-              </p>
+              <h3 className="text-lg font-semibold text-gray-600 mb-2">Aucun produit trouvé</h3>
+              <p className="text-gray-500">Les vendeurs n'ont pas encore ajouté de produits.</p>
             </CardContent>
           </Card>
         )}

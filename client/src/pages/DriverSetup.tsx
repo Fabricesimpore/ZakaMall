@@ -10,13 +10,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { isUnauthorizedError } from "@/lib/authUtils";
 
 const driverSetupSchema = z.object({
-  vehicleType: z.enum(["moto", "voiture", "tricycle"], { required_error: "Type de véhicule requis" }),
+  vehicleType: z.enum(["moto", "voiture", "tricycle"], {
+    required_error: "Type de véhicule requis",
+  }),
   licenseNumber: z.string().min(5, "Numéro de permis de conduire requis"),
   vehicleModel: z.string().min(3, "Modèle du véhicule requis"),
   vehicleYear: z.string().regex(/^(19|20)\d{2}$/, "Année valide requise (ex: 2020)"),
@@ -25,7 +40,9 @@ const driverSetupSchema = z.object({
   emergencyContact: z.string().min(8, "Contact d'urgence requis"),
   emergencyName: z.string().min(3, "Nom du contact d'urgence requis"),
   workZone: z.string().min(5, "Zone de travail préférée requise"),
-  experience: z.enum(["nouveau", "1-2ans", "3-5ans", "plus5ans"], { required_error: "Expérience requise" }),
+  experience: z.enum(["nouveau", "1-2ans", "3-5ans", "plus5ans"], {
+    required_error: "Expérience requise",
+  }),
 });
 
 type DriverSetupForm = z.infer<typeof driverSetupSchema>;
@@ -53,12 +70,13 @@ export default function DriverSetup() {
 
   const setupMutation = useMutation({
     mutationFn: async (data: DriverSetupForm) => {
-      return await apiRequest('POST', '/api/drivers', data);
+      return await apiRequest("POST", "/api/drivers", data);
     },
     onSuccess: () => {
       toast({
         title: "Demande soumise!",
-        description: "Votre demande de livreur sera examinée par notre équipe. Nous vous contacterons bientôt.",
+        description:
+          "Votre demande de livreur sera examinée par notre équipe. Nous vous contacterons bientôt.",
       });
       // Redirect to pending approval page
       window.location.href = "/driver-pending";
@@ -110,14 +128,14 @@ export default function DriverSetup() {
             </CardTitle>
             <Progress value={(step / 3) * 100} className="w-full" />
           </CardHeader>
-          
+
           <CardContent className="space-y-6">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 {step === 1 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Informations sur le véhicule</h3>
-                    
+
                     <FormField
                       control={form.control}
                       name="vehicleType"
@@ -219,7 +237,7 @@ export default function DriverSetup() {
                 {step === 2 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Permis et expérience</h3>
-                    
+
                     <FormField
                       control={form.control}
                       name="licenseNumber"
@@ -265,9 +283,9 @@ export default function DriverSetup() {
                         <FormItem>
                           <FormLabel>Zone de travail préférée *</FormLabel>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Secteurs où vous préférez faire les livraisons..."
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />
@@ -280,7 +298,7 @@ export default function DriverSetup() {
                 {step === 3 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Contact d'urgence</h3>
-                    
+
                     <FormField
                       control={form.control}
                       name="emergencyName"
@@ -327,18 +345,14 @@ export default function DriverSetup() {
 
                 <div className="flex justify-between pt-4">
                   {step > 1 && (
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={prevStep}
-                    >
+                    <Button type="button" variant="outline" onClick={prevStep}>
                       Précédent
                     </Button>
                   )}
-                  
+
                   {step < 3 ? (
-                    <Button 
-                      type="button" 
+                    <Button
+                      type="button"
                       onClick={nextStep}
                       className="ml-auto bg-zaka-orange hover:bg-zaka-orange"
                     >

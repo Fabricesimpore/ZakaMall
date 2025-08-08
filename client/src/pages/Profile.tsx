@@ -28,9 +28,9 @@ export default function Profile() {
               <p className="text-zaka-gray mb-6">
                 Vous devez être connecté pour voir votre profil.
               </p>
-              <Button 
+              <Button
                 className="bg-zaka-orange hover:bg-zaka-orange text-white"
-                onClick={() => window.location.href = "/api/login"}
+                onClick={() => (window.location.href = "/api/login")}
               >
                 Se connecter
               </Button>
@@ -44,7 +44,7 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-zaka-light">
       <Navbar />
-      
+
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Card>
           <CardHeader>
@@ -59,19 +59,18 @@ export default function Profile() {
               <Avatar className="w-20 h-20">
                 <AvatarImage src={user.profileImageUrl || undefined} />
                 <AvatarFallback className="bg-zaka-orange text-white text-xl">
-                  {user.firstName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                  {user.firstName?.charAt(0) || user.email?.charAt(0) || "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <h2 className="text-2xl font-bold text-zaka-dark">
-                  {user.firstName && user.lastName 
+                  {user.firstName && user.lastName
                     ? `${user.firstName} ${user.lastName}`
-                    : user.email
-                  }
+                    : user.email}
                 </h2>
                 <p className="text-zaka-gray">{user.email}</p>
                 <Badge className="mt-2 bg-zaka-blue text-white capitalize">
-                  {user.role || 'customer'}
+                  {user.role || "customer"}
                 </Badge>
               </div>
             </div>
@@ -80,38 +79,28 @@ export default function Profile() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-zaka-dark mb-1">
-                    Prénom
-                  </label>
+                  <label className="block text-sm font-medium text-zaka-dark mb-1">Prénom</label>
                   <div className="p-3 bg-gray-50 rounded border">
-                    {user.firstName || 'Non renseigné'}
+                    {user.firstName || "Non renseigné"}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-zaka-dark mb-1">
-                    Nom
-                  </label>
+                  <label className="block text-sm font-medium text-zaka-dark mb-1">Nom</label>
                   <div className="p-3 bg-gray-50 rounded border">
-                    {user.lastName || 'Non renseigné'}
+                    {user.lastName || "Non renseigné"}
                   </div>
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-zaka-dark mb-1">
-                    Email
-                  </label>
-                  <div className="p-3 bg-gray-50 rounded border">
-                    {user.email}
-                  </div>
+                  <label className="block text-sm font-medium text-zaka-dark mb-1">Email</label>
+                  <div className="p-3 bg-gray-50 rounded border">{user.email}</div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-zaka-dark mb-1">
-                    Rôle
-                  </label>
+                  <label className="block text-sm font-medium text-zaka-dark mb-1">Rôle</label>
                   <div className="p-3 bg-gray-50 rounded border capitalize">
-                    {user.role || 'customer'}
+                    {user.role || "customer"}
                   </div>
                 </div>
               </div>
@@ -128,8 +117,8 @@ export default function Profile() {
                   <span className="font-medium">ID:</span> {user.id}
                 </div>
                 <div>
-                  <span className="font-medium">Créé le:</span>{' '}
-                  {user.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR') : 'N/A'}
+                  <span className="font-medium">Créé le:</span>{" "}
+                  {user.createdAt ? new Date(user.createdAt).toLocaleDateString("fr-FR") : "N/A"}
                 </div>
               </div>
             </div>
@@ -140,10 +129,10 @@ export default function Profile() {
                 <i className="fas fa-edit mr-2"></i>
                 Modifier le profil
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="text-red-600 border-red-600 hover:bg-red-50"
-                onClick={() => window.location.href = "/api/logout"}
+                onClick={() => (window.location.href = "/api/logout")}
               >
                 <i className="fas fa-sign-out-alt mr-2"></i>
                 Se déconnecter
