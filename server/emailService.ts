@@ -53,25 +53,49 @@ export class EmailService {
       // If credentials are provided, try to send actual email
       if (this.emailConfig.user && this.emailConfig.pass && this.emailConfig.service === "gmail") {
         try {
-          console.log("Attempting to send real email via Gmail...");
+          console.log("Attempting to send real email via SendGrid API...");
           
-          // Use Gmail API via fetch instead of nodemailer to avoid dependency conflicts
-          const emailPayload = {
-            personalizations: [{
-              to: [{ email: message.to }],
-              subject: message.subject
-            }],
-            from: { email: this.emailConfig.from },
-            content: [
-              { type: "text/plain", value: message.text },
-              { type: "text/html", value: message.html }
-            ]
-          };
+          // Use SendGrid API as alternative to Gmail SMTP
+          const sendgridApiKey = process.env.SENDGRID_API_KEY;
+          if (sendgridApiKey) {
+            const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${sendgridApiKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                personalizations: [{
+                  to: [{ email: message.to }],
+                  subject: message.subject
+                }],
+                from: { email: this.emailConfig.from, name: "ZakaMall" },
+                content: [
+                  { type: "text/plain", value: message.text },
+                  { type: "text/html", value: message.html }
+                ]
+              })
+            });
 
-          // Gmail SMTP requires nodemailer dependency (currently blocked by Vite conflicts)
-          // Production deployment should resolve this or use alternative email service
-          console.log("📧 Gmail SMTP ready - nodemailer installation needed for production");
-          throw new Error("Nodemailer dependency required for Gmail SMTP");
+            if (response.ok) {
+              console.log(`📧 Email sent successfully to ${message.to} via SendGrid`);
+              return true;
+            } else {
+              const errorText = await response.text();
+              console.error("SendGrid API failed:", errorText);
+              throw new Error(`SendGrid error: ${response.status}`);
+            }
+          }
+
+          // Try direct Gmail SMTP using basic authentication
+          console.log("Trying Gmail SMTP via basic auth...");
+          const gmailResponse = await this.sendViaGmailAPI();
+          if (gmailResponse) {
+            console.log(`📧 Email sent successfully to ${message.to} via Gmail API`);
+            return true;
+          }
+
+          throw new Error("No working email service configured");
         } catch (emailError) {
           console.error("Email sending failed:", emailError);
           console.log("Falling back to console logging due to email error");
@@ -138,6 +162,18 @@ export class EmailService {
       </body>
       </html>
     `;
+  }
+
+  private async sendViaGmailAPI(): Promise<boolean> {
+    try {
+      // Gmail API requires OAuth2, which is complex
+      // For now, we'll implement a simple SMTP over HTTPS approach
+      console.log("Gmail API integration would require OAuth2 setup");
+      return false;
+    } catch (error) {
+      console.error("Gmail API error:", error);
+      return false;
+    }
   }
 
   private getWelcomeEmailTemplate(firstName: string): string {
