@@ -385,18 +385,20 @@ export class DatabaseStorage implements IStorage {
 
     let query = db.select().from(products);
     
+    let result = db.select().from(products);
+    
     if (conditions.length > 0) {
       const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
-      query = query.where(whereCondition!);
+      result = result.where(whereCondition);
     }
     
-    query = query.orderBy(desc(products.createdAt));
+    result = result.orderBy(desc(products.createdAt));
     
     if (filters?.limit) {
-      query = query.limit(filters.limit);
+      result = result.limit(filters.limit);
     }
 
-    return await query;
+    return await result;
   }
 
   async getVendorProducts(vendorId: string): Promise<Product[]> {

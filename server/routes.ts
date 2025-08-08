@@ -25,10 +25,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       email: 'test@example.com',
       firstName: 'Test',
       lastName: 'User',
-      role: 'customer',
-      profileImageUrl: null,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      profileImageUrl: null
     };
     
     // Create test user in storage if doesn't exist
@@ -54,20 +51,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       const testOrder = {
-        id: `test-order-${Date.now()}`,
         customerId: 'test-user-123',
         vendorId: 'test-vendor-1',
         status: 'pending' as const,
-        totalAmount: amount.toString(),
-        deliveryAddress: 'Adresse de test, Ouagadougou, Burkina Faso',
-        deliveryPhone: '+226 70 12 34 56',
-        deliveryName: 'Test User',
-        items: JSON.stringify(items),
-        createdAt: new Date(),
-        updatedAt: new Date()
+        subtotal: amount,
+        deliveryFee: 2000,
+        totalAmount: amount,
+        deliveryAddress: {
+          address: 'Adresse de test, Ouagadougou, Burkina Faso',
+          phone: '+226 70 12 34 56',
+          name: 'Test User'
+        }
       };
       
-      const createdOrder = await storage.createOrder(testOrder);
+      const testOrderItems = items.map((item: any) => ({
+        productId: 'test-product-1',
+        quantity: item.quantity || 1,
+        unitPrice: item.price || 1000,
+        totalPrice: (item.quantity || 1) * (item.price || 1000)
+      }));
+      
+      const createdOrder = await storage.createOrder(testOrder, testOrderItems);
       res.json({ success: true, orderId: createdOrder.id });
     } catch (error) {
       console.error('Test order creation error:', error);
