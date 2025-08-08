@@ -17,12 +17,18 @@ import VendorSetup from "@/pages/VendorSetup";
 import DriverSetup from "@/pages/DriverSetup";
 import VendorPending from "@/pages/VendorPending";
 import DriverPending from "@/pages/DriverPending";
+import Products from "@/pages/Products";
+import CartPage from "@/pages/CartPage";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
   return (
     <Switch>
+      {/* Public routes accessible to all users */}
+      <Route path="/products" component={Products} />
+      <Route path="/cart" component={CartPage} />
+      
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (

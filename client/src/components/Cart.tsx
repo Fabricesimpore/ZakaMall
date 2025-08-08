@@ -17,7 +17,7 @@ export default function Cart({ onClose }: CartProps) {
   const [showCheckout, setShowCheckout] = useState(false);
   const { toast } = useToast();
 
-  const { data: cartItems, isLoading } = useQuery({
+  const { data: cartItems = [], isLoading } = useQuery({
     queryKey: ['/api/cart'],
   });
 
@@ -111,7 +111,7 @@ export default function Cart({ onClose }: CartProps) {
   });
 
   const calculateTotal = () => {
-    if (!cartItems) return 0;
+    if (!Array.isArray(cartItems) || cartItems.length === 0) return 0;
     return cartItems.reduce((total: number, item: any) => {
       return total + (parseFloat(item.product.price) * item.quantity);
     }, 0);
@@ -128,7 +128,7 @@ export default function Cart({ onClose }: CartProps) {
   if (showCheckout) {
     return (
       <CheckoutForm 
-        cartItems={cartItems || []}
+        cartItems={Array.isArray(cartItems) ? cartItems : []}
         total={calculateGrandTotal()}
         onBack={() => setShowCheckout(false)}
         onClose={onClose}
@@ -142,7 +142,7 @@ export default function Cart({ onClose }: CartProps) {
         <CardTitle className="flex items-center">
           <i className="fas fa-shopping-cart mr-2"></i>
           Votre panier
-          {cartItems && cartItems.length > 0 && (
+          {Array.isArray(cartItems) && cartItems.length > 0 && (
             <Badge className="ml-2 bg-zaka-orange">{cartItems.length}</Badge>
           )}
         </CardTitle>
@@ -166,7 +166,7 @@ export default function Cart({ onClose }: CartProps) {
               </div>
             ))}
           </div>
-        ) : !cartItems || cartItems.length === 0 ? (
+        ) : !Array.isArray(cartItems) || cartItems.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center">
             <i className="fas fa-shopping-cart text-6xl text-gray-300 mb-4"></i>
             <h3 className="text-lg font-semibold text-gray-600 mb-2">
@@ -182,7 +182,7 @@ export default function Cart({ onClose }: CartProps) {
         ) : (
           <>
             <div className="flex-1 space-y-4">
-              {cartItems.map((item: any) => (
+              {Array.isArray(cartItems) && cartItems.map((item: any) => (
                 <div key={item.id} className="flex items-center justify-between border-b pb-4">
                   <div className="flex items-center space-x-3">
                     <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
