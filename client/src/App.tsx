@@ -11,6 +11,7 @@ import CustomerDashboard from "@/pages/CustomerDashboard";
 import VendorDashboard from "@/pages/VendorDashboard";
 import DriverDashboard from "@/pages/DriverDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
+import Profile from "@/pages/Profile";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -26,6 +27,7 @@ function Router() {
           <Route path="/vendor" component={VendorDashboard} />
           <Route path="/driver" component={DriverDashboard} />
           <Route path="/admin" component={AdminDashboard} />
+          <Route path="/profile" component={Profile} />
         </>
       )}
       <Route component={NotFound} />

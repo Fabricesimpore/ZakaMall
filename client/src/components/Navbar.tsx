@@ -169,10 +169,12 @@ export default function Navbar() {
                     </p>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <i className="fas fa-user mr-2 w-4 h-4"></i>
-                    <span>Profil</span>
-                  </DropdownMenuItem>
+                  <Link href="/profile">
+                    <DropdownMenuItem>
+                      <i className="fas fa-user mr-2 w-4 h-4"></i>
+                      <span>Profil</span>
+                    </DropdownMenuItem>
+                  </Link>
                   <DropdownMenuItem>
                     <i className="fas fa-cog mr-2 w-4 h-4"></i>
                     <span>Paramètres</span>

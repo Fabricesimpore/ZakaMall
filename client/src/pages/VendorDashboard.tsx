@@ -53,18 +53,18 @@ export default function VendorDashboard() {
   });
 
   const { data: vendorStats, isLoading: statsLoading } = useQuery({
-    queryKey: ['/api/analytics/vendor', vendor?.roleData?.id],
-    enabled: !!vendor?.roleData?.id,
+    queryKey: ['/api/analytics/vendor', user?.id],
+    enabled: !!user?.id && user?.role === 'vendor',
   });
 
   const { data: products, isLoading: productsLoading } = useQuery({
-    queryKey: ['/api/products', { vendorId: vendor?.roleData?.id }],
-    enabled: !!vendor?.roleData?.id,
+    queryKey: ['/api/products', { vendorId: user?.id }],
+    enabled: !!user?.id && user?.role === 'vendor',
   });
 
   const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ['/api/orders'],
-    enabled: !!vendor?.roleData?.id,
+    enabled: !!user?.id && user?.role === 'vendor',
   });
 
   const { data: categories } = useQuery({
@@ -162,7 +162,7 @@ export default function VendorDashboard() {
     );
   }
 
-  if (!vendor?.roleData && user?.role !== 'vendor') {
+  if (user?.role !== 'vendor') {
     return (
       <div className="min-h-screen bg-zaka-light">
         <Navbar />
@@ -174,7 +174,7 @@ export default function VendorDashboard() {
               <p className="text-zaka-gray mb-6">
                 Vous devez d'abord vous inscrire en tant que vendeur pour accéder à ce tableau de bord.
               </p>
-              <Button className="bg-zaka-orange hover:bg-zaka-orange text-white">
+              <Button className="bg-zaka-orange hover:bg-zaka-orange-hover text-white font-medium">
                 S'inscrire comme vendeur
               </Button>
             </CardContent>
