@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import PaymentMethodSelector from "@/components/PaymentMethodSelector";
+import PaymentModal from "@/components/PaymentModal";
 
 const deliverySchema = z.object({
   deliveryAddress: z.object({
@@ -35,6 +35,7 @@ interface CheckoutFormProps {
 export default function CheckoutForm({ cartItems, total, onBack, onClose }: CheckoutFormProps) {
   const [step, setStep] = useState<'delivery' | 'payment' | 'success'>('delivery');
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof deliverySchema>>({
@@ -125,7 +126,7 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
       }
       
       setCreatedOrderId(firstOrderId);
-      setStep('payment');
+      setShowPaymentModal(true);
       
     } catch (error) {
       toast({
@@ -136,14 +137,11 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
     }
   };
 
-  const handlePaymentSuccess = (paymentId: string, transactionId: string) => {
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
     setStep('success');
     queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
     queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-    toast({
-      title: "Paiement réussi !",
-      description: "Votre commande a été confirmée et le paiement effectué avec succès.",
-    });
   };
 
   const handlePaymentError = (error: string) => {
@@ -298,13 +296,23 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
           </Form>
         )}
 
-        {step === 'payment' && createdOrderId && (
-          <PaymentMethodSelector
-            orderId={createdOrderId}
-            totalAmount={total}
-            onPaymentSuccess={handlePaymentSuccess}
-            onPaymentError={handlePaymentError}
-          />
+        {step === 'payment' && (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i className="fas fa-credit-card text-2xl text-blue-600"></i>
+            </div>
+            <h3 className="text-xl font-semibold text-zaka-dark mb-2">Commande créée</h3>
+            <p className="text-zaka-gray mb-6">
+              Votre commande a été créée avec succès. Cliquez sur "Procéder au paiement" pour finaliser.
+            </p>
+            <Button 
+              onClick={() => setShowPaymentModal(true)}
+              className="bg-zaka-orange hover:bg-zaka-orange/90 text-white"
+            >
+              <i className="fas fa-credit-card mr-2"></i>
+              Procéder au paiement
+            </Button>
+          </div>
         )}
 
         {step === 'success' && (
@@ -314,12 +322,23 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
             </div>
             <h3 className="text-xl font-semibold text-zaka-dark mb-2">Commande confirmée !</h3>
             <p className="text-zaka-gray mb-6">
-              Votre commande a été passée avec succès. Vous recevrez bientôt une confirmation.
+              Votre commande a été passée avec succès et le paiement confirmé.
             </p>
             <Button onClick={onClose} className="bg-zaka-green hover:bg-zaka-green text-white">
               Fermer
             </Button>
           </div>
+        )}
+
+        {/* Payment Modal */}
+        {createdOrderId && (
+          <PaymentModal
+            isOpen={showPaymentModal}
+            onClose={() => setShowPaymentModal(false)}
+            orderId={createdOrderId}
+            totalAmount={total}
+            onPaymentSuccess={handlePaymentSuccess}
+          />
         )}
       </CardContent>
     </Card>

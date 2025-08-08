@@ -154,6 +154,215 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Real Payment API Routes
+  app.post('/api/payments/initiate', isAuthenticated, async (req: any, res) => {
+    try {
+      const { orderId, paymentMethod, phoneNumber } = req.body;
+      const userId = req.user.claims.sub;
+
+      // Validate order exists and belongs to user
+      const order = await storage.getOrder(orderId);
+      if (!order || order.customerId !== userId) {
+        return res.status(404).json({ error: 'Commande introuvable' });
+      }
+
+      if (order.status !== 'pending') {
+        return res.status(400).json({ error: 'Cette commande ne peut plus être payée' });
+      }
+
+      // Get payment service
+      const paymentService = PaymentServiceFactory.getService(paymentMethod);
+      
+      // Initiate payment
+      const paymentResult = await paymentService.initiatePayment({
+        orderId,
+        amount: parseInt(order.totalAmount),
+        phoneNumber: phoneNumber || '',
+        paymentMethod
+      });
+
+      if (!paymentResult.success) {
+        return res.status(400).json({ error: paymentResult.message });
+      }
+
+      // Store payment record
+      const payment = await storage.createPayment({
+        orderId,
+        amount: order.totalAmount,
+        paymentMethod,
+        status: 'pending',
+        transactionId: paymentResult.transactionId!,
+        operatorReference: paymentResult.operatorReference,
+        phoneNumber: phoneNumber || null,
+        expiresAt: paymentResult.expiresAt || null
+      });
+
+      res.json({
+        success: true,
+        paymentId: payment.id,
+        transactionId: paymentResult.transactionId,
+        message: paymentResult.message,
+        expiresAt: paymentResult.expiresAt
+      });
+
+    } catch (error) {
+      console.error('Payment initiation error:', error);
+      res.status(500).json({ error: 'Erreur lors de l\'initiation du paiement' });
+    }
+  });
+
+  app.get('/api/payments/:paymentId/status', isAuthenticated, async (req: any, res) => {
+    try {
+      const { paymentId } = req.params;
+      const userId = req.user.claims.sub;
+
+      const payment = await storage.getPayment(paymentId);
+      if (!payment) {
+        return res.status(404).json({ error: 'Paiement introuvable' });
+      }
+
+      // Verify order belongs to user
+      const order = await storage.getOrder(payment.orderId);
+      if (!order || order.customerId !== userId) {
+        return res.status(403).json({ error: 'Accès refusé' });
+      }
+
+      // Check real payment status
+      const paymentService = PaymentServiceFactory.getService(payment.paymentMethod as 'orange_money' | 'moov_money' | 'cash_on_delivery');
+      const statusResult = await paymentService.checkPaymentStatus(payment.transactionId);
+
+      // Update payment status if changed
+      if (statusResult.status !== payment.status) {
+        await storage.updatePaymentStatus(
+          paymentId,
+          statusResult.status,
+          statusResult.failureReason || undefined
+        );
+
+        // Update order status if payment completed
+        if (statusResult.status === 'completed' && order.status === 'pending') {
+          await storage.updateOrderStatus(order.id, 'confirmed');
+        }
+      }
+
+      res.json({
+        status: statusResult.status,
+        transactionId: payment.transactionId,
+        operatorReference: statusResult.operatorReference,
+        failureReason: statusResult.failureReason,
+        updatedAt: new Date()
+      });
+
+    } catch (error) {
+      console.error('Payment status check error:', error);
+      res.status(500).json({ error: 'Erreur lors de la vérification du statut' });
+    }
+  });
+
+  // Orange Money Webhook Handlers
+  app.post('/api/payments/orange-money/notify', async (req, res) => {
+    try {
+      const { txnid, status, reference, amount } = req.body;
+      
+      console.log('Orange Money notification received:', req.body);
+
+      // Find payment by transaction reference
+      const payments = await storage.getOrderPayments(reference);
+      const payment = payments.find(p => p.transactionId === reference);
+
+      if (!payment) {
+        console.warn('Payment not found for Orange Money notification:', reference);
+        return res.status(404).send('Payment not found');
+      }
+
+      // Update payment status
+      let paymentStatus: 'pending' | 'completed' | 'failed' = 'pending';
+      if (status === 'SUCCESS' || status === 'SUCCESSFUL') {
+        paymentStatus = 'completed';
+      } else if (status === 'FAILED' || status === 'FAILURE') {
+        paymentStatus = 'failed';
+      }
+
+      await storage.updatePaymentStatus(payment.id, paymentStatus);
+      await storage.updatePaymentTransaction(payment.id, reference, txnid);
+
+      // Update order status if payment completed
+      if (paymentStatus === 'completed') {
+        await storage.updateOrderStatus(payment.orderId, 'confirmed');
+      }
+
+      res.status(200).send('OK');
+    } catch (error) {
+      console.error('Orange Money notification error:', error);
+      res.status(500).send('Error');
+    }
+  });
+
+  app.get('/api/payments/orange-money/callback', async (req, res) => {
+    try {
+      const { reference, status } = req.query;
+      
+      // Redirect to order status page with payment result
+      const redirectUrl = status === 'SUCCESS' 
+        ? `/orders/${reference}?payment=success`
+        : `/orders/${reference}?payment=failed`;
+      
+      res.redirect(redirectUrl);
+    } catch (error) {
+      console.error('Orange Money callback error:', error);
+      res.redirect('/orders?payment=error');
+    }
+  });
+
+  app.get('/api/payments/orange-money/cancel', async (req, res) => {
+    try {
+      const { reference } = req.query;
+      res.redirect(`/orders/${reference}?payment=cancelled`);
+    } catch (error) {
+      console.error('Orange Money cancel error:', error);
+      res.redirect('/orders?payment=error');
+    }
+  });
+
+  // Moov Money Webhook Handlers  
+  app.post('/api/payments/moov-money/callback', async (req, res) => {
+    try {
+      const { reference, status, transactionId } = req.body;
+      
+      console.log('Moov Money notification received:', req.body);
+
+      // Find payment by transaction reference
+      const payments = await storage.getOrderPayments(reference);
+      const payment = payments.find(p => p.transactionId === reference);
+
+      if (!payment) {
+        console.warn('Payment not found for Moov Money notification:', reference);
+        return res.status(404).send('Payment not found');
+      }
+
+      // Update payment status
+      let paymentStatus: 'pending' | 'completed' | 'failed' = 'pending';
+      if (status === 'SUCCESSFUL' || status === 'COMPLETED') {
+        paymentStatus = 'completed';
+      } else if (status === 'FAILED' || status === 'REJECTED') {
+        paymentStatus = 'failed';
+      }
+
+      await storage.updatePaymentStatus(payment.id, paymentStatus);
+      await storage.updatePaymentTransaction(payment.id, reference, transactionId);
+
+      // Update order status if payment completed
+      if (paymentStatus === 'completed') {
+        await storage.updateOrderStatus(payment.orderId, 'confirmed');
+      }
+
+      res.status(200).send('OK');
+    } catch (error) {
+      console.error('Moov Money notification error:', error);
+      res.status(500).send('Error');
+    }
+  });
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {

@@ -20,6 +20,7 @@ import DriverPending from "@/pages/DriverPending";
 import Products from "@/pages/Products";
 import CartPage from "@/pages/CartPage";
 import TestPayment from "@/pages/TestPayment";
+import PaymentTest from "@/pages/PaymentTest";
 import ProductForm from "@/pages/ProductForm";
 
 function Router() {
@@ -31,6 +32,7 @@ function Router() {
       <Route path="/products" component={Products} />
       <Route path="/cart" component={CartPage} />
       <Route path="/test-payment" component={TestPayment} />
+      <Route path="/payment-test" component={PaymentTest} />
       
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
