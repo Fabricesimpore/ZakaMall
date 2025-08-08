@@ -63,6 +63,14 @@ The application is configured for Replit deployment with:
 - ESM module system throughout the codebase
 - Environment-based configuration for database connections
 
+# Recent Changes
+
+## 2025-08-08 - Registration System Fix
+- **Issue Resolved**: Missing `phone_operator` column in users table causing registration failures
+- **Action Taken**: Added missing database column with `ALTER TABLE users ADD COLUMN phone_operator VARCHAR(20);`
+- **Status**: Registration system fully functional for both phone and email signup
+- **Testing Confirmed**: Both Orange Money and Moov Money operator support working
+
 # External Dependencies
 
 ## Database Services
