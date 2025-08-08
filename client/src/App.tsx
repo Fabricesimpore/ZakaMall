@@ -35,6 +35,7 @@ function Router() {
       <Route path="/test-payment" component={TestPayment} />
       <Route path="/payment-test" component={PaymentTest} />
       <Route path="/create-admin" component={CreateAdmin} />
+      <Route path="/admin" component={AdminDashboard} />
       
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
@@ -49,7 +50,6 @@ function Router() {
             {(params) => <ProductForm productId={params.id} />}
           </Route>
           <Route path="/driver" component={DriverDashboard} />
-          <Route path="/admin" component={AdminDashboard} />
           <Route path="/profile" component={Profile} />
           <Route path="/chat" component={Chat} />
           <Route path="/vendor-setup" component={VendorSetup} />
