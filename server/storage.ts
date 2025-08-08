@@ -96,10 +96,12 @@ export interface IStorage {
   // Product operations
   createProduct(product: InsertProduct): Promise<Product>;
   getProduct(id: string): Promise<Product | undefined>;
+  getProductById(id: string): Promise<Product | undefined>;
   getProducts(filters?: { vendorId?: string; categoryId?: string; search?: string; limit?: number }): Promise<Product[]>;
   getVendorProducts(vendorId: string): Promise<Product[]>;
   updateProduct(id: string, updates: Partial<InsertProduct>): Promise<Product>;
   updateProductStock(id: string, quantity: number): Promise<Product>;
+  updateProductImages(id: string, images: string[]): Promise<Product>;
   
   // Cart operations
   addToCart(item: InsertCartItem): Promise<CartItem>;
@@ -371,23 +373,17 @@ export class DatabaseStorage implements IStorage {
       );
     }
 
+    let query = db.select().from(products);
+    
     if (conditions.length > 0) {
       const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
-      return await db
-        .select()
-        .from(products)
-        .where(whereCondition!)
-        .orderBy(desc(products.createdAt))
-        .limit(filters.limit || 50);
+      query = query.where(whereCondition!);
     }
-
-    return await db
-      .select()
-      .from(products)
-      .orderBy(desc(products.createdAt));
-
+    
+    query = query.orderBy(desc(products.createdAt));
+    
     if (filters?.limit) {
-      return await query.limit(filters.limit);
+      query = query.limit(filters.limit);
     }
 
     return await query;
@@ -414,6 +410,23 @@ export class DatabaseStorage implements IStorage {
     const [product] = await db
       .update(products)
       .set({ quantity, updatedAt: new Date() })
+      .where(eq(products.id, id))
+      .returning();
+    return product;
+  }
+
+  async getProductById(id: string): Promise<Product | undefined> {
+    const [product] = await db
+      .select()
+      .from(products)
+      .where(eq(products.id, id));
+    return product;
+  }
+
+  async updateProductImages(id: string, images: string[]): Promise<Product> {
+    const [product] = await db
+      .update(products)
+      .set({ images, updatedAt: new Date() })
       .where(eq(products.id, id))
       .returning();
     return product;

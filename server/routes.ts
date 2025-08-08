@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { ObjectPermission } from "./objectAcl";
 import { insertVendorSchema, insertDriverSchema, insertProductSchema, insertCartSchema, insertOrderSchema, insertReviewSchema, insertChatRoomSchema, insertMessageSchema, insertChatParticipantSchema, insertPhoneVerificationSchema, insertEmailVerificationSchema } from "@shared/schema";
 import { z } from "zod";
 import { randomInt } from "crypto";
@@ -802,6 +804,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Object Storage Routes for Product Images
+  
+  // Serve public objects (product images)
+  app.get("/public-objects/:filePath(*)", async (req, res) => {
+    const filePath = req.params.filePath;
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const file = await objectStorageService.searchPublicObject(filePath);
+      if (!file) {
+        return res.status(404).json({ error: "File not found" });
+      }
+      objectStorageService.downloadObject(file, res);
+    } catch (error) {
+      console.error("Error searching for public object:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Serve private objects (with authentication and ACL check)
+  app.get("/objects/:objectPath(*)", isAuthenticated, async (req: any, res) => {
+    const userId = req.user?.claims?.sub;
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const objectFile = await objectStorageService.getObjectEntityFile(
+        req.path,
+      );
+      const canAccess = await objectStorageService.canAccessObjectEntity({
+        objectFile,
+        userId: userId,
+        requestedPermission: ObjectPermission.READ,
+      });
+      if (!canAccess) {
+        return res.sendStatus(401);
+      }
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error checking object access:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  // Get upload URL for product images
+  app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Failed to get upload URL" });
+    }
+  });
+
+  // Update product images after upload
+  app.put("/api/products/:productId/images", isAuthenticated, async (req: any, res) => {
+    if (!req.body.imageURLs || !Array.isArray(req.body.imageURLs)) {
+      return res.status(400).json({ error: "imageURLs array is required" });
+    }
+
+    const userId = req.user?.claims?.sub;
+    const productId = req.params.productId;
+
+    try {
+      // Verify user owns this product (vendors only)
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'vendor') {
+        return res.status(403).json({ error: "Only vendors can update product images" });
+      }
+
+      const product = await storage.getProductById(productId);
+      if (!product || product.vendorId !== userId) {
+        return res.status(404).json({ error: "Product not found or not owned by user" });
+      }
+
+      const objectStorageService = new ObjectStorageService();
+      const normalizedPaths: string[] = [];
+
+      // Process each uploaded image
+      for (const imageURL of req.body.imageURLs) {
+        try {
+          const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+            imageURL,
+            {
+              owner: userId,
+              visibility: "public", // Product images are public
+            },
+          );
+          normalizedPaths.push(objectPath);
+        } catch (error) {
+          console.error("Error setting ACL for image:", error);
+          // Continue processing other images
+        }
+      }
+
+      // Update product with new image paths
+      await storage.updateProductImages(productId, normalizedPaths);
+
+      res.status(200).json({
+        message: "Product images updated successfully",
+        imagePaths: normalizedPaths,
+      });
+    } catch (error) {
+      console.error("Error updating product images:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // WebSocket server for real-time chat
@@ -864,7 +976,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     ws.on('close', () => {
       // Remove client from active connections
-      for (const [userId, client] of clients) {
+      for (const [userId, client] of Array.from(clients.entries())) {
         if (client.ws === ws) {
           clients.delete(userId);
           break;

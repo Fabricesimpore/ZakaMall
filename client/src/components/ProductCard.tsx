@@ -62,7 +62,12 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const getFirstImage = () => {
     if (product.images && product.images.length > 0) {
-      return product.images[0];
+      const imageUrl = product.images[0];
+      // If it's an object storage path, convert to proper URL
+      if (imageUrl.startsWith('/objects/')) {
+        return imageUrl; // Will be served by our object storage route
+      }
+      return imageUrl;
     }
     return null;
   };
