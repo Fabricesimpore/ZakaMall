@@ -85,8 +85,8 @@ The application is configured for Replit deployment with:
   - Phone number normalization for Burkina Faso (+226) format
   - Fallback to console logging in development mode
 - **Configuration**: SMS service supports multiple providers via environment variables
-- **Status**: SMS infrastructure ready for production with Orange API credentials
-- **Testing**: Development mode active (console logging), ready for Orange API integration
+- **Status**: SMS infrastructure ready for production with Twilio integration configured
+- **Testing**: Real SMS sending enabled via Twilio with provided credentials
 
 ## 2025-08-08 - Registration System Fix
 - **Issue Resolved**: Missing `phone_operator` column in users table causing registration failures

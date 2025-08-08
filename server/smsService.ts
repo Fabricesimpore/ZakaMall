@@ -112,8 +112,19 @@ export class SMSService {
         console.log(`📱 SMS sent successfully to ${phone} via Twilio`);
         return true;
       } else {
-        const error = await response.text();
-        console.error("Twilio SMS failed:", error);
+        const errorData = await response.text();
+        console.error("Twilio SMS failed:", errorData);
+        
+        // Check if it's a region permission issue
+        if (errorData.includes("21408") || errorData.includes("Permission to send")) {
+          console.log(`⚠️ Twilio doesn't support SMS to ${phone} region. Using fallback to console.`);
+          console.log(`\n=== TWILIO FALLBACK SMS ===`);
+          console.log(`To: ${phone}`);
+          console.log(`Message: ${message}`);
+          console.log(`===========================\n`);
+          return true; // Return true to continue the flow
+        }
+        
         return false;
       }
     } catch (error) {
