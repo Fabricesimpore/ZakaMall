@@ -1,0 +1,456 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
+import { insertVendorSchema, insertDriverSchema, insertProductSchema, insertCartSchema, insertOrderSchema, insertReviewSchema } from "@shared/schema";
+import { z } from "zod";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Get additional role-specific data
+      let roleData = null;
+      if (user.role === 'vendor') {
+        roleData = await storage.getVendorByUserId(userId);
+      } else if (user.role === 'driver') {
+        roleData = await storage.getDriverByUserId(userId);
+      }
+
+      res.json({ ...user, roleData });
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // User role management
+  app.post('/api/auth/set-role', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { role } = req.body;
+
+      if (!['customer', 'vendor', 'driver'].includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+
+      const updatedUser = await storage.updateUserRole(userId, role);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+
+  // Vendor routes
+  app.post('/api/vendors', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const vendorData = insertVendorSchema.parse({ ...req.body, userId });
+      
+      const vendor = await storage.createVendor(vendorData);
+      await storage.updateUserRole(userId, 'vendor');
+      
+      res.json(vendor);
+    } catch (error) {
+      console.error("Error creating vendor:", error);
+      res.status(500).json({ message: "Failed to create vendor" });
+    }
+  });
+
+  app.get('/api/vendors', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      const { status } = req.query;
+      const vendors = await storage.getVendors(status as any);
+      res.json(vendors);
+    } catch (error) {
+      console.error("Error fetching vendors:", error);
+      res.status(500).json({ message: "Failed to fetch vendors" });
+    }
+  });
+
+  app.patch('/api/vendors/:id/status', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      const vendor = await storage.updateVendorStatus(id, status);
+      res.json(vendor);
+    } catch (error) {
+      console.error("Error updating vendor status:", error);
+      res.status(500).json({ message: "Failed to update vendor status" });
+    }
+  });
+
+  // Driver routes
+  app.post('/api/drivers', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const driverData = insertDriverSchema.parse({ ...req.body, userId });
+      
+      const driver = await storage.createDriver(driverData);
+      await storage.updateUserRole(userId, 'driver');
+      
+      res.json(driver);
+    } catch (error) {
+      console.error("Error creating driver:", error);
+      res.status(500).json({ message: "Failed to create driver" });
+    }
+  });
+
+  app.get('/api/drivers/available', async (req, res) => {
+    try {
+      const drivers = await storage.getAvailableDrivers();
+      res.json(drivers);
+    } catch (error) {
+      console.error("Error fetching available drivers:", error);
+      res.status(500).json({ message: "Failed to fetch available drivers" });
+    }
+  });
+
+  app.patch('/api/drivers/:id/location', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { lat, lng } = req.body;
+      
+      const driver = await storage.updateDriverLocation(id, lat, lng);
+      res.json(driver);
+    } catch (error) {
+      console.error("Error updating driver location:", error);
+      res.status(500).json({ message: "Failed to update driver location" });
+    }
+  });
+
+  app.patch('/api/drivers/:id/status', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { isOnline } = req.body;
+      
+      const driver = await storage.updateDriverStatus(id, isOnline);
+      res.json(driver);
+    } catch (error) {
+      console.error("Error updating driver status:", error);
+      res.status(500).json({ message: "Failed to update driver status" });
+    }
+  });
+
+  // Category routes
+  app.get('/api/categories', async (req, res) => {
+    try {
+      const categories = await storage.getCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      res.status(500).json({ message: "Failed to fetch categories" });
+    }
+  });
+
+  // Product routes
+  app.post('/api/products', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const vendor = await storage.getVendorByUserId(userId);
+      
+      if (!vendor) {
+        return res.status(403).json({ message: "Only vendors can create products" });
+      }
+
+      const productData = insertProductSchema.parse({ ...req.body, vendorId: vendor.id });
+      const product = await storage.createProduct(productData);
+      
+      res.json(product);
+    } catch (error) {
+      console.error("Error creating product:", error);
+      res.status(500).json({ message: "Failed to create product" });
+    }
+  });
+
+  app.get('/api/products', async (req, res) => {
+    try {
+      const { vendorId, categoryId, search, limit } = req.query;
+      
+      const products = await storage.getProducts({
+        vendorId: vendorId as string,
+        categoryId: categoryId as string,
+        search: search as string,
+        limit: limit ? parseInt(limit as string) : undefined,
+      });
+      
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
+  app.get('/api/products/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const product = await storage.getProduct(id);
+      
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      res.json(product);
+    } catch (error) {
+      console.error("Error fetching product:", error);
+      res.status(500).json({ message: "Failed to fetch product" });
+    }
+  });
+
+  app.patch('/api/products/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      const vendor = await storage.getVendorByUserId(userId);
+      
+      if (!vendor) {
+        return res.status(403).json({ message: "Only vendors can update products" });
+      }
+
+      const product = await storage.updateProduct(id, req.body);
+      res.json(product);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      res.status(500).json({ message: "Failed to update product" });
+    }
+  });
+
+  // Cart routes
+  app.post('/api/cart', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const cartData = insertCartSchema.parse({ ...req.body, userId });
+      
+      const cartItem = await storage.addToCart(cartData);
+      res.json(cartItem);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      res.status(500).json({ message: "Failed to add to cart" });
+    }
+  });
+
+  app.get('/api/cart', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const cartItems = await storage.getCartItems(userId);
+      res.json(cartItems);
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+      res.status(500).json({ message: "Failed to fetch cart" });
+    }
+  });
+
+  app.patch('/api/cart/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { quantity } = req.body;
+      
+      const cartItem = await storage.updateCartItem(id, quantity);
+      res.json(cartItem);
+    } catch (error) {
+      console.error("Error updating cart item:", error);
+      res.status(500).json({ message: "Failed to update cart item" });
+    }
+  });
+
+  app.delete('/api/cart/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.removeFromCart(id);
+      res.json({ message: "Item removed from cart" });
+    } catch (error) {
+      console.error("Error removing from cart:", error);
+      res.status(500).json({ message: "Failed to remove from cart" });
+    }
+  });
+
+  app.delete('/api/cart', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      await storage.clearCart(userId);
+      res.json({ message: "Cart cleared" });
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+      res.status(500).json({ message: "Failed to clear cart" });
+    }
+  });
+
+  // Order routes
+  app.post('/api/orders', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { items, ...orderData } = req.body;
+      
+      const order = await storage.createOrder(
+        { ...orderData, customerId: userId },
+        items
+      );
+      
+      // Clear cart after successful order
+      await storage.clearCart(userId);
+      
+      res.json(order);
+    } catch (error) {
+      console.error("Error creating order:", error);
+      res.status(500).json({ message: "Failed to create order" });
+    }
+  });
+
+  app.get('/api/orders', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      const { status } = req.query;
+      
+      let filters: any = { status };
+      
+      if (user?.role === 'customer') {
+        filters.customerId = userId;
+      } else if (user?.role === 'vendor') {
+        const vendor = await storage.getVendorByUserId(userId);
+        filters.vendorId = vendor?.id;
+      } else if (user?.role === 'driver') {
+        const driver = await storage.getDriverByUserId(userId);
+        filters.driverId = driver?.id;
+      }
+      
+      const orders = await storage.getOrders(filters);
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
+  app.get('/api/orders/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const order = await storage.getOrder(id);
+      
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      
+      res.json(order);
+    } catch (error) {
+      console.error("Error fetching order:", error);
+      res.status(500).json({ message: "Failed to fetch order" });
+    }
+  });
+
+  app.patch('/api/orders/:id/status', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      const order = await storage.updateOrderStatus(id, status);
+      res.json(order);
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      res.status(500).json({ message: "Failed to update order status" });
+    }
+  });
+
+  app.patch('/api/orders/:id/assign-driver', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { driverId } = req.body;
+      
+      const order = await storage.assignOrderToDriver(id, driverId);
+      res.json(order);
+    } catch (error) {
+      console.error("Error assigning driver to order:", error);
+      res.status(500).json({ message: "Failed to assign driver to order" });
+    }
+  });
+
+  // Review routes
+  app.post('/api/reviews', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const reviewData = insertReviewSchema.parse({ ...req.body, userId });
+      
+      const review = await storage.createReview(reviewData);
+      res.json(review);
+    } catch (error) {
+      console.error("Error creating review:", error);
+      res.status(500).json({ message: "Failed to create review" });
+    }
+  });
+
+  app.get('/api/products/:id/reviews', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const reviews = await storage.getProductReviews(id);
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching product reviews:", error);
+      res.status(500).json({ message: "Failed to fetch product reviews" });
+    }
+  });
+
+  // Analytics routes
+  app.get('/api/analytics/vendor/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const stats = await storage.getVendorStats(id);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching vendor stats:", error);
+      res.status(500).json({ message: "Failed to fetch vendor stats" });
+    }
+  });
+
+  app.get('/api/analytics/driver/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const stats = await storage.getDriverStats(id);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching driver stats:", error);
+      res.status(500).json({ message: "Failed to fetch driver stats" });
+    }
+  });
+
+  app.get('/api/analytics/admin', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const stats = await storage.getAdminStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+      res.status(500).json({ message: "Failed to fetch admin stats" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
