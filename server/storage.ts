@@ -58,6 +58,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   createUserWithPhone(user: InsertUser): Promise<User>;
   updateUserRole(userId: string, role: 'customer' | 'vendor' | 'driver' | 'admin'): Promise<User>;
+  getUsersByRole(role: 'customer' | 'vendor' | 'driver' | 'admin'): Promise<User[]>;
   
   // Phone verification operations
   createPhoneVerification(verification: InsertPhoneVerification): Promise<PhoneVerification>;
@@ -232,6 +233,13 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return user;
+  }
+
+  async getUsersByRole(role: 'customer' | 'vendor' | 'driver' | 'admin'): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .where(eq(users.role, role));
   }
 
   // Vendor operations

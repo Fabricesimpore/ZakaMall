@@ -21,6 +21,7 @@ import Products from "@/pages/Products";
 import CartPage from "@/pages/CartPage";
 import TestPayment from "@/pages/TestPayment";
 import PaymentTest from "@/pages/PaymentTest";
+import CreateAdmin from "@/pages/CreateAdmin";
 import ProductForm from "@/pages/ProductForm";
 
 function Router() {
@@ -33,6 +34,7 @@ function Router() {
       <Route path="/cart" component={CartPage} />
       <Route path="/test-payment" component={TestPayment} />
       <Route path="/payment-test" component={PaymentTest} />
+      <Route path="/create-admin" component={CreateAdmin} />
       
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />

@@ -229,7 +229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check real payment status
       const paymentService = PaymentServiceFactory.getService(payment.paymentMethod as 'orange_money' | 'moov_money' | 'cash_on_delivery');
-      const statusResult = await paymentService.checkPaymentStatus(payment.transactionId);
+      const statusResult = await paymentService.checkPaymentStatus(payment.transactionId || '');
 
       // Update payment status if changed
       if (statusResult.status !== payment.status) {
@@ -436,6 +436,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating user role:", error);
       res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+
+  // Admin user management - only for admins to promote other users
+  app.post('/api/admin/promote-user', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      // Only existing admins can promote users
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Only admins can promote users" });
+      }
+
+      const { userId, role } = req.body;
+
+      if (!['customer', 'vendor', 'driver', 'admin'].includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+
+      const updatedUser = await storage.updateUserRole(userId, role);
+      res.json({ 
+        message: `User promoted to ${role} successfully`,
+        user: updatedUser 
+      });
+    } catch (error) {
+      console.error("Error promoting user:", error);
+      res.status(500).json({ message: "Failed to promote user" });
+    }
+  });
+
+  // Emergency admin creation - only works if no admins exist
+  app.post('/api/admin/emergency-create', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Check if any admin users already exist
+      const existingAdmins = await storage.getUsersByRole('admin');
+      if (existingAdmins.length > 0) {
+        return res.status(403).json({ 
+          message: "Admin users already exist. Contact an existing admin for promotion." 
+        });
+      }
+
+      // Make the current user an admin
+      const updatedUser = await storage.updateUserRole(userId, 'admin');
+      res.json({ 
+        message: "Emergency admin created successfully",
+        user: updatedUser 
+      });
+    } catch (error) {
+      console.error("Error creating emergency admin:", error);
+      res.status(500).json({ message: "Failed to create emergency admin" });
     }
   });
 
