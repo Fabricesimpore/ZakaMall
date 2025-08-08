@@ -19,6 +19,7 @@ import VendorPending from "@/pages/VendorPending";
 import DriverPending from "@/pages/DriverPending";
 import Products from "@/pages/Products";
 import CartPage from "@/pages/CartPage";
+import TestPayment from "@/pages/TestPayment";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -28,6 +29,7 @@ function Router() {
       {/* Public routes accessible to all users */}
       <Route path="/products" component={Products} />
       <Route path="/cart" component={CartPage} />
+      <Route path="/test-payment" component={TestPayment} />
       
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
