@@ -383,20 +383,20 @@ export class DatabaseStorage implements IStorage {
       );
     }
 
-    let result = db.select().from(products);
+    let query = db.select().from(products);
     
     if (conditions.length > 0) {
       const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions)!;
-      result = result.where(whereCondition);
+      query = query.where(whereCondition);
     }
     
-    result = result.orderBy(desc(products.createdAt));
+    query = query.orderBy(desc(products.createdAt));
     
     if (filters?.limit) {
-      result = result.limit(filters.limit);
+      query = query.limit(filters.limit);
     }
 
-    return await result;
+    return await query;
   }
 
   async getVendorProducts(vendorId: string): Promise<Product[]> {
