@@ -174,7 +174,7 @@ export default function VendorDashboard() {
               <p className="text-zaka-gray mb-6">
                 Vous devez d'abord vous inscrire en tant que vendeur pour accéder à ce tableau de bord.
               </p>
-              <Button className="bg-zaka-orange hover:bg-zaka-orange">
+              <Button className="bg-zaka-orange hover:bg-zaka-orange text-white">
                 S'inscrire comme vendeur
               </Button>
             </CardContent>
