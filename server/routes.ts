@@ -1001,6 +1001,225 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Vendor-specific routes
+  app.get('/api/vendor/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const vendor = await storage.getVendorByUserId(userId);
+      
+      if (!vendor) {
+        return res.status(403).json({ message: "Only vendors can access stats" });
+      }
+
+      const stats = await storage.getVendorStats(vendor.id);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching vendor stats:", error);
+      res.status(500).json({ message: "Failed to fetch vendor stats" });
+    }
+  });
+
+  app.get('/api/vendor/products', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const vendor = await storage.getVendorByUserId(userId);
+      
+      if (!vendor) {
+        return res.status(403).json({ message: "Only vendors can access products" });
+      }
+
+      const products = await storage.getProducts({ vendorId: vendor.id });
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching vendor products:", error);
+      res.status(500).json({ message: "Failed to fetch vendor products" });
+    }
+  });
+
+  app.post('/api/vendor/products', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const vendor = await storage.getVendorByUserId(userId);
+      
+      if (!vendor) {
+        return res.status(403).json({ message: "Only vendors can create products" });
+      }
+
+      const productData = insertProductSchema.parse({ ...req.body, vendorId: vendor.id });
+      const product = await storage.createProduct(productData);
+      
+      res.json(product);
+    } catch (error) {
+      console.error("Error creating vendor product:", error);
+      res.status(500).json({ message: "Failed to create product" });
+    }
+  });
+
+  app.get('/api/vendor/products/low-stock', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const vendor = await storage.getVendorByUserId(userId);
+      
+      if (!vendor) {
+        return res.status(403).json({ message: "Only vendors can access low stock data" });
+      }
+
+      const products = await storage.getLowStockProducts(vendor.id);
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching low stock products:", error);
+      res.status(500).json({ message: "Failed to fetch low stock products" });
+    }
+  });
+
+  app.get('/api/vendor/products/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      const vendor = await storage.getVendorByUserId(userId);
+      
+      if (!vendor) {
+        return res.status(403).json({ message: "Only vendors can access products" });
+      }
+
+      const product = await storage.getProduct(id);
+      
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      // Check if product belongs to this vendor
+      if (product.vendorId !== vendor.id) {
+        return res.status(403).json({ message: "Product does not belong to this vendor" });
+      }
+      
+      res.json(product);
+    } catch (error) {
+      console.error("Error fetching vendor product:", error);
+      res.status(500).json({ message: "Failed to fetch product" });
+    }
+  });
+
+  app.put('/api/vendor/products/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      const vendor = await storage.getVendorByUserId(userId);
+      
+      if (!vendor) {
+        return res.status(403).json({ message: "Only vendors can update products" });
+      }
+
+      const product = await storage.getProduct(id);
+      if (!product || product.vendorId !== vendor.id) {
+        return res.status(404).json({ message: "Product not found or access denied" });
+      }
+
+      const updatedProduct = await storage.updateProduct(id, req.body);
+      res.json(updatedProduct);
+    } catch (error) {
+      console.error("Error updating vendor product:", error);
+      res.status(500).json({ message: "Failed to update product" });
+    }
+  });
+
+  app.patch('/api/vendor/products/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      const vendor = await storage.getVendorByUserId(userId);
+      
+      if (!vendor) {
+        return res.status(403).json({ message: "Only vendors can update products" });
+      }
+
+      const product = await storage.getProduct(id);
+      if (!product || product.vendorId !== vendor.id) {
+        return res.status(404).json({ message: "Product not found or access denied" });
+      }
+
+      const updatedProduct = await storage.updateProduct(id, req.body);
+      res.json(updatedProduct);
+    } catch (error) {
+      console.error("Error updating vendor product:", error);
+      res.status(500).json({ message: "Failed to update product" });
+    }
+  });
+
+  app.delete('/api/vendor/products/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      const vendor = await storage.getVendorByUserId(userId);
+      
+      if (!vendor) {
+        return res.status(403).json({ message: "Only vendors can delete products" });
+      }
+
+      const product = await storage.getProduct(id);
+      if (!product || product.vendorId !== vendor.id) {
+        return res.status(404).json({ message: "Product not found or access denied" });
+      }
+
+      await storage.deleteProduct(id);
+      res.json({ message: "Product deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting vendor product:", error);
+      res.status(500).json({ message: "Failed to delete product" });
+    }
+  });
+
+  app.get('/api/vendor/orders', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const vendor = await storage.getVendorByUserId(userId);
+      
+      if (!vendor) {
+        return res.status(403).json({ message: "Only vendors can access orders" });
+      }
+
+      const { status, limit } = req.query;
+      const filters: any = { vendorId: vendor.id };
+      if (status && status !== 'all') {
+        filters.status = status;
+      }
+
+      const orders = await storage.getOrders(filters);
+      
+      // Apply limit if specified
+      const limitedOrders = limit ? orders.slice(0, parseInt(limit as string)) : orders;
+      
+      res.json(limitedOrders);
+    } catch (error) {
+      console.error("Error fetching vendor orders:", error);
+      res.status(500).json({ message: "Failed to fetch vendor orders" });
+    }
+  });
+
+  app.patch('/api/vendor/orders/:id/status', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const userId = req.user.claims.sub;
+      const vendor = await storage.getVendorByUserId(userId);
+      
+      if (!vendor) {
+        return res.status(403).json({ message: "Only vendors can update order status" });
+      }
+
+      const order = await storage.getOrder(id);
+      if (!order || order.vendorId !== vendor.id) {
+        return res.status(404).json({ message: "Order not found or access denied" });
+      }
+
+      const updatedOrder = await storage.updateOrderStatus(id, status);
+      res.json(updatedOrder);
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      res.status(500).json({ message: "Failed to update order status" });
+    }
+  });
+
   // Update product images after upload
   app.put("/api/products/:productId/images", isAuthenticated, async (req: any, res) => {
     if (!req.body.imageURLs || !Array.isArray(req.body.imageURLs)) {

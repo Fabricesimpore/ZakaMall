@@ -1,681 +1,255 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import { useToast } from "@/hooks/use-toast";
-import Navbar from "@/components/Navbar";
-import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-
-const productSchema = z.object({
-  name: z.string().min(1, "Le nom du produit est requis"),
-  description: z.string().min(1, "La description est requise"),
-  price: z.string().min(1, "Le prix est requis"),
-  categoryId: z.string().min(1, "La catégorie est requise"),
-  quantity: z.string().min(1, "La quantité est requise"),
-  images: z.array(z.string()).optional(),
-});
-
-const vendorRegistrationSchema = z.object({
-  businessName: z.string().min(1, "Le nom de l'entreprise est requis"),
-  businessDescription: z.string().optional(),
-  businessAddress: z.string().optional(),
-  businessPhone: z.string().optional(),
-  taxId: z.string().optional(),
-});
+import { Link } from "wouter";
+import VendorProducts from "@/components/VendorProducts";
+import VendorOrders from "@/components/VendorOrders";
 
 export default function VendorDashboard() {
-  const { user, isLoading: authLoading } = useAuth();
-  const [isAddProductOpen, setIsAddProductOpen] = useState(false);
-  const [isVendorRegistrationOpen, setIsVendorRegistrationOpen] = useState(false);
-  const { toast } = useToast();
-
-  // Redirect to home if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      toast({
-        title: "Non autorisé",
-        description: "Vous êtes déconnecté. Reconnexion en cours...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
-  }, [user, authLoading, toast]);
-
-  const { data: vendor, isLoading: vendorLoading } = useQuery({
-    queryKey: ['/api/auth/user'],
-    enabled: !!user,
+  const { data: stats = {}, isLoading: statsLoading } = useQuery({
+    queryKey: ['/api/vendor/stats'],
   });
 
-  const { data: vendorStats, isLoading: statsLoading } = useQuery<any>({
-    queryKey: ['/api/analytics/vendor', user?.id],
-    enabled: !!user?.id && user?.role === 'vendor',
+  const { data: recentOrders = [], isLoading: ordersLoading } = useQuery({
+    queryKey: ['/api/vendor/orders', { limit: 5 }],
   });
 
-  const { data: products = [], isLoading: productsLoading } = useQuery<any[]>({
-    queryKey: ['/api/products', { vendorId: user?.id }],
-    enabled: !!user?.id && user?.role === 'vendor',
+  const { data: lowStockProducts = [], isLoading: stockLoading } = useQuery({
+    queryKey: ['/api/vendor/products/low-stock'],
   });
-
-  const { data: orders = [], isLoading: ordersLoading } = useQuery<any[]>({
-    queryKey: ['/api/orders'],
-    enabled: !!user?.id && user?.role === 'vendor',
-  });
-
-  const { data: categories = [] } = useQuery<any[]>({
-    queryKey: ['/api/categories'],
-  });
-
-  const createProductMutation = useMutation({
-    mutationFn: async (productData: any) => {
-      return await apiRequest('POST', '/api/products', productData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
-      toast({
-        title: "Succès",
-        description: "Produit créé avec succès",
-      });
-      setIsAddProductOpen(false);
-    },
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Non autorisé",
-          description: "Vous êtes déconnecté. Reconnexion en cours...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Erreur",
-        description: "Impossible de créer le produit",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateOrderStatusMutation = useMutation({
-    mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
-      return await apiRequest('PATCH', `/api/orders/${orderId}/status`, { status });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-      toast({
-        title: "Succès",
-        description: "Statut de commande mis à jour",
-      });
-    },
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Non autorisé",
-          description: "Vous êtes déconnecté. Reconnexion en cours...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour le statut",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const form = useForm<z.infer<typeof productSchema>>({
-    resolver: zodResolver(productSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      price: "",
-      categoryId: "",
-      quantity: "",
-      images: [],
-    },
-  });
-
-  const vendorRegistrationForm = useForm<z.infer<typeof vendorRegistrationSchema>>({
-    resolver: zodResolver(vendorRegistrationSchema),
-    defaultValues: {
-      businessName: "",
-      businessDescription: "",
-      businessAddress: "",
-      businessPhone: "",
-      taxId: "",
-    },
-  });
-
-  const registerVendorMutation = useMutation({
-    mutationFn: async (vendorData: any) => {
-      return await apiRequest('POST', '/api/vendors', vendorData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      toast({
-        title: "Succès",
-        description: "Inscription vendeur réussie ! Votre compte est en cours de vérification.",
-      });
-      setIsVendorRegistrationOpen(false);
-      // Refresh the page to show the vendor dashboard
-      window.location.reload();
-    },
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Non autorisé",
-          description: "Vous êtes déconnecté. Reconnexion en cours...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Erreur",
-        description: "Impossible de vous inscrire comme vendeur",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const onVendorRegistrationSubmit = (values: z.infer<typeof vendorRegistrationSchema>) => {
-    registerVendorMutation.mutate(values);
-  };
-
-  const onSubmit = (values: z.infer<typeof productSchema>) => {
-    createProductMutation.mutate({
-      ...values,
-      price: parseFloat(values.price),
-      quantity: parseInt(values.quantity),
-    });
-  };
-
-  if (authLoading || vendorLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-zaka-orange"></div>
-      </div>
-    );
-  }
-
-  if (user?.role !== 'vendor') {
-    return (
-      <div className="min-h-screen bg-zaka-light">
-        <Navbar />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <Card>
-            <CardContent className="p-8 text-center">
-              <i className="fas fa-store text-6xl text-zaka-orange mb-4"></i>
-              <h2 className="text-2xl font-bold mb-4">Devenir vendeur</h2>
-              <p className="text-zaka-gray mb-6">
-                Vous devez d'abord vous inscrire en tant que vendeur pour accéder à ce tableau de bord.
-              </p>
-              <Dialog open={isVendorRegistrationOpen} onOpenChange={setIsVendorRegistrationOpen}>
-                <DialogTrigger asChild>
-                  <Button className="w-full bg-zaka-orange text-white py-3 rounded-lg font-semibold">
-                    S'inscrire comme vendeur
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Inscription vendeur</DialogTitle>
-                  </DialogHeader>
-                  <Form {...vendorRegistrationForm}>
-                    <form onSubmit={vendorRegistrationForm.handleSubmit(onVendorRegistrationSubmit)} className="space-y-6">
-                      <FormField
-                        control={vendorRegistrationForm.control}
-                        name="businessName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nom de l'entreprise *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Nom de votre entreprise" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={vendorRegistrationForm.control}
-                        name="businessDescription"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description de l'entreprise</FormLabel>
-                            <FormControl>
-                              <Textarea placeholder="Décrivez votre entreprise et vos produits" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={vendorRegistrationForm.control}
-                        name="businessAddress"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Adresse de l'entreprise</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Adresse complète de votre entreprise" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={vendorRegistrationForm.control}
-                          name="businessPhone"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Téléphone professionnel</FormLabel>
-                              <FormControl>
-                                <Input placeholder="70 XX XX XX XX" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={vendorRegistrationForm.control}
-                          name="taxId"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Numéro fiscal (optionnel)</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Numéro d'identification fiscale" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="flex justify-end space-x-2">
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={() => setIsVendorRegistrationOpen(false)}
-                        >
-                          Annuler
-                        </Button>
-                        <Button 
-                          type="submit" 
-                          className="bg-zaka-orange hover:bg-zaka-orange"
-                          disabled={registerVendorMutation.isPending}
-                        >
-                          {registerVendorMutation.isPending ? "Inscription..." : "S'inscrire"}
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-zaka-light">
-      <Navbar />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-zaka-dark mb-8">Tableau de bord vendeur</h1>
-        
-        {/* Vendor Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-to-r from-zaka-blue to-blue-600 text-white">
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-zaka-dark">Tableau de bord vendeur</h1>
+            <p className="text-gray-600 mt-2">Gérez vos produits, commandes et inventaire</p>
+          </div>
+          <Link href="/vendor/products/new">
+            <Button className="bg-zaka-orange hover:bg-zaka-orange">
+              <i className="fas fa-plus mr-2"></i>
+              Ajouter un produit
+            </Button>
+          </Link>
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card>
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                  <i className="fas fa-shopping-cart text-blue-600 text-xl"></i>
+                </div>
                 <div>
-                  <p className="text-blue-100 text-sm">Ventes du mois</p>
-                  <p className="text-2xl font-bold">
-                    {statsLoading ? "..." : `${vendorStats?.totalSales?.toLocaleString() || 0} CFA`}
+                  <p className="text-sm text-gray-600">Commandes du mois</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {statsLoading ? '...' : stats.monthlyOrders || 0}
                   </p>
                 </div>
-                <i className="fas fa-chart-line text-3xl text-blue-200"></i>
               </div>
             </CardContent>
           </Card>
-          
-          <Card className="bg-gradient-to-r from-zaka-green to-green-600 text-white">
+
+          <Card>
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                  <i className="fas fa-dollar-sign text-green-600 text-xl"></i>
+                </div>
                 <div>
-                  <p className="text-green-100 text-sm">Commandes</p>
-                  <p className="text-2xl font-bold">
-                    {statsLoading ? "..." : vendorStats?.monthlyOrders || 0}
+                  <p className="text-sm text-gray-600">Ventes totales</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {statsLoading ? '...' : `${(stats.totalSales || 0).toLocaleString('fr-BF')} CFA`}
                   </p>
                 </div>
-                <i className="fas fa-shopping-bag text-3xl text-green-200"></i>
               </div>
             </CardContent>
           </Card>
-          
-          <Card className="bg-gradient-to-r from-zaka-orange to-orange-600 text-white">
+
+          <Card>
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                  <i className="fas fa-box text-purple-600 text-xl"></i>
+                </div>
                 <div>
-                  <p className="text-orange-100 text-sm">Produits</p>
-                  <p className="text-2xl font-bold">
-                    {statsLoading ? "..." : vendorStats?.totalProducts || 0}
+                  <p className="text-sm text-gray-600">Produits actifs</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {statsLoading ? '...' : stats.totalProducts || 0}
                   </p>
                 </div>
-                <i className="fas fa-box text-3xl text-orange-200"></i>
               </div>
             </CardContent>
           </Card>
-          
-          <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+
+          <Card>
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mr-4">
+                  <i className="fas fa-star text-yellow-600 text-xl"></i>
+                </div>
                 <div>
-                  <p className="text-purple-100 text-sm">Note moyenne</p>
-                  <p className="text-2xl font-bold">
-                    {statsLoading ? "..." : `${vendorStats?.averageRating?.toFixed(1) || "0.0"}/5`}
+                  <p className="text-sm text-gray-600">Note moyenne</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {statsLoading ? '...' : (stats.averageRating || 0).toFixed(1)}/5
                   </p>
                 </div>
-                <i className="fas fa-star text-3xl text-purple-200"></i>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-zaka-blue hover:bg-zaka-blue text-white p-6 h-auto text-left">
-                <div>
-                  <i className="fas fa-plus-circle text-2xl mb-2 block"></i>
-                  <h3 className="font-semibold mb-1">Ajouter un produit</h3>
-                  <p className="text-sm opacity-90">Créer une nouvelle annonce</p>
-                </div>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Ajouter un nouveau produit</DialogTitle>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nom du produit</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Nom du produit" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+        {/* Low Stock Alert */}
+        {!stockLoading && lowStockProducts.length > 0 && (
+          <Card className="mb-8 border-orange-200 bg-orange-50">
+            <CardHeader>
+              <CardTitle className="flex items-center text-orange-800">
+                <i className="fas fa-exclamation-triangle mr-2"></i>
+                Alerte stock faible
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {lowStockProducts.slice(0, 6).map((product: any) => (
+                  <div key={product.id} className="flex items-center p-3 bg-white rounded-lg border">
+                    <img 
+                      src={product.images?.[0] || '/placeholder-product.jpg'} 
+                      alt={product.name}
+                      className="w-12 h-12 object-cover rounded mr-3"
                     />
-                    <FormField
-                      control={form.control}
-                      name="categoryId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Catégorie</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner une catégorie" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {categories.map((category: any) => (
-                                <SelectItem key={category.id} value={category.id}>
-                                  {category.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Description du produit" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="price"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Prix (CFA)</FormLabel>
-                          <FormControl>
-                            <Input type="number" placeholder="0" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="quantity"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Quantité en stock</FormLabel>
-                          <FormControl>
-                            <Input type="number" placeholder="0" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-4">
-                    <Button type="button" variant="outline" onClick={() => setIsAddProductOpen(false)}>
-                      Annuler
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      className="bg-zaka-green hover:bg-zaka-green"
-                      disabled={createProductMutation.isPending}
-                    >
-                      {createProductMutation.isPending ? "Création..." : "Créer le produit"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-
-          <Button className="bg-zaka-green hover:bg-zaka-green text-white p-6 h-auto text-left">
-            <div>
-              <i className="fas fa-truck text-2xl mb-2 block"></i>
-              <h3 className="font-semibold mb-1">Gérer les commandes</h3>
-              <p className="text-sm opacity-90">Traiter les nouvelles commandes</p>
-            </div>
-          </Button>
-          
-          <Button className="bg-zaka-orange hover:bg-zaka-orange text-white p-6 h-auto text-left">
-            <div>
-              <i className="fas fa-chart-bar text-2xl mb-2 block"></i>
-              <h3 className="font-semibold mb-1">Voir les analytics</h3>
-              <p className="text-sm opacity-90">Consulter les statistiques</p>
-            </div>
-          </Button>
-        </div>
-
-        {/* Recent Orders */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Commandes récentes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {ordersLoading ? (
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="animate-pulse border-b pb-4">
-                    <div className="flex justify-between items-center">
-                      <div className="space-y-2">
-                        <div className="h-4 bg-gray-200 rounded w-32"></div>
-                        <div className="h-3 bg-gray-200 rounded w-24"></div>
-                      </div>
-                      <div className="h-6 bg-gray-200 rounded w-20"></div>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{product.name}</p>
+                      <p className="text-sm text-orange-600">Stock: {product.quantity}</p>
                     </div>
                   </div>
                 ))}
               </div>
-            ) : orders.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-left text-zaka-gray text-sm border-b">
-                      <th className="pb-3">Commande</th>
-                      <th className="pb-3">Montant</th>
-                      <th className="pb-3">Statut</th>
-                      <th className="pb-3">Date</th>
-                      <th className="pb-3">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-sm">
-                    {orders.slice(0, 5).map((order: any) => (
-                      <tr key={order.id} className="border-b border-gray-100">
-                        <td className="py-3 font-medium">{order.orderNumber}</td>
-                        <td className="py-3 font-semibold">{parseFloat(order.totalAmount).toLocaleString()} CFA</td>
-                        <td className="py-3">
-                          <Badge 
-                            className={
-                              order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                              order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                              order.status === 'preparing' ? 'bg-orange-100 text-orange-800' :
-                              order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                              'bg-gray-100 text-gray-800'
-                            }
-                          >
-                            {order.status === 'pending' ? 'En attente' :
-                             order.status === 'confirmed' ? 'Confirmée' :
-                             order.status === 'preparing' ? 'En préparation' :
-                             order.status === 'delivered' ? 'Livrée' : order.status}
-                          </Badge>
-                        </td>
-                        <td className="py-3">{new Date(order.createdAt).toLocaleDateString('fr-FR')}</td>
-                        <td className="py-3">
-                          <Select
-                            value={order.status}
-                            onValueChange={(status) => 
-                              updateOrderStatusMutation.mutate({ orderId: order.id, status })
-                            }
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pending">En attente</SelectItem>
-                              <SelectItem value="confirmed">Confirmée</SelectItem>
-                              <SelectItem value="preparing">En préparation</SelectItem>
-                              <SelectItem value="ready_for_pickup">Prête</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <i className="fas fa-shopping-bag text-4xl text-gray-300 mb-4"></i>
-                <p className="text-gray-500">Aucune commande trouvée</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              {lowStockProducts.length > 6 && (
+                <p className="text-sm text-orange-600 mt-4">
+                  +{lowStockProducts.length - 6} autres produits en stock faible
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Products List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Mes produits</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {productsLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="animate-pulse border rounded-lg p-4">
-                    <div className="h-32 bg-gray-200 rounded mb-4"></div>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid grid-cols-4 w-full lg:w-auto">
+            <TabsTrigger value="overview">Aperçu</TabsTrigger>
+            <TabsTrigger value="products">Produits</TabsTrigger>
+            <TabsTrigger value="orders">Commandes</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Recent Orders */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Commandes récentes</span>
+                    <Link href="/vendor/orders">
+                      <Button variant="outline" size="sm">Voir tout</Button>
+                    </Link>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {ordersLoading ? (
+                    <div className="space-y-3">
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i} className="animate-pulse">
+                          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : products.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {products.map((product: any) => (
-                  <Card key={product.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="h-32 bg-gray-100 rounded mb-4 flex items-center justify-center">
-                        <i className="fas fa-image text-2xl text-gray-400"></i>
-                      </div>
-                      <h3 className="font-semibold text-zaka-dark mb-2">{product.name}</h3>
-                      <p className="text-sm text-zaka-gray mb-2 line-clamp-2">{product.description}</p>
-                      <div className="flex justify-between items-center">
-                        <span className="text-lg font-bold text-zaka-orange">
-                          {parseFloat(product.price).toLocaleString()} CFA
-                        </span>
-                        <span className="text-sm text-zaka-gray">
-                          Stock: {product.quantity}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <i className="fas fa-box text-4xl text-gray-300 mb-4"></i>
-                <p className="text-gray-500">Aucun produit trouvé</p>
-                <Button 
-                  className="mt-4 bg-zaka-blue hover:bg-zaka-blue"
-                  onClick={() => setIsAddProductOpen(true)}
-                >
-                  Ajouter votre premier produit
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ) : recentOrders.length > 0 ? (
+                    <div className="space-y-4">
+                      {recentOrders.map((order: any) => (
+                        <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium">{order.orderNumber}</p>
+                            <p className="text-sm text-gray-600">
+                              {new Date(order.createdAt).toLocaleDateString('fr-BF')}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium">{parseInt(order.totalAmount).toLocaleString('fr-BF')} CFA</p>
+                            <Badge variant={
+                              order.status === 'delivered' ? 'default' :
+                              order.status === 'pending' ? 'secondary' : 'destructive'
+                            }>
+                              {order.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">Aucune commande récente</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Quick Actions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Actions rapides</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Link href="/vendor/products/new">
+                    <Button className="w-full justify-start" variant="outline">
+                      <i className="fas fa-plus mr-2"></i>
+                      Ajouter un nouveau produit
+                    </Button>
+                  </Link>
+                  <Link href="/vendor/inventory">
+                    <Button className="w-full justify-start" variant="outline">
+                      <i className="fas fa-boxes mr-2"></i>
+                      Gérer l'inventaire
+                    </Button>
+                  </Link>
+                  <Link href="/vendor/orders">
+                    <Button className="w-full justify-start" variant="outline">
+                      <i className="fas fa-shipping-fast mr-2"></i>
+                      Traiter les commandes
+                    </Button>
+                  </Link>
+                  <Link href="/vendor/analytics">
+                    <Button className="w-full justify-start" variant="outline">
+                      <i className="fas fa-chart-bar mr-2"></i>
+                      Voir les analytics
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="products">
+            <VendorProducts />
+          </TabsContent>
+
+          <TabsContent value="orders">
+            <VendorOrders />
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <Card>
+              <CardHeader>
+                <CardTitle>Analytics détaillées</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Analytics avancées en cours de développement...</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

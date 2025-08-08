@@ -105,6 +105,8 @@ export interface IStorage {
   updateProduct(id: string, updates: Partial<InsertProduct>): Promise<Product>;
   updateProductStock(id: string, quantity: number): Promise<Product>;
   updateProductImages(id: string, images: string[]): Promise<Product>;
+  deleteProduct(id: string): Promise<void>;
+  getLowStockProducts(vendorId: string): Promise<Product[]>;
   
   // Cart operations
   addToCart(item: InsertCartItem): Promise<CartItem>;
@@ -383,20 +385,22 @@ export class DatabaseStorage implements IStorage {
       );
     }
 
-    let query = db.select().from(products);
-    
-    if (conditions.length > 0) {
-      const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions)!;
-      query = query.where(whereCondition);
-    }
-    
-    query = query.orderBy(desc(products.createdAt));
-    
+    const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
+
     if (filters?.limit) {
-      query = query.limit(filters.limit);
+      return await db
+        .select()
+        .from(products)
+        .where(whereCondition)
+        .orderBy(desc(products.createdAt))
+        .limit(filters.limit);
     }
 
-    return await query;
+    return await db
+      .select()
+      .from(products)
+      .where(whereCondition)
+      .orderBy(desc(products.createdAt));
   }
 
   async getVendorProducts(vendorId: string): Promise<Product[]> {
@@ -440,6 +444,22 @@ export class DatabaseStorage implements IStorage {
       .where(eq(products.id, id))
       .returning();
     return product;
+  }
+
+  async deleteProduct(id: string): Promise<void> {
+    await db.delete(products).where(eq(products.id, id));
+  }
+
+  async getLowStockProducts(vendorId: string): Promise<Product[]> {
+    return await db
+      .select()
+      .from(products)
+      .where(and(
+        eq(products.vendorId, vendorId),
+        eq(products.isActive, true),
+        sql`${products.quantity} <= 5`
+      ))
+      .orderBy(products.quantity);
   }
 
   // Cart operations

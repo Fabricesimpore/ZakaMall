@@ -20,6 +20,7 @@ import DriverPending from "@/pages/DriverPending";
 import Products from "@/pages/Products";
 import CartPage from "@/pages/CartPage";
 import TestPayment from "@/pages/TestPayment";
+import ProductForm from "@/pages/ProductForm";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -38,6 +39,11 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/customer" component={CustomerDashboard} />
           <Route path="/vendor" component={VendorDashboard} />
+          <Route path="/vendor/dashboard" component={VendorDashboard} />
+          <Route path="/vendor/products/new" component={() => <ProductForm />} />
+          <Route path="/vendor/products/:id/edit">
+            {(params) => <ProductForm productId={params.id} />}
+          </Route>
           <Route path="/driver" component={DriverDashboard} />
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/profile" component={Profile} />
