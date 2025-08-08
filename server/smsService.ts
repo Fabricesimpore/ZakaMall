@@ -9,10 +9,10 @@ export class SMSService {
 
   constructor() {
     this.smsConfig = {
-      provider: process.env.SMS_PROVIDER || "console", // orange, twilio, textbelt, africastalking, or console
-      apiKey: process.env.SMS_API_KEY || "",
-      apiSecret: process.env.SMS_API_SECRET || "",
-      sender: process.env.SMS_SENDER_ID || "ZakaMall",
+      provider: process.env.SMS_PROVIDER || "twilio", // twilio, orange, textbelt, africastalking, or console
+      apiKey: process.env.TWILIO_ACCOUNT_SID || process.env.SMS_API_KEY || "",
+      apiSecret: process.env.TWILIO_AUTH_TOKEN || process.env.SMS_API_SECRET || "",
+      sender: process.env.TWILIO_PHONE_NUMBER || process.env.SMS_SENDER_ID || "ZakaMall",
     };
   }
 
