@@ -1174,8 +1174,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role,
       });
 
-      // In production, send email via email service
-      console.log(`Email Verification Code for ${email}: ${verificationCode}`);
+      // Send verification email
+      try {
+        const { emailService } = await import("./emailService");
+        await emailService.sendVerificationEmail(email, verificationCode, firstName);
+      } catch (emailError) {
+        console.error("Email sending failed, falling back to console:", emailError);
+        console.log(`Email Verification Code for ${email}: ${verificationCode}`);
+      }
 
       res.json({ message: "Code de vérification envoyé", email });
     } catch (error) {
@@ -1212,6 +1218,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Clean up pending user data
       await storage.deletePendingUser(email);
+
+      // Send welcome email
+      try {
+        const { emailService } = await import("./emailService");
+        await emailService.sendWelcomeEmail(user.email!, user.firstName || "");
+      } catch (emailError) {
+        console.error("Welcome email sending failed:", emailError);
+      }
 
       res.json({ message: "Compte créé avec succès", user: { id: user.id, email: user.email } });
     } catch (error) {
