@@ -174,7 +174,7 @@ export default function VendorDashboard() {
               <p className="text-zaka-gray mb-6">
                 Vous devez d'abord vous inscrire en tant que vendeur pour accéder à ce tableau de bord.
               </p>
-              <Button className="w-full bg-zaka-orange text-white py-3 rounded-lg font-semibold hover:bg-zaka-orange transition-colors">
+              <Button className="w-full bg-zaka-orange text-white py-3 rounded-lg font-semibold">
                 S'inscrire comme vendeur
               </Button>
             </CardContent>
