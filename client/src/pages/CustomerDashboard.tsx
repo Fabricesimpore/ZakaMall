@@ -17,11 +17,11 @@ export default function CustomerDashboard() {
   const [showCart, setShowCart] = useState(false);
   const { toast } = useToast();
 
-  const { data: categories, isLoading: categoriesLoading } = useQuery({
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery<any[]>({
     queryKey: ['/api/categories'],
   });
 
-  const { data: products, isLoading: productsLoading } = useQuery({
+  const { data: products = [], isLoading: productsLoading } = useQuery<any[]>({
     queryKey: ['/api/products', searchTerm, selectedCategory],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -33,7 +33,7 @@ export default function CustomerDashboard() {
     },
   });
 
-  const { data: cartItems, isLoading: cartLoading } = useQuery({
+  const { data: cartItems = [], isLoading: cartLoading } = useQuery<any[]>({
     queryKey: ['/api/cart'],
   });
 

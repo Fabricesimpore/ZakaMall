@@ -55,11 +55,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (user.role === 'vendor') {
         const vendor = await storage.getVendorByUserId(userId);
         setupStatus.hasVendorProfile = !!vendor;
-        setupStatus.vendorStatus = vendor?.status || null;
+        setupStatus.vendorStatus = vendor?.status as any || null;
       } else if (user.role === 'driver') {
         const driver = await storage.getDriverByUserId(userId);
         setupStatus.hasDriverProfile = !!driver;
-        setupStatus.driverStatus = driver?.status || null;
+        setupStatus.driverStatus = driver?.status as any || null;
       }
 
       res.json(setupStatus);

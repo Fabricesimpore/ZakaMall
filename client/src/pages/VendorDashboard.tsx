@@ -61,22 +61,22 @@ export default function VendorDashboard() {
     enabled: !!user,
   });
 
-  const { data: vendorStats, isLoading: statsLoading } = useQuery({
+  const { data: vendorStats, isLoading: statsLoading } = useQuery<any>({
     queryKey: ['/api/analytics/vendor', user?.id],
     enabled: !!user?.id && user?.role === 'vendor',
   });
 
-  const { data: products, isLoading: productsLoading } = useQuery({
+  const { data: products = [], isLoading: productsLoading } = useQuery<any[]>({
     queryKey: ['/api/products', { vendorId: user?.id }],
     enabled: !!user?.id && user?.role === 'vendor',
   });
 
-  const { data: orders, isLoading: ordersLoading } = useQuery({
+  const { data: orders = [], isLoading: ordersLoading } = useQuery<any[]>({
     queryKey: ['/api/orders'],
     enabled: !!user?.id && user?.role === 'vendor',
   });
 
-  const { data: categories } = useQuery({
+  const { data: categories = [] } = useQuery<any[]>({
     queryKey: ['/api/categories'],
   });
 
@@ -449,7 +449,7 @@ export default function VendorDashboard() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {categories?.map((category: any) => (
+                              {categories.map((category: any) => (
                                 <SelectItem key={category.id} value={category.id}>
                                   {category.name}
                                 </SelectItem>
@@ -556,7 +556,7 @@ export default function VendorDashboard() {
                   </div>
                 ))}
               </div>
-            ) : orders && orders.length > 0 ? (
+            ) : orders.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
@@ -640,7 +640,7 @@ export default function VendorDashboard() {
                   </div>
                 ))}
               </div>
-            ) : products && products.length > 0 ? (
+            ) : products.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {products.map((product: any) => (
                   <Card key={product.id} className="hover:shadow-md transition-shadow">

@@ -90,17 +90,17 @@ export default function Chat() {
     }
   }, [user, authLoading, toast]);
 
-  const { data: chatRooms, isLoading: roomsLoading } = useQuery({
+  const { data: chatRooms = [], isLoading: roomsLoading } = useQuery<any[]>({
     queryKey: ['/api/chat/rooms'],
     enabled: !!user,
   });
 
-  const { data: messages, isLoading: messagesLoading } = useQuery({
+  const { data: messages = [], isLoading: messagesLoading } = useQuery<any[]>({
     queryKey: ['/api/chat/rooms', selectedRoom?.id, 'messages'],
     enabled: !!selectedRoom?.id,
   });
 
-  const { data: searchResults } = useQuery({
+  const { data: searchResults = [] } = useQuery<any[]>({
     queryKey: ['/api/users/search', searchQuery],
     enabled: searchQuery.length > 2,
   });

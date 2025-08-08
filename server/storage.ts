@@ -371,11 +371,19 @@ export class DatabaseStorage implements IStorage {
       );
     }
 
-    const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
-    let query = db
+    if (conditions.length > 0) {
+      const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
+      return await db
+        .select()
+        .from(products)
+        .where(whereCondition!)
+        .orderBy(desc(products.createdAt))
+        .limit(filters.limit || 50);
+    }
+
+    return await db
       .select()
       .from(products)
-      .where(whereCondition)
       .orderBy(desc(products.createdAt));
 
     if (filters?.limit) {
