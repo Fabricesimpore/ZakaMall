@@ -9,7 +9,7 @@ export class SMSService {
 
   constructor() {
     this.smsConfig = {
-      provider: process.env.SMS_PROVIDER || "console", // twillio, textbelt, or console
+      provider: process.env.SMS_PROVIDER || "console", // orange, twilio, textbelt, africastalking, or console
       apiKey: process.env.SMS_API_KEY || "",
       apiSecret: process.env.SMS_API_SECRET || "",
       sender: process.env.SMS_SENDER_ID || "ZakaMall",
@@ -34,6 +34,8 @@ export class SMSService {
       const normalizedPhone = this.normalizePhoneNumber(phone);
       
       switch (this.smsConfig.provider) {
+        case "orange":
+          return await this.sendViaOrangeAPI(normalizedPhone, message);
         case "twilio":
           return await this.sendViaTwilio(normalizedPhone, message);
         case "textbelt":
@@ -149,6 +151,52 @@ export class SMSService {
       }
     } catch (error) {
       console.error("Textbelt SMS error:", error);
+      return false;
+    }
+  }
+
+  private async sendViaOrangeAPI(phone: string, message: string): Promise<boolean> {
+    try {
+      if (!this.smsConfig.apiKey) {
+        throw new Error("Orange API credentials not configured");
+      }
+
+      // Orange API endpoint for Burkina Faso
+      const orangeEndpoint = process.env.ORANGE_SMS_ENDPOINT || "https://api.orange.com/smsmessaging/v1/outbound/tel%3A%2B226XXXXXXXX/requests";
+      const authToken = this.smsConfig.apiKey;
+
+      const requestBody = {
+        outboundSMSMessageRequest: {
+          address: [phone],
+          senderAddress: `tel:+226${process.env.ORANGE_SENDER_NUMBER || "12345678"}`,
+          outboundSMSTextMessage: {
+            message: message
+          },
+          requestStatusURL: process.env.ORANGE_CALLBACK_URL || "",
+        }
+      };
+
+      const response = await fetch(orangeEndpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log(`📱 SMS sent successfully to ${phone} via Orange API`);
+        return true;
+      } else {
+        const error = await response.text();
+        console.error("Orange API SMS failed:", error);
+        return false;
+      }
+    } catch (error) {
+      console.error("Orange API SMS error:", error);
       return false;
     }
   }
