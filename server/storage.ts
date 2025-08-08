@@ -164,6 +164,19 @@ export interface IStorage {
   markMessagesAsRead(userId: string, chatRoomId: string): Promise<void>;
   incrementUnreadCount(chatRoomId: string, excludeUserId: string): Promise<void>;
   getTotalUnreadCount(userId: string): Promise<number>;
+  
+  // Order tracking
+  getOrderTrackingHistory(orderId: string): Promise<any[]>;
+  
+  // Admin operations
+  addVendorNotes(vendorId: string, notes: string): Promise<void>;
+  getTransactions(filters: {
+    page: number;
+    limit: number;
+    status?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }): Promise<{ transactions: Payment[]; total: number; }>;
 }
 
 // Temporary in-memory storage for pending users (use Redis in production)
@@ -1047,6 +1060,99 @@ export class DatabaseStorage implements IStorage {
 
   async deletePendingUser(identifier: string): Promise<void> {
     pendingUsers.delete(identifier);
+  }
+
+  // Order tracking
+  async getOrderTrackingHistory(orderId: string): Promise<any[]> {
+    // For now, return basic status changes. In production, you'd have a dedicated tracking table
+    const order = await this.getOrder(orderId);
+    if (!order) return [];
+    
+    const history = [
+      {
+        status: 'pending',
+        timestamp: order.createdAt,
+        description: 'Commande créée'
+      }
+    ];
+    
+    if (order.status !== 'pending') {
+      history.push({
+        status: order.status,
+        timestamp: order.updatedAt,
+        description: this.getStatusDescription(order.status as any)
+      });
+    }
+    
+    return history;
+  }
+
+  private getStatusDescription(status: string): string {
+    const descriptions: Record<string, string> = {
+      'confirmed': 'Commande confirmée',
+      'preparing': 'Commande en préparation',
+      'ready_for_pickup': 'Commande prête pour la livraison',
+      'in_transit': 'Commande en cours de livraison',
+      'delivered': 'Commande livrée',
+      'cancelled': 'Commande annulée'
+    };
+    return descriptions[status] || status;
+  }
+
+  // Admin operations
+  async addVendorNotes(vendorId: string, notes: string): Promise<void> {
+    await db
+      .update(vendors)
+      .set({ 
+        adminNotes: notes,
+        updatedAt: new Date() 
+      })
+      .where(eq(vendors.id, vendorId));
+  }
+
+  async getTransactions(filters: {
+    page: number;
+    limit: number;
+    status?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }): Promise<{ transactions: Payment[]; total: number; }> {
+    const conditions = [];
+    
+    if (filters.status) {
+      conditions.push(eq(payments.status, filters.status as any));
+    }
+    
+    if (filters.dateFrom) {
+      conditions.push(sql`${payments.createdAt} >= ${new Date(filters.dateFrom)}`);
+    }
+    
+    if (filters.dateTo) {
+      conditions.push(sql`${payments.createdAt} <= ${new Date(filters.dateTo)}`);
+    }
+    
+    const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    // Get total count
+    const [countResult] = await db
+      .select({ count: count() })
+      .from(payments)
+      .where(whereCondition);
+    
+    // Get paginated results
+    const offset = (filters.page - 1) * filters.limit;
+    const transactions = await db
+      .select()
+      .from(payments)
+      .where(whereCondition)
+      .orderBy(desc(payments.createdAt))
+      .limit(filters.limit)
+      .offset(offset);
+    
+    return {
+      transactions,
+      total: countResult?.count || 0
+    };
   }
 }
 

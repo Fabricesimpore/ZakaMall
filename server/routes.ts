@@ -1220,6 +1220,257 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Driver assignment and tracking routes
+  app.post('/api/orders/:id/assign-driver', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { driverId } = req.body;
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      // Only admins or vendors can assign drivers
+      if (user?.role !== 'admin' && user?.role !== 'vendor') {
+        return res.status(403).json({ message: "Unauthorized to assign drivers" });
+      }
+
+      const order = await storage.getOrder(id);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+
+      // If vendor, verify they own the order
+      if (user.role === 'vendor') {
+        const vendor = await storage.getVendorByUserId(userId);
+        if (!vendor || order.vendorId !== vendor.id) {
+          return res.status(403).json({ message: "Order not found or access denied" });
+        }
+      }
+
+      const updatedOrder = await storage.assignOrderToDriver(id, driverId);
+      await storage.updateOrderStatus(id, 'in_transit');
+      
+      res.json(updatedOrder);
+    } catch (error) {
+      console.error("Error assigning driver:", error);
+      res.status(500).json({ message: "Failed to assign driver" });
+    }
+  });
+
+  app.post('/api/orders/auto-assign', isAuthenticated, async (req: any, res) => {
+    try {
+      const { orderId } = req.body;
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin' && user?.role !== 'vendor') {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      const order = await storage.getOrder(orderId);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+
+      // Get available drivers
+      const availableDrivers = await storage.getAvailableDrivers();
+      if (availableDrivers.length === 0) {
+        return res.status(400).json({ message: "No available drivers" });
+      }
+
+      // Simple assignment: pick the first available driver
+      const assignedDriver = availableDrivers[0];
+      const updatedOrder = await storage.assignOrderToDriver(orderId, assignedDriver.id);
+      await storage.updateOrderStatus(orderId, 'in_transit');
+      
+      res.json({ order: updatedOrder, driver: assignedDriver });
+    } catch (error) {
+      console.error("Error auto-assigning driver:", error);
+      res.status(500).json({ message: "Failed to auto-assign driver" });
+    }
+  });
+
+  // Driver-specific routes
+  app.get('/api/driver/orders', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const driver = await storage.getDriverByUserId(userId);
+      
+      if (!driver) {
+        return res.status(403).json({ message: "Only drivers can access driver orders" });
+      }
+
+      const orders = await storage.getOrders({ driverId: driver.id });
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching driver orders:", error);
+      res.status(500).json({ message: "Failed to fetch driver orders" });
+    }
+  });
+
+  app.get('/api/driver/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const driver = await storage.getDriverByUserId(userId);
+      
+      if (!driver) {
+        return res.status(403).json({ message: "Only drivers can access driver stats" });
+      }
+
+      const stats = await storage.getDriverStats(driver.id);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching driver stats:", error);
+      res.status(500).json({ message: "Failed to fetch driver stats" });
+    }
+  });
+
+  app.patch('/api/driver/location', isAuthenticated, async (req: any, res) => {
+    try {
+      const { lat, lng } = req.body;
+      const userId = req.user.claims.sub;
+      const driver = await storage.getDriverByUserId(userId);
+      
+      if (!driver) {
+        return res.status(403).json({ message: "Only drivers can update location" });
+      }
+
+      const updatedDriver = await storage.updateDriverLocation(driver.id, lat, lng);
+      res.json(updatedDriver);
+    } catch (error) {
+      console.error("Error updating driver location:", error);
+      res.status(500).json({ message: "Failed to update location" });
+    }
+  });
+
+  app.patch('/api/driver/status', isAuthenticated, async (req: any, res) => {
+    try {
+      const { isOnline } = req.body;
+      const userId = req.user.claims.sub;
+      const driver = await storage.getDriverByUserId(userId);
+      
+      if (!driver) {
+        return res.status(403).json({ message: "Only drivers can update status" });
+      }
+
+      const updatedDriver = await storage.updateDriverStatus(driver.id, isOnline);
+      res.json(updatedDriver);
+    } catch (error) {
+      console.error("Error updating driver status:", error);
+      res.status(500).json({ message: "Failed to update status" });
+    }
+  });
+
+  // Customer order tracking
+  app.get('/api/customer/orders/:id/tracking', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      
+      const order = await storage.getOrder(id);
+      if (!order || order.customerId !== userId) {
+        return res.status(404).json({ message: "Order not found or access denied" });
+      }
+
+      // Get order details with driver info if assigned
+      let driverInfo = null;
+      if (order.driverId) {
+        driverInfo = await storage.getDriver(order.driverId);
+      }
+
+      res.json({
+        order,
+        driver: driverInfo,
+        trackingHistory: await storage.getOrderTrackingHistory(id)
+      });
+    } catch (error) {
+      console.error("Error fetching order tracking:", error);
+      res.status(500).json({ message: "Failed to fetch order tracking" });
+    }
+  });
+
+  // Admin routes
+  app.get('/api/admin/dashboard', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const stats = await storage.getAdminStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching admin dashboard:", error);
+      res.status(500).json({ message: "Failed to fetch admin dashboard" });
+    }
+  });
+
+  app.get('/api/admin/vendors/pending', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const pendingVendors = await storage.getVendors('pending');
+      res.json(pendingVendors);
+    } catch (error) {
+      console.error("Error fetching pending vendors:", error);
+      res.status(500).json({ message: "Failed to fetch pending vendors" });
+    }
+  });
+
+  app.patch('/api/admin/vendors/:id/approve', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status, notes } = req.body;
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const vendor = await storage.updateVendorStatus(id, status);
+      if (notes) {
+        await storage.addVendorNotes(id, notes);
+      }
+      
+      res.json(vendor);
+    } catch (error) {
+      console.error("Error updating vendor status:", error);
+      res.status(500).json({ message: "Failed to update vendor status" });
+    }
+  });
+
+  app.get('/api/admin/transactions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { page = 1, limit = 50, status, dateFrom, dateTo } = req.query;
+      const transactions = await storage.getTransactions({
+        page: parseInt(page as string),
+        limit: parseInt(limit as string),
+        status: status as string,
+        dateFrom: dateFrom as string,
+        dateTo: dateTo as string
+      });
+      
+      res.json(transactions);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      res.status(500).json({ message: "Failed to fetch transactions" });
+    }
+  });
+
   // Update product images after upload
   app.put("/api/products/:productId/images", isAuthenticated, async (req: any, res) => {
     if (!req.body.imageURLs || !Array.isArray(req.body.imageURLs)) {
