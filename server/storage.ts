@@ -12,6 +12,7 @@ import {
   chatParticipants,
   messages,
   phoneVerifications,
+  emailVerifications,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -39,6 +40,8 @@ import {
   type InsertMessage,
   type PhoneVerification,
   type InsertPhoneVerification,
+  type EmailVerification,
+  type InsertEmailVerification,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, ilike, or, count, avg, sum, sql } from "drizzle-orm";
@@ -58,10 +61,17 @@ export interface IStorage {
   verifyPhoneCode(phone: string, code: string): Promise<PhoneVerification | undefined>;
   markPhoneVerificationUsed(id: string): Promise<void>;
   
+  // Email verification operations
+  createEmailVerification(verification: InsertEmailVerification): Promise<EmailVerification>;
+  verifyEmailCode(email: string, code: string): Promise<EmailVerification | undefined>;
+  markEmailVerificationUsed(id: string): Promise<void>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUserWithEmail(userData: any): Promise<User>;
+  
   // Temporary pending user storage (in production, use a proper cache like Redis)
   storePendingUser(userData: any): Promise<void>;
-  getPendingUser(phone: string): Promise<any>;
-  deletePendingUser(phone: string): Promise<void>;
+  getPendingUser(identifier: string): Promise<any>;  // Changed from phone to identifier to support both
+  deletePendingUser(identifier: string): Promise<void>;
   
   // Vendor operations
   createVendor(vendor: InsertVendor): Promise<Vendor>;
@@ -853,17 +863,69 @@ export class DatabaseStorage implements IStorage {
       .where(eq(phoneVerifications.id, id));
   }
 
+  // Email verification operations
+  async createEmailVerification(verificationData: InsertEmailVerification): Promise<EmailVerification> {
+    const [verification] = await db
+      .insert(emailVerifications)
+      .values(verificationData)
+      .returning();
+    return verification;
+  }
+
+  async verifyEmailCode(email: string, code: string): Promise<EmailVerification | undefined> {
+    const [verification] = await db
+      .select()
+      .from(emailVerifications)
+      .where(
+        and(
+          eq(emailVerifications.email, email),
+          eq(emailVerifications.code, code),
+          eq(emailVerifications.isUsed, false)
+        )
+      )
+      .orderBy(desc(emailVerifications.createdAt))
+      .limit(1);
+
+    // Check if verification is still valid (not expired)
+    if (verification && new Date() > verification.expiresAt) {
+      return undefined;
+    }
+
+    return verification;
+  }
+
+  async markEmailVerificationUsed(id: string): Promise<void> {
+    await db
+      .update(emailVerifications)
+      .set({ isUsed: true })
+      .where(eq(emailVerifications.id, id));
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createUserWithEmail(userData: any): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .returning();
+    return user;
+  }
+
   // Temporary pending user storage
   async storePendingUser(userData: any): Promise<void> {
-    pendingUsers.set(userData.phone, userData);
+    const key = userData.phone || userData.email;
+    pendingUsers.set(key, userData);
   }
 
-  async getPendingUser(phone: string): Promise<any> {
-    return pendingUsers.get(phone);
+  async getPendingUser(identifier: string): Promise<any> {
+    return pendingUsers.get(identifier);
   }
 
-  async deletePendingUser(phone: string): Promise<void> {
-    pendingUsers.delete(phone);
+  async deletePendingUser(identifier: string): Promise<void> {
+    pendingUsers.delete(identifier);
   }
 }
 

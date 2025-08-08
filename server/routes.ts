@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertVendorSchema, insertDriverSchema, insertProductSchema, insertCartSchema, insertOrderSchema, insertReviewSchema, insertChatRoomSchema, insertMessageSchema, insertChatParticipantSchema, insertPhoneVerificationSchema } from "@shared/schema";
+import { insertVendorSchema, insertDriverSchema, insertProductSchema, insertCartSchema, insertOrderSchema, insertReviewSchema, insertChatRoomSchema, insertMessageSchema, insertChatParticipantSchema, insertPhoneVerificationSchema, insertEmailVerificationSchema } from "@shared/schema";
 import { z } from "zod";
 import { randomInt } from "crypto";
 
@@ -719,6 +719,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in phone login:", error);
       res.status(500).json({ message: "Erreur lors de la connexion" });
+    }
+  });
+
+  // Email authentication routes
+  app.post('/api/auth/email-signup', async (req, res) => {
+    try {
+      const { firstName, lastName, email, role } = req.body;
+      
+      // Validate email format
+      if (!email || !email.includes('@')) {
+        return res.status(400).json({ message: "Format d'email invalide" });
+      }
+      
+      // Check if email already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "Cette adresse email est déjà utilisée" });
+      }
+      
+      // Generate verification code
+      const verificationCode = randomInt(100000, 999999).toString();
+      
+      // Store email verification record
+      await storage.createEmailVerification({
+        email,
+        code: verificationCode,
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+      });
+      
+      // Store pending user data
+      await storage.storePendingUser({
+        email,
+        firstName,
+        lastName,
+        role,
+      });
+      
+      // In production, send email via email service
+      console.log(`Email Verification Code for ${email}: ${verificationCode}`);
+      
+      res.json({ message: "Code de vérification envoyé", email });
+    } catch (error) {
+      console.error("Error in email signup:", error);
+      res.status(500).json({ message: "Erreur lors de l'inscription" });
+    }
+  });
+  
+  app.post('/api/auth/verify-email', async (req, res) => {
+    try {
+      const { email, code } = req.body;
+      
+      // Verify the code
+      const verification = await storage.verifyEmailCode(email, code);
+      if (!verification) {
+        return res.status(400).json({ message: "Code incorrect ou expiré" });
+      }
+      
+      // Get pending user data
+      const pendingUser = await storage.getPendingUser(email);
+      if (!pendingUser) {
+        return res.status(400).json({ message: "Données d'utilisateur introuvables" });
+      }
+      
+      // Create the user
+      const user = await storage.createUserWithEmail({
+        ...pendingUser,
+        email,
+        id: undefined, // Let the database generate the ID
+      });
+      
+      // Mark verification as used
+      await storage.markEmailVerificationUsed(verification.id);
+      
+      // Clean up pending user data
+      await storage.deletePendingUser(email);
+      
+      res.json({ message: "Compte créé avec succès", user: { id: user.id, email: user.email } });
+    } catch (error) {
+      console.error("Error in email verification:", error);
+      res.status(500).json({ message: "Erreur lors de la vérification" });
     }
   });
 

@@ -512,3 +512,17 @@ export const phoneVerifications = pgTable("phone_verifications", {
 export const insertPhoneVerificationSchema = createInsertSchema(phoneVerifications);
 export type PhoneVerification = typeof phoneVerifications.$inferSelect;
 export type InsertPhoneVerification = z.infer<typeof insertPhoneVerificationSchema>;
+
+// Email verification table
+export const emailVerifications = pgTable("email_verifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").notNull(),
+  code: varchar("code").notNull(),
+  isUsed: boolean("is_used").default(false),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertEmailVerificationSchema = createInsertSchema(emailVerifications);
+export type EmailVerification = typeof emailVerifications.$inferSelect;
+export type InsertEmailVerification = z.infer<typeof insertEmailVerificationSchema>;

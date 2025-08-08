@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import PhoneSignup from "@/components/PhoneSignup";
+import SignupModal from "@/components/SignupModal";
 
 export default function Landing() {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
@@ -47,7 +47,7 @@ export default function Landing() {
                     <DialogHeader>
                       <DialogTitle>Créer un compte ZakaMall</DialogTitle>
                     </DialogHeader>
-                    <PhoneSignup onSuccess={() => setIsSignupOpen(false)} />
+                    <SignupModal onSuccess={() => setIsSignupOpen(false)} />
                   </DialogContent>
                 </Dialog>
                 <Button 
@@ -84,7 +84,7 @@ export default function Landing() {
                     <DialogHeader>
                       <DialogTitle>Rejoindre ZakaMall</DialogTitle>
                     </DialogHeader>
-                    <PhoneSignup onSuccess={() => {}} />
+                    <SignupModal onSuccess={() => {}} />
                   </DialogContent>
                 </Dialog>
                 <Button 
@@ -138,7 +138,7 @@ export default function Landing() {
                     <DialogHeader>
                       <DialogTitle>Inscription Client</DialogTitle>
                     </DialogHeader>
-                    <PhoneSignup onSuccess={() => {}} />
+                    <SignupModal onSuccess={() => {}} />
                   </DialogContent>
                 </Dialog>
               </CardContent>
@@ -168,7 +168,7 @@ export default function Landing() {
                     <DialogHeader>
                       <DialogTitle>Inscription Vendeur</DialogTitle>
                     </DialogHeader>
-                    <PhoneSignup onSuccess={() => {}} />
+                    <SignupModal onSuccess={() => {}} />
                   </DialogContent>
                 </Dialog>
               </CardContent>
@@ -198,7 +198,7 @@ export default function Landing() {
                     <DialogHeader>
                       <DialogTitle>Inscription Livreur</DialogTitle>
                     </DialogHeader>
-                    <PhoneSignup onSuccess={() => {}} />
+                    <SignupModal onSuccess={() => {}} />
                   </DialogContent>
                 </Dialog>
               </CardContent>
