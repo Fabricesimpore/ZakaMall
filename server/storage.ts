@@ -170,11 +170,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getVendors(status?: 'pending' | 'approved' | 'rejected' | 'suspended'): Promise<Vendor[]> {
-    let query = db.select().from(vendors);
     if (status) {
-      query = query.where(eq(vendors.status, status));
+      return await db
+        .select()
+        .from(vendors)
+        .where(eq(vendors.status, status))
+        .orderBy(desc(vendors.createdAt));
     }
-    return await query.orderBy(desc(vendors.createdAt));
+    return await db
+      .select()
+      .from(vendors)
+      .orderBy(desc(vendors.createdAt));
   }
 
   async updateVendorStatus(id: string, status: 'pending' | 'approved' | 'rejected' | 'suspended'): Promise<Vendor> {
@@ -283,18 +289,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProducts(filters?: { vendorId?: string; categoryId?: string; search?: string; limit?: number }): Promise<Product[]> {
-    let query = db.select().from(products).where(eq(products.isActive, true));
+    const conditions = [eq(products.isActive, true)];
 
     if (filters?.vendorId) {
-      query = query.where(eq(products.vendorId, filters.vendorId));
+      conditions.push(eq(products.vendorId, filters.vendorId));
     }
 
     if (filters?.categoryId) {
-      query = query.where(eq(products.categoryId, filters.categoryId));
+      conditions.push(eq(products.categoryId, filters.categoryId));
     }
 
     if (filters?.search) {
-      query = query.where(
+      conditions.push(
         or(
           ilike(products.name, `%${filters.search}%`),
           ilike(products.description, `%${filters.search}%`)
@@ -302,11 +308,17 @@ export class DatabaseStorage implements IStorage {
       );
     }
 
+    let query = db
+      .select()
+      .from(products)
+      .where(conditions.length === 1 ? conditions[0] : and(...conditions))
+      .orderBy(desc(products.createdAt));
+
     if (filters?.limit) {
       query = query.limit(filters.limit);
     }
 
-    return await query.orderBy(desc(products.createdAt));
+    return await query;
   }
 
   async getVendorProducts(vendorId: string): Promise<Product[]> {
@@ -420,22 +432,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOrders(filters?: { customerId?: string; vendorId?: string; driverId?: string; status?: string }): Promise<Order[]> {
-    let query = db.select().from(orders);
+    const conditions = [];
 
     if (filters?.customerId) {
-      query = query.where(eq(orders.customerId, filters.customerId));
+      conditions.push(eq(orders.customerId, filters.customerId));
     }
 
     if (filters?.vendorId) {
-      query = query.where(eq(orders.vendorId, filters.vendorId));
+      conditions.push(eq(orders.vendorId, filters.vendorId));
     }
 
     if (filters?.driverId) {
-      query = query.where(eq(orders.driverId, filters.driverId));
+      conditions.push(eq(orders.driverId, filters.driverId));
     }
 
     if (filters?.status) {
-      query = query.where(eq(orders.status, filters.status as any));
+      conditions.push(eq(orders.status, filters.status as any));
+    }
+
+    let query = db.select().from(orders);
+    
+    if (conditions.length > 0) {
+      query = query.where(conditions.length === 1 ? conditions[0] : and(...conditions));
     }
 
     return await query.orderBy(desc(orders.createdAt));

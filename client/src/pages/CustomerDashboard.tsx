@@ -22,7 +22,15 @@ export default function CustomerDashboard() {
   });
 
   const { data: products, isLoading: productsLoading } = useQuery({
-    queryKey: ['/api/products', { search: searchTerm, categoryId: selectedCategory }],
+    queryKey: ['/api/products', searchTerm, selectedCategory],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (selectedCategory) params.append('categoryId', selectedCategory);
+      const response = await fetch(`/api/products?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch products');
+      return response.json();
+    },
   });
 
   const { data: cartItems, isLoading: cartLoading } = useQuery({
@@ -56,12 +64,12 @@ export default function CustomerDashboard() {
               />
               <i className="fas fa-search absolute left-3 top-4 text-zaka-gray"></i>
             </div>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <Select value={selectedCategory} onValueChange={(value) => setSelectedCategory(value === 'all' ? '' : value)}>
               <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Toutes catégories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Toutes catégories</SelectItem>
+                <SelectItem value="all">Toutes catégories</SelectItem>
                 {categories?.map((category: any) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.name}
