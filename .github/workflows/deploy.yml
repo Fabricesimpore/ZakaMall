@@ -1,0 +1,55 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript check
+        run: npm run check
+
+      - name: Run linting
+        run: npx eslint . --ext .ts,.tsx,.js,.jsx
+
+      - name: Build application
+        run: npm run build
+
+      - name: Create deployment package
+        run: |
+          tar -czf zakamall-production.tar.gz \
+            dist/ \
+            package.json \
+            package-lock.json \
+            shared/ \
+            .env.production
+
+      - name: Upload deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zakamall-production
+          path: zakamall-production.tar.gz
+          retention-days: 30
+
+      # Add your deployment steps here
+      # Example: Deploy to your hosting provider
+      # - name: Deploy to server
+      #   run: |
+      #     # Your deployment commands here

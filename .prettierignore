@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+.next
+.git
+*.lock
+*.log
+coverage
+.nyc_output
+.env*
+public
+.github
+*.md
+*.json
