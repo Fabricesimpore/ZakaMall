@@ -5,7 +5,8 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
-import { insertVendorSchema, insertDriverSchema, insertProductSchema, insertCartSchema, insertOrderSchema, insertReviewSchema, insertChatRoomSchema, insertMessageSchema, insertChatParticipantSchema, insertPhoneVerificationSchema, insertEmailVerificationSchema } from "@shared/schema";
+import { PaymentServiceFactory } from "./paymentService";
+import { insertVendorSchema, insertDriverSchema, insertProductSchema, insertCartSchema, insertOrderSchema, insertReviewSchema, insertChatRoomSchema, insertMessageSchema, insertChatParticipantSchema, insertPhoneVerificationSchema, insertEmailVerificationSchema, insertPaymentSchema } from "@shared/schema";
 import { z } from "zod";
 import { randomInt } from "crypto";
 
@@ -911,6 +912,183 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating product images:", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Payment Routes
+  
+  // Initiate payment
+  app.post("/api/payments/initiate", isAuthenticated, async (req: any, res) => {
+    try {
+      const { orderId, paymentMethod, phoneNumber } = req.body;
+      const userId = req.user?.claims?.sub;
+
+      if (!orderId || !paymentMethod) {
+        return res.status(400).json({ error: "Order ID and payment method are required" });
+      }
+
+      // Verify order belongs to user
+      const order = await storage.getOrder(orderId);
+      if (!order || order.customerId !== userId) {
+        return res.status(404).json({ error: "Order not found or access denied" });
+      }
+
+      // Phone number is required for mobile money payments
+      if ((paymentMethod === 'orange_money' || paymentMethod === 'moov_money') && !phoneNumber) {
+        return res.status(400).json({ error: "Phone number is required for mobile money payments" });
+      }
+
+      // Create payment record
+      const payment = await storage.createPayment({
+        orderId,
+        paymentMethod,
+        amount: order.totalAmount,
+        currency: order.currency || 'CFA',
+        phoneNumber: phoneNumber || null,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+      });
+
+      // Initiate payment with payment service
+      const paymentService = PaymentServiceFactory.getService(paymentMethod);
+      const result = await paymentService.initiatePayment({
+        orderId,
+        amount: parseFloat(order.totalAmount),
+        phoneNumber: phoneNumber || '',
+        paymentMethod
+      });
+
+      if (result.success) {
+        // Update payment with transaction details
+        await storage.updatePaymentTransaction(
+          payment.id,
+          result.transactionId!,
+          result.operatorReference
+        );
+
+        // Update order payment method and status
+        await storage.updateOrderStatus(orderId, 'confirmed');
+
+        res.json({
+          success: true,
+          paymentId: payment.id,
+          transactionId: result.transactionId,
+          message: result.message,
+          expiresAt: result.expiresAt
+        });
+      } else {
+        // Update payment status to failed
+        await storage.updatePaymentStatus(payment.id, 'failed', result.message);
+        
+        res.status(400).json({
+          success: false,
+          message: result.message
+        });
+      }
+
+    } catch (error) {
+      console.error("Payment initiation error:", error);
+      res.status(500).json({ error: "Failed to initiate payment" });
+    }
+  });
+
+  // Check payment status
+  app.get("/api/payments/:paymentId/status", isAuthenticated, async (req: any, res) => {
+    try {
+      const { paymentId } = req.params;
+      const userId = req.user?.claims?.sub;
+
+      const payment = await storage.getPayment(paymentId);
+      if (!payment) {
+        return res.status(404).json({ error: "Payment not found" });
+      }
+
+      // Verify payment belongs to user's order
+      const order = await storage.getOrder(payment.orderId);
+      if (!order || order.customerId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      // Check status with payment service if still pending
+      if (payment.status === 'pending' && payment.transactionId) {
+        const paymentService = PaymentServiceFactory.getService(payment.paymentMethod);
+        const statusResult = await paymentService.checkPaymentStatus(payment.transactionId);
+        
+        // Update payment status if changed
+        if (statusResult.status !== payment.status) {
+          await storage.updatePaymentStatus(
+            paymentId,
+            statusResult.status,
+            statusResult.failureReason
+          );
+          
+          // Update order payment status
+          if (statusResult.status === 'completed') {
+            await storage.updateOrderStatus(order.id, 'preparing');
+          }
+        }
+
+        res.json({
+          status: statusResult.status,
+          transactionId: payment.transactionId,
+          operatorReference: payment.operatorReference,
+          failureReason: statusResult.failureReason
+        });
+      } else {
+        res.json({
+          status: payment.status,
+          transactionId: payment.transactionId,
+          operatorReference: payment.operatorReference,
+          failureReason: payment.failureReason
+        });
+      }
+
+    } catch (error) {
+      console.error("Payment status check error:", error);
+      res.status(500).json({ error: "Failed to check payment status" });
+    }
+  });
+
+  // Get order payments
+  app.get("/api/orders/:orderId/payments", isAuthenticated, async (req: any, res) => {
+    try {
+      const { orderId } = req.params;
+      const userId = req.user?.claims?.sub;
+
+      // Verify order belongs to user
+      const order = await storage.getOrder(orderId);
+      if (!order || order.customerId !== userId) {
+        return res.status(404).json({ error: "Order not found or access denied" });
+      }
+
+      const payments = await storage.getOrderPayments(orderId);
+      res.json(payments);
+
+    } catch (error) {
+      console.error("Get order payments error:", error);
+      res.status(500).json({ error: "Failed to get order payments" });
+    }
+  });
+
+  // Payment webhooks (for production integration)
+  app.post("/api/payments/orange-money/notify", async (req, res) => {
+    try {
+      // Handle Orange Money webhook notification
+      console.log("Orange Money webhook:", req.body);
+      res.status(200).json({ status: "received" });
+    } catch (error) {
+      console.error("Orange Money webhook error:", error);
+      res.status(500).json({ error: "Webhook processing failed" });
+    }
+  });
+
+  app.post("/api/payments/moov-money/callback", async (req, res) => {
+    try {
+      // Handle Moov Money callback
+      console.log("Moov Money callback:", req.body);
+      res.status(200).json({ status: "received" });
+    } catch (error) {
+      console.error("Moov Money callback error:", error);
+      res.status(500).json({ error: "Callback processing failed" });
     }
   });
 

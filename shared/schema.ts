@@ -238,6 +238,25 @@ export const messages = pgTable("messages", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Payments table for detailed transaction tracking
+export const payments = pgTable("payments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: varchar("order_id").references(() => orders.id).notNull(),
+  paymentMethod: paymentMethodEnum("payment_method").notNull(),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  currency: varchar("currency").default('CFA'),
+  status: paymentStatusEnum("status").default('pending'),
+  transactionId: varchar("transaction_id"), // External payment provider transaction ID
+  phoneNumber: varchar("phone_number"), // For mobile money payments
+  operatorReference: varchar("operator_reference"), // Orange Money or Moov Money reference
+  failureReason: text("failure_reason"),
+  processedAt: timestamp("processed_at"),
+  expiresAt: timestamp("expires_at"),
+  metadata: jsonb("metadata"), // Additional payment provider data
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
   vendor: one(vendors),
@@ -306,6 +325,7 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
   }),
   items: many(orderItems),
   reviews: many(reviews),
+  payments: many(payments),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
@@ -377,6 +397,13 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   sender: one(users, {
     fields: [messages.senderId],
     references: [users.id],
+  }),
+}));
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+  order: one(orders, {
+    fields: [payments.orderId],
+    references: [orders.id],
   }),
 }));
 
@@ -461,6 +488,12 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   updatedAt: true,
 });
 
+export const insertPaymentSchema = createInsertSchema(payments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
@@ -498,6 +531,9 @@ export type InsertChatParticipant = z.infer<typeof insertChatParticipantSchema>;
 
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+
+export type Payment = typeof payments.$inferSelect;
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 
 // Phone verification table
 export const phoneVerifications = pgTable("phone_verifications", {

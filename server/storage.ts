@@ -11,6 +11,7 @@ import {
   chatRooms,
   chatParticipants,
   messages,
+  payments,
   phoneVerifications,
   emailVerifications,
   type User,
@@ -38,6 +39,8 @@ import {
   type InsertChatParticipant,
   type Message,
   type InsertMessage,
+  type Payment,
+  type InsertPayment,
   type PhoneVerification,
   type InsertPhoneVerification,
   type EmailVerification,
@@ -149,6 +152,13 @@ export interface IStorage {
   getChatMessages(chatRoomId: string, limit?: number, offset?: number): Promise<Message[]>;
   searchUsers(query: string): Promise<User[]>;
   getChatRoomParticipants(chatRoomId: string): Promise<ChatParticipant[]>;
+  
+  // Payment operations
+  createPayment(payment: InsertPayment): Promise<Payment>;
+  getPayment(id: string): Promise<Payment | undefined>;
+  getOrderPayments(orderId: string): Promise<Payment[]>;
+  updatePaymentStatus(id: string, status: 'pending' | 'completed' | 'failed' | 'refunded', failureReason?: string): Promise<Payment>;
+  updatePaymentTransaction(id: string, transactionId: string, operatorReference?: string): Promise<Payment>;
   markMessagesAsRead(userId: string, chatRoomId: string): Promise<void>;
   incrementUnreadCount(chatRoomId: string, excludeUserId: string): Promise<void>;
   getTotalUnreadCount(userId: string): Promise<number>;
@@ -844,6 +854,76 @@ export class DatabaseStorage implements IStorage {
       .where(eq(chatParticipants.userId, userId));
     
     return Number(result?.total || 0);
+  }
+
+  // Payment operations
+  async createPayment(paymentData: InsertPayment): Promise<Payment> {
+    const [payment] = await db
+      .insert(payments)
+      .values(paymentData)
+      .returning();
+    return payment;
+  }
+
+  async getPayment(id: string): Promise<Payment | undefined> {
+    const [payment] = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.id, id));
+    return payment;
+  }
+
+  async getOrderPayments(orderId: string): Promise<Payment[]> {
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.orderId, orderId))
+      .orderBy(desc(payments.createdAt));
+  }
+
+  async updatePaymentStatus(
+    id: string, 
+    status: 'pending' | 'completed' | 'failed' | 'refunded', 
+    failureReason?: string
+  ): Promise<Payment> {
+    const updateData: any = { 
+      status, 
+      updatedAt: new Date(),
+      processedAt: status !== 'pending' ? new Date() : null
+    };
+    
+    if (failureReason) {
+      updateData.failureReason = failureReason;
+    }
+
+    const [payment] = await db
+      .update(payments)
+      .set(updateData)
+      .where(eq(payments.id, id))
+      .returning();
+    return payment;
+  }
+
+  async updatePaymentTransaction(
+    id: string, 
+    transactionId: string, 
+    operatorReference?: string
+  ): Promise<Payment> {
+    const updateData: any = {
+      transactionId,
+      updatedAt: new Date()
+    };
+    
+    if (operatorReference) {
+      updateData.operatorReference = operatorReference;
+    }
+
+    const [payment] = await db
+      .update(payments)
+      .set(updateData)
+      .where(eq(payments.id, id))
+      .returning();
+    return payment;
   }
 
   // Phone verification operations

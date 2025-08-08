@@ -8,16 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import PaymentMethodSelector from "@/components/PaymentMethodSelector";
 
-const checkoutSchema = z.object({
-  paymentMethod: z.enum(['orange_money', 'moov_money', 'cash_on_delivery']),
+const deliverySchema = z.object({
   deliveryAddress: z.object({
     fullName: z.string().min(1, "Le nom complet est requis"),
     phone: z.string().min(1, "Le numéro de téléphone est requis"),
@@ -25,8 +23,6 @@ const checkoutSchema = z.object({
     city: z.string().min(1, "La ville est requise"),
     instructions: z.string().optional(),
   }),
-  orangeMoneyPhone: z.string().optional(),
-  orangeMoneyPin: z.string().optional(),
 });
 
 interface CheckoutFormProps {
@@ -37,13 +33,13 @@ interface CheckoutFormProps {
 }
 
 export default function CheckoutForm({ cartItems, total, onBack, onClose }: CheckoutFormProps) {
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [step, setStep] = useState<'delivery' | 'payment' | 'success'>('delivery');
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof checkoutSchema>>({
-    resolver: zodResolver(checkoutSchema),
+  const form = useForm<z.infer<typeof deliverySchema>>({
+    resolver: zodResolver(deliverySchema),
     defaultValues: {
-      paymentMethod: 'orange_money',
       deliveryAddress: {
         fullName: "",
         phone: "",
@@ -51,12 +47,8 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
         city: "Ouagadougou",
         instructions: "",
       },
-      orangeMoneyPhone: "",
-      orangeMoneyPin: "",
     },
   });
-
-  const paymentMethod = form.watch('paymentMethod');
 
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
@@ -91,13 +83,8 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof checkoutSchema>) => {
-    setIsProcessing(true);
-    
+  const onSubmit = async (values: z.infer<typeof deliverySchema>) => {
     try {
-      // Simulate payment processing delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
       // Group cart items by vendor
       const vendorGroups = cartItems.reduce((groups: any, item: any) => {
         const vendorId = item.product.vendorId;
@@ -109,6 +96,7 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
       }, {});
 
       // Create separate orders for each vendor
+      let firstOrderId = null;
       for (const [vendorId, items] of Object.entries(vendorGroups) as [string, any[]][]) {
         const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.product.price) * item.quantity), 0);
         const deliveryFee = 2000; // 2000 CFA per vendor
@@ -119,8 +107,6 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
           subtotal: subtotal.toString(),
           deliveryFee: deliveryFee.toString(),
           totalAmount: totalAmount.toString(),
-          paymentMethod: values.paymentMethod,
-          paymentStatus: values.paymentMethod === 'cash_on_delivery' ? 'pending' : 'completed',
           deliveryAddress: JSON.stringify(values.deliveryAddress),
           deliveryInstructions: values.deliveryAddress.instructions,
           items: items.map(item => ({
@@ -132,22 +118,40 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
           })),
         };
 
-        await createOrderMutation.mutateAsync(orderData);
+        const order = await createOrderMutation.mutateAsync(orderData);
+        if (!firstOrderId) {
+          firstOrderId = order.id;
+        }
       }
       
-      toast({
-        title: "Paiement réussi !",
-        description: `Paiement de ${total.toLocaleString()} CFA effectué avec succès.`,
-      });
+      setCreatedOrderId(firstOrderId);
+      setStep('payment');
+      
     } catch (error) {
       toast({
-        title: "Erreur de paiement",
-        description: "Le paiement a échoué. Veuillez vérifier vos informations.",
+        title: "Erreur",
+        description: "Impossible de créer la commande. Veuillez réessayer.",
         variant: "destructive",
       });
-    } finally {
-      setIsProcessing(false);
     }
+  };
+
+  const handlePaymentSuccess = (paymentId: string, transactionId: string) => {
+    setStep('success');
+    queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+    toast({
+      title: "Paiement réussi !",
+      description: "Votre commande a été confirmée et le paiement effectué avec succès.",
+    });
+  };
+
+  const handlePaymentError = (error: string) => {
+    toast({
+      title: "Erreur de paiement",
+      description: error,
+      variant: "destructive",
+    });
   };
 
   return (
@@ -187,79 +191,32 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
           </div>
         </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Payment Method */}
-            <div>
-              <h3 className="font-semibold text-zaka-dark mb-4">Méthode de paiement</h3>
-              <FormField
-                control={form.control}
-                name="paymentMethod"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="space-y-3"
-                      >
-                        <div className="flex items-center space-x-3 p-4 border-2 border-zaka-orange rounded-lg">
-                          <RadioGroupItem value="orange_money" id="orange_money" />
-                          <div className="flex items-center flex-1">
-                            <div className="w-12 h-8 bg-orange-500 rounded mr-3 flex items-center justify-center">
-                              <span className="text-white font-bold text-xs">OM</span>
-                            </div>
-                            <div>
-                              <Label htmlFor="orange_money" className="font-medium">Orange Money</Label>
-                              <p className="text-sm text-zaka-gray">Paiement mobile sécurisé</p>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-3 p-4 border-2 border-gray-200 rounded-lg">
-                          <RadioGroupItem value="moov_money" id="moov_money" />
-                          <div className="flex items-center flex-1">
-                            <div className="w-12 h-8 bg-blue-600 rounded mr-3 flex items-center justify-center">
-                              <span className="text-white font-bold text-xs">MM</span>
-                            </div>
-                            <div>
-                              <Label htmlFor="moov_money" className="font-medium">Moov Money</Label>
-                              <p className="text-sm text-zaka-gray">Transfert d'argent mobile</p>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-3 p-4 border-2 border-gray-200 rounded-lg">
-                          <RadioGroupItem value="cash_on_delivery" id="cash_on_delivery" />
-                          <div className="flex items-center flex-1">
-                            <div className="w-12 h-8 bg-zaka-green rounded mr-3 flex items-center justify-center">
-                              <i className="fas fa-money-bill text-white"></i>
-                            </div>
-                            <div>
-                              <Label htmlFor="cash_on_delivery" className="font-medium">Paiement à la livraison</Label>
-                              <p className="text-sm text-zaka-gray">Espèces à la réception</p>
-                            </div>
-                          </div>
-                        </div>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Orange Money Details */}
-            {paymentMethod === 'orange_money' && (
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <h4 className="font-semibold text-zaka-dark mb-3">Détails Orange Money</h4>
+        {step === 'delivery' && (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Delivery Address */}
+              <div>
+                <h3 className="font-semibold text-zaka-dark mb-4">Adresse de livraison</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="orangeMoneyPhone"
+                    name="deliveryAddress.fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Numéro de téléphone</FormLabel>
+                        <FormLabel>Nom complet</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Votre nom complet" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="deliveryAddress.phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Téléphone</FormLabel>
                         <FormControl>
                           <Input placeholder="70 XX XX XX XX" {...field} />
                         </FormControl>
@@ -269,12 +226,48 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
                   />
                   <FormField
                     control={form.control}
-                    name="orangeMoneyPin"
+                    name="deliveryAddress.address"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Adresse</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Secteur, quartier, rue" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="deliveryAddress.city"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Code PIN</FormLabel>
+                        <FormLabel>Ville</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Ouagadougou">Ouagadougou</SelectItem>
+                            <SelectItem value="Bobo-Dioulasso">Bobo-Dioulasso</SelectItem>
+                            <SelectItem value="Koudougou">Koudougou</SelectItem>
+                            <SelectItem value="Banfora">Banfora</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="deliveryAddress.instructions"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Instructions spéciales</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="****" {...field} />
+                          <Input placeholder="Points de repère, étage..." {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -282,110 +275,52 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
                   />
                 </div>
               </div>
-            )}
 
-            {/* Delivery Address */}
-            <div>
-              <h3 className="font-semibold text-zaka-dark mb-4">Adresse de livraison</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="deliveryAddress.fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nom complet</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Votre nom complet" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="deliveryAddress.phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Téléphone</FormLabel>
-                      <FormControl>
-                        <Input placeholder="70 XX XX XX XX" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="deliveryAddress.address"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>Adresse</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Secteur, quartier, rue" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="deliveryAddress.city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ville</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Ouagadougou">Ouagadougou</SelectItem>
-                          <SelectItem value="Bobo-Dioulasso">Bobo-Dioulasso</SelectItem>
-                          <SelectItem value="Koudougou">Koudougou</SelectItem>
-                          <SelectItem value="Banfora">Banfora</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="deliveryAddress.instructions"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Instructions spéciales</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Points de repère, étage..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-zaka-green hover:bg-zaka-green text-white py-4 text-lg font-semibold"
+                disabled={createOrderMutation.isPending}
+              >
+                {createOrderMutation.isPending ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    Création de la commande...
+                  </>
+                ) : (
+                  'Continuer vers le paiement'
+                )}
+              </Button>
+              
+              <p className="text-center text-sm text-zaka-gray">
+                En continuant, vous acceptez nos conditions d'utilisation
+              </p>
+            </form>
+          </Form>
+        )}
+
+        {step === 'payment' && createdOrderId && (
+          <PaymentMethodSelector
+            orderId={createdOrderId}
+            totalAmount={total}
+            onPaymentSuccess={handlePaymentSuccess}
+            onPaymentError={handlePaymentError}
+          />
+        )}
+
+        {step === 'success' && (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i className="fas fa-check text-2xl text-green-600"></i>
             </div>
-
-            <Button 
-              type="submit" 
-              className="w-full bg-zaka-green hover:bg-zaka-green text-white py-4 text-lg font-semibold"
-              disabled={isProcessing || createOrderMutation.isPending}
-            >
-              {isProcessing ? (
-                <>
-                  <i className="fas fa-spinner fa-spin mr-2"></i>
-                  Traitement du paiement...
-                </>
-              ) : (
-                `Confirmer la commande - ${total.toLocaleString()} CFA`
-              )}
-            </Button>
-            
-            <p className="text-center text-sm text-zaka-gray">
-              En confirmant, vous acceptez nos conditions d'utilisation
+            <h3 className="text-xl font-semibold text-zaka-dark mb-2">Commande confirmée !</h3>
+            <p className="text-zaka-gray mb-6">
+              Votre commande a été passée avec succès. Vous recevrez bientôt une confirmation.
             </p>
-          </form>
-        </Form>
+            <Button onClick={onClose} className="bg-zaka-green hover:bg-zaka-green text-white">
+              Fermer
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
