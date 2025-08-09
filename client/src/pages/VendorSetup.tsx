@@ -101,16 +101,21 @@ export default function VendorSetup() {
     if (step < 3) {
       // Validate current step before proceeding
       let fieldsToValidate: (keyof VendorSetupForm)[] = [];
-      
+
       if (step === 1) {
-        fieldsToValidate = ['businessName', 'businessDescription', 'businessAddress', 'businessPhone'];
+        fieldsToValidate = [
+          "businessName",
+          "businessDescription",
+          "businessAddress",
+          "businessPhone",
+        ];
       } else if (step === 2) {
-        fieldsToValidate = ['bankName', 'bankAccount'];
+        fieldsToValidate = ["bankName", "bankAccount"];
       }
-      
+
       // Trigger validation for the current step fields
       const isStepValid = await form.trigger(fieldsToValidate);
-      
+
       if (isStepValid) {
         setStep(step + 1);
       } else {

@@ -1,5 +1,5 @@
 // Email service for ZakaMall - supports actual email sending
-import * as nodemailer from 'nodemailer';
+import * as nodemailer from "nodemailer";
 
 interface EmailMessage {
   to: string;
@@ -75,7 +75,7 @@ export class EmailService {
       if (this.emailConfig.user && this.emailConfig.pass && this.emailConfig.service === "gmail") {
         try {
           console.log("Attempting Gmail SMTP...");
-          
+
           const gmailResult = await this.sendViaGmailSMTP(message);
           if (gmailResult) {
             console.log(`📧 Email sent successfully to ${message.to} via Gmail SMTP`);
@@ -265,24 +265,24 @@ export class EmailService {
   private async sendViaGmailSMTP(message: EmailMessage): Promise<boolean> {
     try {
       // Debug Gmail credentials (without exposing password)
-      console.log('Gmail SMTP config:', {
+      console.log("Gmail SMTP config:", {
         user: this.emailConfig.user,
         passLength: this.emailConfig.pass?.length,
-        from: this.emailConfig.from
+        from: this.emailConfig.from,
       });
-      
+
       // Create Gmail SMTP transporter
       const transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
+        host: "smtp.gmail.com",
         port: 587,
         secure: false, // true for 465, false for other ports
         auth: {
           user: this.emailConfig.user,
-          pass: this.emailConfig.pass
+          pass: this.emailConfig.pass,
         },
         tls: {
-          rejectUnauthorized: false
-        }
+          rejectUnauthorized: false,
+        },
       });
 
       // Send email
@@ -291,13 +291,13 @@ export class EmailService {
         to: message.to,
         subject: message.subject,
         text: message.text,
-        html: message.html
+        html: message.html,
       });
 
-      console.log('Gmail SMTP message sent successfully:', result.messageId);
+      console.log("Gmail SMTP message sent successfully:", result.messageId);
       return true;
     } catch (error) {
-      console.error('Gmail SMTP error details:', error);
+      console.error("Gmail SMTP error details:", error);
       return false;
     }
   }

@@ -173,7 +173,10 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
                   {isLoading ? "Connexion..." : "Se connecter"}
                 </Button>
                 <p className="text-sm text-center text-muted-foreground">
-                  Pas encore de compte? <a href="/register" className="text-primary hover:underline">S'inscrire</a>
+                  Pas encore de compte?{" "}
+                  <a href="/register" className="text-primary hover:underline">
+                    S'inscrire
+                  </a>
                 </p>
               </form>
             </CardContent>

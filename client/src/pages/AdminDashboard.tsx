@@ -378,7 +378,10 @@ export default function AdminDashboard() {
                   ) : (pendingVendors as any[])?.length > 0 ? (
                     <div className="space-y-6">
                       {(pendingVendors as any[]).map((vendor: any) => (
-                        <div key={vendor.id} className="border rounded-lg p-6 bg-yellow-50 border-yellow-200">
+                        <div
+                          key={vendor.id}
+                          className="border rounded-lg p-6 bg-yellow-50 border-yellow-200"
+                        >
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center space-x-4">
                               <Avatar className="w-12 h-12">
@@ -388,10 +391,13 @@ export default function AdminDashboard() {
                               </Avatar>
                               <div>
                                 <h3 className="text-lg font-semibold">{vendor.businessName}</h3>
-                                <p className="text-gray-600">{vendor.user?.firstName} {vendor.user?.lastName}</p>
+                                <p className="text-gray-600">
+                                  {vendor.user?.firstName} {vendor.user?.lastName}
+                                </p>
                                 <p className="text-sm text-gray-500">{vendor.user?.email}</p>
                                 <p className="text-xs text-gray-400">
-                                  Demande soumise le {new Date(vendor.createdAt).toLocaleDateString("fr-FR")}
+                                  Demande soumise le{" "}
+                                  {new Date(vendor.createdAt).toLocaleDateString("fr-FR")}
                                 </p>
                               </div>
                             </div>
@@ -402,31 +408,60 @@ export default function AdminDashboard() {
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
-                              <h4 className="font-semibold text-sm text-gray-700 mb-2">Informations entreprise</h4>
+                              <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                                Informations entreprise
+                              </h4>
                               <div className="space-y-1 text-sm">
-                                <p><span className="font-medium">Description:</span> {vendor.businessDescription}</p>
-                                <p><span className="font-medium">Adresse:</span> {vendor.businessAddress}</p>
-                                <p><span className="font-medium">Téléphone:</span> {vendor.businessPhone}</p>
-                                {vendor.taxId && <p><span className="font-medium">IFU:</span> {vendor.taxId}</p>}
+                                <p>
+                                  <span className="font-medium">Description:</span>{" "}
+                                  {vendor.businessDescription}
+                                </p>
+                                <p>
+                                  <span className="font-medium">Adresse:</span>{" "}
+                                  {vendor.businessAddress}
+                                </p>
+                                <p>
+                                  <span className="font-medium">Téléphone:</span>{" "}
+                                  {vendor.businessPhone}
+                                </p>
+                                {vendor.taxId && (
+                                  <p>
+                                    <span className="font-medium">IFU:</span> {vendor.taxId}
+                                  </p>
+                                )}
                               </div>
                             </div>
 
                             <div>
-                              <h4 className="font-semibold text-sm text-gray-700 mb-2">Informations bancaires</h4>
+                              <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                                Informations bancaires
+                              </h4>
                               <div className="space-y-1 text-sm">
-                                <p><span className="font-medium">Banque:</span> {vendor.bankName}</p>
-                                <p><span className="font-medium">Compte:</span> {vendor.bankAccount}</p>
+                                <p>
+                                  <span className="font-medium">Banque:</span> {vendor.bankName}
+                                </p>
+                                <p>
+                                  <span className="font-medium">Compte:</span> {vendor.bankAccount}
+                                </p>
                               </div>
 
                               {(vendor.identityDocument || vendor.businessLicense) && (
                                 <div className="mt-3">
-                                  <h4 className="font-semibold text-sm text-gray-700 mb-2">Documents</h4>
+                                  <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                                    Documents
+                                  </h4>
                                   <div className="space-y-1 text-sm">
                                     {vendor.identityDocument && (
-                                      <p><span className="font-medium">Pièce d'identité:</span> {vendor.identityDocument}</p>
+                                      <p>
+                                        <span className="font-medium">Pièce d'identité:</span>{" "}
+                                        {vendor.identityDocument}
+                                      </p>
                                     )}
                                     {vendor.businessLicense && (
-                                      <p><span className="font-medium">Registre commerce:</span> {vendor.businessLicense}</p>
+                                      <p>
+                                        <span className="font-medium">Registre commerce:</span>{" "}
+                                        {vendor.businessLicense}
+                                      </p>
                                     )}
                                   </div>
                                 </div>
@@ -461,9 +496,7 @@ export default function AdminDashboard() {
                       <h3 className="text-lg font-semibold text-gray-600 mb-2">
                         Aucune demande vendeur en attente
                       </h3>
-                      <p className="text-gray-500">
-                        Les nouvelles demandes apparaîtront ici
-                      </p>
+                      <p className="text-gray-500">Les nouvelles demandes apparaîtront ici</p>
                     </div>
                   )}
                 </CardContent>
@@ -503,11 +536,15 @@ export default function AdminDashboard() {
                                 <div className="flex items-center">
                                   <Avatar className="w-10 h-10 mr-3">
                                     <AvatarFallback className="bg-blue-100 text-blue-800">
-                                      {vendor.user?.firstName?.charAt(0) || vendor.businessName?.charAt(0) || "V"}
+                                      {vendor.user?.firstName?.charAt(0) ||
+                                        vendor.businessName?.charAt(0) ||
+                                        "V"}
                                     </AvatarFallback>
                                   </Avatar>
                                   <div>
-                                    <p className="font-medium">{vendor.user?.firstName} {vendor.user?.lastName}</p>
+                                    <p className="font-medium">
+                                      {vendor.user?.firstName} {vendor.user?.lastName}
+                                    </p>
                                     <p className="text-xs text-gray-500">{vendor.user?.email}</p>
                                   </div>
                                 </div>
@@ -518,9 +555,13 @@ export default function AdminDashboard() {
                               </td>
                               <td className="py-4">
                                 <Badge className={getVendorStatusBadgeColor(vendor.status)}>
-                                  {vendor.status === "approved" ? "Approuvé" : 
-                                   vendor.status === "pending" ? "En attente" : 
-                                   vendor.status === "rejected" ? "Rejeté" : vendor.status}
+                                  {vendor.status === "approved"
+                                    ? "Approuvé"
+                                    : vendor.status === "pending"
+                                      ? "En attente"
+                                      : vendor.status === "rejected"
+                                        ? "Rejeté"
+                                        : vendor.status}
                                 </Badge>
                               </td>
                               <td className="py-4">
@@ -529,7 +570,9 @@ export default function AdminDashboard() {
                               <td className="py-4">
                                 <Select
                                   value={vendor.status}
-                                  onValueChange={(status) => handleVendorStatusChange(vendor.id, status)}
+                                  onValueChange={(status) =>
+                                    handleVendorStatusChange(vendor.id, status)
+                                  }
                                 >
                                   <SelectTrigger className="w-32">
                                     <SelectValue />
@@ -588,7 +631,10 @@ export default function AdminDashboard() {
                   ) : (pendingDrivers as any[])?.length > 0 ? (
                     <div className="space-y-6">
                       {(pendingDrivers as any[]).map((driver: any) => (
-                        <div key={driver.id} className="border rounded-lg p-6 bg-blue-50 border-blue-200">
+                        <div
+                          key={driver.id}
+                          className="border rounded-lg p-6 bg-blue-50 border-blue-200"
+                        >
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center space-x-4">
                               <Avatar className="w-12 h-12">
@@ -597,11 +643,14 @@ export default function AdminDashboard() {
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <h3 className="text-lg font-semibold">{driver.user?.firstName} {driver.user?.lastName}</h3>
+                                <h3 className="text-lg font-semibold">
+                                  {driver.user?.firstName} {driver.user?.lastName}
+                                </h3>
                                 <p className="text-gray-600">{driver.user?.email}</p>
                                 <p className="text-sm text-gray-500">{driver.user?.phone}</p>
                                 <p className="text-xs text-gray-400">
-                                  Demande soumise le {new Date(driver.createdAt).toLocaleDateString("fr-FR")}
+                                  Demande soumise le{" "}
+                                  {new Date(driver.createdAt).toLocaleDateString("fr-FR")}
                                 </p>
                               </div>
                             </div>
@@ -612,33 +661,69 @@ export default function AdminDashboard() {
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
-                              <h4 className="font-semibold text-sm text-gray-700 mb-2">Informations véhicule</h4>
+                              <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                                Informations véhicule
+                              </h4>
                               <div className="space-y-1 text-sm">
-                                <p><span className="font-medium">Type:</span> {driver.vehicleType || "Non spécifié"}</p>
-                                <p><span className="font-medium">Modèle:</span> {driver.vehicleModel || "Non spécifié"}</p>
-                                <p><span className="font-medium">Année:</span> {driver.vehicleYear || "Non spécifiée"}</p>
-                                <p><span className="font-medium">Couleur:</span> {driver.vehicleColor || "Non spécifiée"}</p>
-                                <p><span className="font-medium">Plaque:</span> {driver.vehiclePlate || "Non spécifiée"}</p>
+                                <p>
+                                  <span className="font-medium">Type:</span>{" "}
+                                  {driver.vehicleType || "Non spécifié"}
+                                </p>
+                                <p>
+                                  <span className="font-medium">Modèle:</span>{" "}
+                                  {driver.vehicleModel || "Non spécifié"}
+                                </p>
+                                <p>
+                                  <span className="font-medium">Année:</span>{" "}
+                                  {driver.vehicleYear || "Non spécifiée"}
+                                </p>
+                                <p>
+                                  <span className="font-medium">Couleur:</span>{" "}
+                                  {driver.vehicleColor || "Non spécifiée"}
+                                </p>
+                                <p>
+                                  <span className="font-medium">Plaque:</span>{" "}
+                                  {driver.vehiclePlate || "Non spécifiée"}
+                                </p>
                               </div>
                             </div>
 
                             <div>
-                              <h4 className="font-semibold text-sm text-gray-700 mb-2">Informations professionnelles</h4>
+                              <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                                Informations professionnelles
+                              </h4>
                               <div className="space-y-1 text-sm">
-                                <p><span className="font-medium">Permis:</span> {driver.licenseNumber || "Non spécifié"}</p>
-                                <p><span className="font-medium">Expérience:</span> {driver.experience || "Non spécifiée"}</p>
-                                <p><span className="font-medium">Zone de travail:</span> {driver.workZone || "Non spécifiée"}</p>
+                                <p>
+                                  <span className="font-medium">Permis:</span>{" "}
+                                  {driver.licenseNumber || "Non spécifié"}
+                                </p>
+                                <p>
+                                  <span className="font-medium">Expérience:</span>{" "}
+                                  {driver.experience || "Non spécifiée"}
+                                </p>
+                                <p>
+                                  <span className="font-medium">Zone de travail:</span>{" "}
+                                  {driver.workZone || "Non spécifiée"}
+                                </p>
                               </div>
 
                               {(driver.emergencyContact || driver.emergencyName) && (
                                 <div className="mt-3">
-                                  <h4 className="font-semibold text-sm text-gray-700 mb-2">Contact d'urgence</h4>
+                                  <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                                    Contact d'urgence
+                                  </h4>
                                   <div className="space-y-1 text-sm">
                                     {driver.emergencyName && (
-                                      <p><span className="font-medium">Nom:</span> {driver.emergencyName}</p>
+                                      <p>
+                                        <span className="font-medium">Nom:</span>{" "}
+                                        {driver.emergencyName}
+                                      </p>
                                     )}
                                     {driver.emergencyContact && (
-                                      <p><span className="font-medium">Téléphone:</span> {driver.emergencyContact}</p>
+                                      <p>
+                                        <span className="font-medium">Téléphone:</span>{" "}
+                                        {driver.emergencyContact}
+                                      </p>
                                     )}
                                   </div>
                                 </div>
@@ -673,9 +758,7 @@ export default function AdminDashboard() {
                       <h3 className="text-lg font-semibold text-gray-600 mb-2">
                         Aucune demande chauffeur en attente
                       </h3>
-                      <p className="text-gray-500">
-                        Les nouvelles demandes apparaîtront ici
-                      </p>
+                      <p className="text-gray-500">Les nouvelles demandes apparaîtront ici</p>
                     </div>
                   )}
                 </CardContent>
@@ -720,24 +803,41 @@ export default function AdminDashboard() {
                                     </AvatarFallback>
                                   </Avatar>
                                   <div>
-                                    <p className="font-medium">{driver.user?.firstName} {driver.user?.lastName}</p>
+                                    <p className="font-medium">
+                                      {driver.user?.firstName} {driver.user?.lastName}
+                                    </p>
                                     <p className="text-xs text-gray-500">{driver.user?.phone}</p>
                                   </div>
                                 </div>
                               </td>
                               <td className="py-4">
-                                <p className="font-medium">{driver.vehicleType || "Non spécifié"}</p>
-                                <p className="text-xs text-gray-500">{driver.vehiclePlate || "Plaque non spécifiée"}</p>
+                                <p className="font-medium">
+                                  {driver.vehicleType || "Non spécifié"}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {driver.vehiclePlate || "Plaque non spécifiée"}
+                                </p>
                               </td>
                               <td className="py-4">
                                 <Badge className={getVendorStatusBadgeColor(driver.status)}>
-                                  {driver.status === "approved" ? "Approuvé" : 
-                                   driver.status === "pending" ? "En attente" : 
-                                   driver.status === "rejected" ? "Rejeté" : driver.status}
+                                  {driver.status === "approved"
+                                    ? "Approuvé"
+                                    : driver.status === "pending"
+                                      ? "En attente"
+                                      : driver.status === "rejected"
+                                        ? "Rejeté"
+                                        : driver.status}
                                 </Badge>
                               </td>
                               <td className="py-4">
-                                <Badge variant={driver.isOnline ? "default" : "secondary"} className={driver.isOnline ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+                                <Badge
+                                  variant={driver.isOnline ? "default" : "secondary"}
+                                  className={
+                                    driver.isOnline
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-gray-100 text-gray-800"
+                                  }
+                                >
                                   {driver.isOnline ? "En ligne" : "Hors ligne"}
                                 </Badge>
                               </td>
@@ -747,7 +847,9 @@ export default function AdminDashboard() {
                               <td className="py-4">
                                 <Select
                                   value={driver.status}
-                                  onValueChange={(status) => handleDriverStatusChange(driver.id, status)}
+                                  onValueChange={(status) =>
+                                    handleDriverStatusChange(driver.id, status)
+                                  }
                                 >
                                   <SelectTrigger className="w-32">
                                     <SelectValue />

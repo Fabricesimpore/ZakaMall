@@ -19,7 +19,7 @@ export default function Register() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (password !== confirmPassword) {
       toast({
         title: "Erreur",
@@ -35,12 +35,12 @@ export default function Register() {
       const response = await fetch("/api/auth/email-signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          email, 
+        body: JSON.stringify({
+          email,
           password,
-          firstName, 
+          firstName,
           lastName,
-          role: "customer" 
+          role: "customer",
         }),
       });
 
@@ -106,8 +106,8 @@ export default function Register() {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">Créer un compte</CardTitle>
             <CardDescription>
-              {isVerificationSent 
-                ? "Entrez le code de vérification envoyé à votre email" 
+              {isVerificationSent
+                ? "Entrez le code de vérification envoyé à votre email"
                 : "Inscrivez-vous pour accéder à ZakaMall"}
             </CardDescription>
           </CardHeader>
@@ -173,7 +173,10 @@ export default function Register() {
                   {isLoading ? "Inscription..." : "S'inscrire"}
                 </Button>
                 <p className="text-sm text-center text-muted-foreground">
-                  Déjà un compte? <a href="/" className="text-primary hover:underline">Se connecter</a>
+                  Déjà un compte?{" "}
+                  <a href="/" className="text-primary hover:underline">
+                    Se connecter
+                  </a>
                 </p>
               </form>
             ) : (

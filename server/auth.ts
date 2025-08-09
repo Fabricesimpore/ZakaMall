@@ -17,7 +17,7 @@ export function getSession() {
   });
   return session({
     secret: process.env.SESSION_SECRET || "development-secret-change-in-production",
-    name: 'connect.sid',
+    name: "connect.sid",
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
@@ -25,7 +25,7 @@ export function getSession() {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: sessionTtl,
-      sameSite: 'lax', // Allow same-site requests
+      sameSite: "lax", // Allow same-site requests
     },
   });
 }
@@ -39,12 +39,12 @@ export async function setupAuth(app: Express) {
 // Authentication middleware
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const sessionUser = (req as any).session?.user;
-  
+
   if (sessionUser && sessionUser.isAuthenticated) {
     (req as any).user = sessionUser;
     return next();
   }
-  
+
   return res.status(401).json({ message: "Unauthorized" });
 };
 
@@ -62,7 +62,10 @@ const phoneLoginSchema = z.object({
 // Register schema
 const registerSchema = z.object({
   email: z.string().email().optional(),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/).optional(),
+  phone: z
+    .string()
+    .regex(/^\+?[1-9]\d{1,14}$/)
+    .optional(),
   password: z.string().min(6),
   firstName: z.string().min(1),
   lastName: z.string().min(1),
@@ -83,7 +86,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 export function createUserSession(req: any, user: any): Promise<void> {
   return new Promise((resolve, reject) => {
     const userSession = {
-      claims: { 
+      claims: {
         sub: user.id,
         email: user.email,
         phone: user.phone,
@@ -98,9 +101,9 @@ export function createUserSession(req: any, user: any): Promise<void> {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
-      }
+      },
     };
-    
+
     (req as any).user = userSession;
     if (req.session) {
       (req.session as any).user = userSession;

@@ -72,9 +72,10 @@ export default function VendorDashboard() {
               <h2 className="text-2xl font-bold mb-4">Devenir vendeur sur ZakaMall</h2>
               <p className="text-gray-600 mb-6">
                 Rejoignez notre marketplace et vendez vos produits à travers tout le Burkina Faso.
-                Vous devez compléter le processus d'inscription vendeur pour accéder à ce tableau de bord.
+                Vous devez compléter le processus d'inscription vendeur pour accéder à ce tableau de
+                bord.
               </p>
-              
+
               <div className="bg-blue-50 p-4 rounded-lg mb-6">
                 <h3 className="font-semibold text-blue-900 mb-2">
                   <i className="fas fa-check-circle mr-2"></i>
@@ -108,7 +109,7 @@ export default function VendorDashboard() {
                   Commencer l'inscription vendeur
                 </Button>
               </Link>
-              
+
               <p className="text-xs text-gray-500 mt-4">
                 Déjà inscrit en tant que vendeur mais en attente d'approbation?{" "}
                 <Link href="/vendor-pending" className="text-zaka-orange hover:underline">
@@ -121,7 +122,7 @@ export default function VendorDashboard() {
       </div>
     );
   }
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
