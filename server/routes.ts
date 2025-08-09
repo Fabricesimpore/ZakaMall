@@ -2333,17 +2333,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await hashPassword(password);
 
       // Create user
-      const newUser = await storage.createUserWithEmail({
+      const newUser = await storage.createUser({
         email,
         password: hashedPassword,
         firstName,
         lastName,
         phone: phone || null,
         role,
-        isVerified: true, // Admin-created users are pre-verified
-        verificationCode: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        phoneVerified: phone ? true : false, // Admin-created users with phone are pre-verified
       });
 
       // Don't return password hash
