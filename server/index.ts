@@ -2,12 +2,55 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express, { type Request, Response, NextFunction } from "express";
+import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Rate limiting configuration
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000", 10), // 15 minutes default
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || "100", 10), // limit each IP to 100 requests per windowMs
+  message: {
+    error: "Too many requests from this IP, please try again later.",
+    retryAfter: "15 minutes"
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  // Skip rate limiting for health checks and static assets
+  skip: (req) => {
+    return req.path === "/health" || 
+           req.path === "/api/health" ||
+           req.path.startsWith("/assets/") ||
+           req.path.startsWith("/static/");
+  }
+});
+
+// Apply rate limiting to API routes only in production
+if (process.env.NODE_ENV === "production") {
+  app.use("/api", limiter);
+}
+
+// More lenient rate limiting for authentication endpoints
+const authLimiter = rateLimit({
+  windowMs: 900000, // 15 minutes
+  max: 10, // limit each IP to 10 auth attempts per windowMs
+  message: {
+    error: "Too many authentication attempts, please try again later.",
+    retryAfter: "15 minutes"
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply auth rate limiting to specific endpoints
+app.use("/api/auth", authLimiter);
+app.use("/api/register", authLimiter);
+app.use("/api/login", authLimiter);
+app.use("/api/verify", authLimiter);
 
 app.use((req, res, next) => {
   const start = Date.now();
