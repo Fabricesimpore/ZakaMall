@@ -156,7 +156,6 @@ export default function DriverDashboard() {
     },
   });
 
-
   const handleStatusChange = (checked: boolean) => {
     setIsOnline(checked);
     updateDriverStatusMutation.mutate(checked);
@@ -181,9 +180,10 @@ export default function DriverDashboard() {
               <h2 className="text-2xl font-bold mb-4">Devenir livreur sur ZakaMall</h2>
               <p className="text-gray-600 mb-6">
                 Rejoignez notre équipe de livreurs et gagnez de l'argent en livrant des commandes.
-                Vous devez compléter le processus d'inscription livreur pour accéder à ce tableau de bord.
+                Vous devez compléter le processus d'inscription livreur pour accéder à ce tableau de
+                bord.
               </p>
-              
+
               <div className="bg-blue-50 p-4 rounded-lg mb-6">
                 <h3 className="font-semibold text-blue-900 mb-2">
                   <i className="fas fa-check-circle mr-2"></i>
@@ -211,18 +211,18 @@ export default function DriverDashboard() {
                 </ul>
               </div>
 
-              <Button 
-                onClick={() => window.location.href = "/driver-setup"}
+              <Button
+                onClick={() => (window.location.href = "/driver-setup")}
                 className="bg-zaka-orange hover:bg-zaka-orange text-white px-8 py-3 text-lg"
               >
                 <i className="fas fa-arrow-right mr-2"></i>
                 Commencer l'inscription livreur
               </Button>
-              
+
               <p className="text-xs text-gray-500 mt-4">
                 Déjà inscrit en tant que livreur mais en attente d'approbation?{" "}
-                <button 
-                  onClick={() => window.location.href = "/driver-pending"}
+                <button
+                  onClick={() => (window.location.href = "/driver-pending")}
                   className="text-zaka-orange hover:underline"
                 >
                   Vérifiez votre statut
