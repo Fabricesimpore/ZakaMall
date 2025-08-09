@@ -82,6 +82,11 @@ The application is configured for Replit deployment with:
 - **Status**: ✅ Project ready for production deployment with clean codebase
 - **TypeScript Check**: Zero compilation errors - production ready
 - **Current State**: Multi-vendor e-commerce platform fully functional with clean code quality
+- **Security Notes**: 
+  - 4 moderate vulnerabilities in nested esbuild dependencies (development-only impact)
+  - Vulnerability affects dev server request handling, not production deployment
+  - Main esbuild package updated to v0.25.8 (secure), issue is in drizzle-kit nested deps
+  - Production builds unaffected, TypeScript compilation clean
 
 ## 2025-08-09 - GitHub Workflow Dependencies Fixed + ESLint Cleanup
 - **GitHub Actions Fix**: Resolved npm dependency conflicts in CI/CD pipelines
