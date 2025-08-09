@@ -93,11 +93,34 @@ export default function VendorSetup() {
   });
 
   const onSubmit = (data: VendorSetupForm) => {
+    console.log("Form submitted with data:", data);
     setupMutation.mutate(data);
   };
 
-  const nextStep = () => {
-    if (step < 3) setStep(step + 1);
+  const nextStep = async () => {
+    if (step < 3) {
+      // Validate current step before proceeding
+      let fieldsToValidate: (keyof VendorSetupForm)[] = [];
+      
+      if (step === 1) {
+        fieldsToValidate = ['businessName', 'businessDescription', 'businessAddress', 'businessPhone'];
+      } else if (step === 2) {
+        fieldsToValidate = ['bankName', 'bankAccount'];
+      }
+      
+      // Trigger validation for the current step fields
+      const isStepValid = await form.trigger(fieldsToValidate);
+      
+      if (isStepValid) {
+        setStep(step + 1);
+      } else {
+        toast({
+          title: "Champs requis",
+          description: "Veuillez remplir tous les champs obligatoires avant de continuer",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const prevStep = () => {

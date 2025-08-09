@@ -32,6 +32,7 @@ const phoneSignupSchema = z.object({
     .min(8, "Le numéro de téléphone doit avoir 8 chiffres")
     .max(8, "Le numéro de téléphone doit avoir 8 chiffres")
     .regex(/^[0-9]{8}$/, "Le numéro doit contenir uniquement des chiffres"),
+  password: z.string().min(6, "Le mot de passe doit avoir au moins 6 caractères"),
   operator: z.enum(["orange", "moov"], { required_error: "Veuillez choisir votre opérateur" }),
   role: z.enum(["customer", "vendor", "driver"], { required_error: "Veuillez choisir votre rôle" }),
 });
@@ -54,6 +55,7 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
       firstName: "",
       lastName: "",
       phone: "",
+      password: "",
       operator: "orange",
       role: "customer",
     },
@@ -101,8 +103,8 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
       } else if (userData.role === "driver") {
         window.location.href = "/driver-setup";
       } else {
-        // Customer role goes directly to login
-        window.location.href = "/api/login";
+        // Customer role goes to home page - they can login from there
+        window.location.href = "/";
       }
     },
     onError: () => {
@@ -271,6 +273,20 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
                     className="rounded-l-none"
                   />
                 </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Mot de passe</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

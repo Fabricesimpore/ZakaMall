@@ -1,4 +1,6 @@
 // Email service for ZakaMall - supports actual email sending
+import * as nodemailer from 'nodemailer';
+
 interface EmailMessage {
   to: string;
   subject: string;
@@ -69,20 +71,20 @@ export class EmailService {
         return true;
       }
 
-      // Try Gmail credentials as fallback
+      // Try Gmail SMTP
       if (this.emailConfig.user && this.emailConfig.pass && this.emailConfig.service === "gmail") {
         try {
-          console.log("Attempting Gmail fallback...");
-
-          const httpResult = await this.sendViaHTTPService(message);
-          if (httpResult) {
-            console.log(`📧 Email sent successfully to ${message.to} via HTTP service`);
+          console.log("Attempting Gmail SMTP...");
+          
+          const gmailResult = await this.sendViaGmailSMTP(message);
+          if (gmailResult) {
+            console.log(`📧 Email sent successfully to ${message.to} via Gmail SMTP`);
             return true;
           }
 
-          console.log("Gmail fallback unavailable");
+          console.log("Gmail SMTP unavailable");
         } catch (emailError) {
-          console.error("Gmail fallback error:", emailError);
+          console.error("Gmail SMTP error:", emailError);
         }
       }
 
@@ -256,6 +258,46 @@ export class EmailService {
       }
     } catch (error) {
       console.error("EmailJS server-side exception:", error);
+      return false;
+    }
+  }
+
+  private async sendViaGmailSMTP(message: EmailMessage): Promise<boolean> {
+    try {
+      // Debug Gmail credentials (without exposing password)
+      console.log('Gmail SMTP config:', {
+        user: this.emailConfig.user,
+        passLength: this.emailConfig.pass?.length,
+        from: this.emailConfig.from
+      });
+      
+      // Create Gmail SMTP transporter
+      const transporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+          user: this.emailConfig.user,
+          pass: this.emailConfig.pass
+        },
+        tls: {
+          rejectUnauthorized: false
+        }
+      });
+
+      // Send email
+      const result = await transporter.sendMail({
+        from: this.emailConfig.from,
+        to: message.to,
+        subject: message.subject,
+        text: message.text,
+        html: message.html
+      });
+
+      console.log('Gmail SMTP message sent successfully:', result.messageId);
+      return true;
+    } catch (error) {
+      console.error('Gmail SMTP error details:', error);
       return false;
     }
   }

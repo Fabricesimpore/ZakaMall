@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { VendorStats, Product, Order } from "@shared/schema";
+import type { VendorStats, Product, Order, User, Vendor } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,8 +7,103 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import VendorProducts from "@/components/VendorProducts";
 import VendorOrders from "@/components/VendorOrders";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
+import Navbar from "@/components/Navbar";
 
 export default function VendorDashboard() {
+  const { user, isLoading: authLoading } = useAuth();
+  const { toast } = useToast();
+
+  // Redirect to home if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast({
+        title: "Connexion requise",
+        description: "Vous devez être connecté pour accéder à cette page",
+        variant: "destructive",
+      });
+      window.location.href = "/";
+      return;
+    }
+  }, [user, authLoading, toast]);
+
+  const { data: vendor = {} as User & { roleData?: Vendor }, isLoading: vendorLoading } = useQuery<
+    User & { roleData?: Vendor }
+  >({
+    queryKey: ["/api/auth/user"],
+    enabled: !!user,
+  });
+
+  if (authLoading || vendorLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-zaka-orange"></div>
+      </div>
+    );
+  }
+
+  if (!vendor?.roleData || user?.role !== "vendor") {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <Card>
+            <CardContent className="p-8 text-center">
+              <i className="fas fa-store text-6xl text-zaka-orange mb-4"></i>
+              <h2 className="text-2xl font-bold mb-4">Devenir vendeur sur ZakaMall</h2>
+              <p className="text-gray-600 mb-6">
+                Rejoignez notre marketplace et vendez vos produits à travers tout le Burkina Faso.
+                Vous devez compléter le processus d'inscription vendeur pour accéder à ce tableau de bord.
+              </p>
+              
+              <div className="bg-blue-50 p-4 rounded-lg mb-6">
+                <h3 className="font-semibold text-blue-900 mb-2">
+                  <i className="fas fa-check-circle mr-2"></i>
+                  Avantages vendeur ZakaMall
+                </h3>
+                <ul className="text-sm text-blue-800 text-left space-y-1">
+                  <li>• Accès à des milliers de clients</li>
+                  <li>• Paiements sécurisés (Orange Money, Moov Money)</li>
+                  <li>• Système de livraison intégré</li>
+                  <li>• Gestion d'inventaire simplifiée</li>
+                  <li>• Support client dédié</li>
+                </ul>
+              </div>
+
+              <div className="bg-orange-50 p-4 rounded-lg mb-6">
+                <h4 className="font-semibold text-orange-900 mb-2">
+                  <i className="fas fa-info-circle mr-2"></i>
+                  Processus d'inscription (3 étapes)
+                </h4>
+                <ul className="text-sm text-orange-800 text-left space-y-1">
+                  <li>1. Informations sur votre entreprise</li>
+                  <li>2. Coordonnées bancaires pour les paiements</li>
+                  <li>3. Documents d'identification (optionnels)</li>
+                  <li>4. Validation sous 24-48h par notre équipe</li>
+                </ul>
+              </div>
+
+              <Link href="/vendor-setup">
+                <Button className="bg-zaka-orange hover:bg-zaka-orange text-white px-8 py-3 text-lg">
+                  <i className="fas fa-arrow-right mr-2"></i>
+                  Commencer l'inscription vendeur
+                </Button>
+              </Link>
+              
+              <p className="text-xs text-gray-500 mt-4">
+                Déjà inscrit en tant que vendeur mais en attente d'approbation?{" "}
+                <Link href="/vendor-pending" className="text-zaka-orange hover:underline">
+                  Vérifiez votre statut
+                </Link>
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
   const { data: stats = {} as VendorStats, isLoading: statsLoading } = useQuery<VendorStats>({
     queryKey: ["/api/vendor/stats"],
   });

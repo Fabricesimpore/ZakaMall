@@ -17,6 +17,7 @@ export function getSession() {
   });
   return session({
     secret: process.env.SESSION_SECRET || "development-secret-change-in-production",
+    name: 'connect.sid',
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
@@ -24,6 +25,7 @@ export function getSession() {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: sessionTtl,
+      sameSite: 'lax', // Allow same-site requests
     },
   });
 }
@@ -108,6 +110,7 @@ export function createUserSession(req: any, user: any): Promise<void> {
           console.error("Session save error:", err);
           reject(err);
         } else {
+          console.log("Session saved successfully for user:", user.email);
           resolve();
         }
       });

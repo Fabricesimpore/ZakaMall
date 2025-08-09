@@ -30,19 +30,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Login endpoint with password verification
   app.post("/api/auth/login", async (req, res) => {
     const { email, password } = req.body;
+    console.log("=== LOGIN ATTEMPT ===");
+    console.log("Email:", email);
+    console.log("Password provided:", !!password);
 
     try {
       // Validate input
       if (!email || !password) {
+        console.log("Missing email or password");
         return res.status(400).json({ error: "Email et mot de passe requis" });
       }
 
       // Find user by email
+      console.log("Looking up user by email:", email);
       const user = await storage.getUserByEmail(email);
 
       if (!user) {
+        console.log("User not found for email:", email);
         return res.status(401).json({ error: "Email ou mot de passe incorrect" });
       }
+
+      console.log("User found:", { id: user.id, email: user.email, hasPassword: !!user.password, role: user.role });
 
       // Check if user has a password (for users who signed up with password)
       if (!user.password) {
@@ -66,11 +74,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify password
       const isValidPassword = await verifyPassword(password, user.password);
       if (!isValidPassword) {
+        console.log("Invalid password for user:", email);
         return res.status(401).json({ error: "Email ou mot de passe incorrect" });
       }
 
+      console.log("Password verified for user:", email, "Creating session...");
+      
       // Create user session
-      await createUserSession(req, user);
+      try {
+        await createUserSession(req, user);
+        console.log("Session creation completed for user:", email);
+      } catch (sessionError) {
+        console.error("Session creation failed:", sessionError);
+        return res.status(500).json({ error: "Failed to create session" });
+      }
 
       res.json({
         success: true,
@@ -88,7 +105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Logout endpoint
+  // Logout endpoint (POST)
   app.post("/api/auth/logout", (req, res) => {
     req.session?.destroy((err) => {
       if (err) {
@@ -97,6 +114,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.clearCookie("connect.sid");
       res.json({ success: true, message: "Logged out successfully" });
+    });
+  });
+
+  // Logout endpoint (GET) - for direct navigation
+  app.get("/api/logout", (req, res) => {
+    req.session?.destroy((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+        return res.redirect("/?error=logout_failed");
+      }
+      res.clearCookie("connect.sid");
+      res.redirect("/");
     });
   });
   
@@ -629,6 +658,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin driver management routes
+  app.get("/api/drivers", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== "admin") {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      const { status } = req.query;
+      const drivers = await storage.getDrivers(status as any);
+      res.json(drivers);
+    } catch (error) {
+      console.error("Error fetching drivers:", error);
+      res.status(500).json({ message: "Failed to fetch drivers" });
+    }
+  });
+
+  app.patch("/api/drivers/:id/approval-status", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== "admin") {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      const { id } = req.params;
+      const { status } = req.body;
+
+      const driver = await storage.updateDriverApprovalStatus(id, status);
+      res.json(driver);
+    } catch (error) {
+      console.error("Error updating driver approval status:", error);
+      res.status(500).json({ message: "Failed to update driver approval status" });
+    }
+  });
+
   // Driver routes
   app.post("/api/drivers", isAuthenticated, async (req: any, res) => {
     try {
@@ -1107,13 +1171,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Phone authentication routes
   app.post("/api/auth/phone-signup", async (req, res) => {
     try {
-      const { firstName, lastName, phone, operator, role } = req.body;
+      const { firstName, lastName, phone, password, operator, role } = req.body;
 
       // Validate Burkina Faso phone number format
       if (!phone || !phone.startsWith("+226") || phone.length !== 12) {
         return res
           .status(400)
           .json({ message: "Format de téléphone invalide. Utilisez +226XXXXXXXX" });
+      }
+
+      // Validate password
+      if (!password || password.length < 6) {
+        return res
+          .status(400)
+          .json({ message: "Le mot de passe doit avoir au moins 6 caractères" });
       }
 
       // Check if phone already exists
@@ -1132,6 +1203,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
       });
 
+      // Hash password
+      const hashedPassword = await hashPassword(password);
+
       // Store pending user data (in production, you'd store this in a temporary table)
       await storage.storePendingUser({
         phone,
@@ -1139,6 +1213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName,
         phoneOperator: operator,
         role,
+        password: hashedPassword,
       });
 
       // Send verification SMS

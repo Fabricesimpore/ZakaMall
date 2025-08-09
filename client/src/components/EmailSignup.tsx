@@ -28,6 +28,7 @@ const emailSignupSchema = z.object({
   firstName: z.string().min(2, "Le prénom doit avoir au moins 2 caractères"),
   lastName: z.string().min(2, "Le nom doit avoir au moins 2 caractères"),
   email: z.string().email("Adresse email invalide"),
+  password: z.string().min(6, "Le mot de passe doit avoir au moins 6 caractères"),
   role: z.enum(["customer", "vendor", "driver"], { required_error: "Veuillez choisir votre rôle" }),
 });
 
@@ -48,6 +49,7 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
       firstName: "",
       lastName: "",
       email: "",
+      password: "",
       role: "customer",
     },
   });
@@ -90,8 +92,8 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
       } else if (userData.role === "driver") {
         window.location.href = "/driver-setup";
       } else {
-        // Customer role goes directly to login
-        window.location.href = "/api/login";
+        // Customer role goes to home page - they can login from there
+        window.location.href = "/";
       }
     },
     onError: () => {
@@ -201,6 +203,20 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
               <FormLabel>Adresse email</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="jean.ouedraogo@example.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Mot de passe</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -47,7 +47,7 @@ if (process.env.NODE_ENV === "production") {
 // More lenient rate limiting for authentication endpoints
 const authLimiter = rateLimit({
   windowMs: 900000, // 15 minutes
-  max: 10, // limit each IP to 10 auth attempts per windowMs
+  max: process.env.NODE_ENV === "development" ? 1000 : 10, // Much higher limit in development
   message: {
     error: "Too many authentication attempts, please try again later.",
     retryAfter: "15 minutes",
@@ -56,11 +56,15 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Apply auth rate limiting to specific endpoints
-app.use("/api/auth", authLimiter);
-app.use("/api/register", authLimiter);
-app.use("/api/login", authLimiter);
-app.use("/api/verify", authLimiter);
+// Apply auth rate limiting to specific endpoints (but skip in development for easier testing)
+if (process.env.NODE_ENV === "production") {
+  app.use("/api/auth", authLimiter);
+  app.use("/api/register", authLimiter);
+  app.use("/api/login", authLimiter);
+  app.use("/api/verify", authLimiter);
+} else {
+  console.log("⚠️  Auth rate limiting disabled in development mode");
+}
 
 // Request logging middleware
 app.use(requestLogger);

@@ -96,8 +96,10 @@ export interface IStorage {
   getDriver(id: string): Promise<Driver | undefined>;
   getDriverByUserId(userId: string): Promise<Driver | undefined>;
   getAvailableDrivers(): Promise<Driver[]>;
+  getDrivers(status?: string): Promise<Driver[]>;
   updateDriverLocation(id: string, lat: number, lng: number): Promise<Driver>;
   updateDriverStatus(id: string, isOnline: boolean): Promise<Driver>;
+  updateDriverApprovalStatus(id: string, status: string): Promise<Driver>;
 
   // Category operations
   createCategory(category: InsertCategory): Promise<Category>;
@@ -351,6 +353,57 @@ export class DatabaseStorage implements IStorage {
     const [driver] = await db
       .update(drivers)
       .set({ isOnline, updatedAt: new Date() })
+      .where(eq(drivers.id, id))
+      .returning();
+    return driver;
+  }
+
+  async getDrivers(status?: string): Promise<Driver[]> {
+    const query = db
+      .select({
+        id: drivers.id,
+        userId: drivers.userId,
+        vehicleType: drivers.vehicleType,
+        licenseNumber: drivers.licenseNumber,
+        vehicleModel: drivers.vehicleModel,
+        vehicleYear: drivers.vehicleYear,
+        vehicleColor: drivers.vehicleColor,
+        vehiclePlate: drivers.vehiclePlate,
+        emergencyContact: drivers.emergencyContact,
+        emergencyName: drivers.emergencyName,
+        workZone: drivers.workZone,
+        experience: drivers.experience,
+        status: drivers.status,
+        isActive: drivers.isActive,
+        isOnline: drivers.isOnline,
+        rating: drivers.rating,
+        currentLatitude: drivers.currentLatitude,
+        currentLongitude: drivers.currentLongitude,
+        createdAt: drivers.createdAt,
+        updatedAt: drivers.updatedAt,
+        user: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone,
+          createdAt: users.createdAt,
+        },
+      })
+      .from(drivers)
+      .leftJoin(users, eq(drivers.userId, users.id));
+
+    if (status) {
+      query.where(eq(drivers.status, status as any));
+    }
+
+    return await query;
+  }
+
+  async updateDriverApprovalStatus(id: string, status: string): Promise<Driver> {
+    const [driver] = await db
+      .update(drivers)
+      .set({ status: status as any, updatedAt: new Date() })
       .where(eq(drivers.id, id))
       .returning();
     return driver;
