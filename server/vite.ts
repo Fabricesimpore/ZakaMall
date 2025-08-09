@@ -45,7 +45,7 @@ export async function setupVite(app: Express, server: Server) {
     const url = req.originalUrl;
 
     try {
-      const clientTemplate = path.resolve(import.meta.dirname, "..", "client", "index.html");
+      const clientTemplate = path.resolve(process.cwd(), "client", "index.html");
 
       // always reload the index.html file from disk incase it changes
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
@@ -60,10 +60,30 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "..", "dist", "public");
+  // Fix for Railway production: try multiple path resolution strategies
+  let distPath;
+  
+  // Strategy 1: Standard build location
+  distPath = path.resolve(process.cwd(), "dist", "public");
+  
+  if (!fs.existsSync(distPath)) {
+    // Strategy 2: Alternative build location
+    distPath = path.resolve(process.cwd(), "public");
+  }
+  
+  if (!fs.existsSync(distPath)) {
+    // Strategy 3: Use import.meta if available
+    try {
+      const currentDir = import.meta.dirname || path.dirname(new URL(import.meta.url).pathname);
+      distPath = path.resolve(currentDir, "..", "dist", "public");
+    } catch (e) {
+      // Fallback to process.cwd()
+      distPath = path.resolve(process.cwd(), "dist", "public");
+    }
+  }
   
   console.log("🔍 Static file serving debug:");
-  console.log("  - Current directory:", import.meta.dirname);
+  console.log("  - Working directory:", process.cwd());
   console.log("  - Looking for static files in:", distPath);
   console.log("  - Directory exists:", fs.existsSync(distPath));
   
