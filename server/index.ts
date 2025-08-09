@@ -16,17 +16,19 @@ const limiter = rateLimit({
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || "100", 10), // limit each IP to 100 requests per windowMs
   message: {
     error: "Too many requests from this IP, please try again later.",
-    retryAfter: "15 minutes"
+    retryAfter: "15 minutes",
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   // Skip rate limiting for health checks and static assets
   skip: (req) => {
-    return req.path === "/health" || 
-           req.path === "/api/health" ||
-           req.path.startsWith("/assets/") ||
-           req.path.startsWith("/static/");
-  }
+    return (
+      req.path === "/health" ||
+      req.path === "/api/health" ||
+      req.path.startsWith("/assets/") ||
+      req.path.startsWith("/static/")
+    );
+  },
 });
 
 // Apply rate limiting to API routes only in production
@@ -40,7 +42,7 @@ const authLimiter = rateLimit({
   max: 10, // limit each IP to 10 auth attempts per windowMs
   message: {
     error: "Too many authentication attempts, please try again later.",
-    retryAfter: "15 minutes"
+    retryAfter: "15 minutes",
   },
   standardHeaders: true,
   legacyHeaders: false,
