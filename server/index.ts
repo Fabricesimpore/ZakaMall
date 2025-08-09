@@ -2,12 +2,19 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express, { type Request, Response, NextFunction } from "express";
+import compression from "compression";
 import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic } from "./vite";
 import logger, { requestLogger, errorLogger, logInfo } from "./logger";
 
 const app = express();
+
+// Enable compression for production
+if (process.env.NODE_ENV === "production") {
+  app.use(compression());
+}
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -57,6 +64,25 @@ app.use("/api/verify", authLimiter);
 
 // Request logging middleware
 app.use(requestLogger);
+
+// Health check endpoints (before rate limiting)
+app.get("/health", (_req, res) => {
+  res.status(200).json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+    version: "1.0.0",
+  });
+});
+
+app.get("/api/health", (_req, res) => {
+  res.status(200).json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+    version: "1.0.0",
+  });
+});
 
 (async () => {
   const server = await registerRoutes(app);
