@@ -2355,6 +2355,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Super Admin Profile Settings - Only for main admin (security restricted)
+  app.get("/api/admin/profile", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      // SECURITY: Only the main admin with specific email can access
+      if (user?.role !== "admin" || user?.email !== "simporefabrice15@gmail.com") {
+        return res.status(403).json({ message: "Unauthorized - Main admin access only" });
+      }
+
+      // Return user profile (without password)
+      const { password, ...safeProfile } = user;
+      res.json(safeProfile);
+    } catch (error) {
+      console.error("Error fetching admin profile:", error);
+      res.status(500).json({ message: "Failed to fetch profile" });
+    }
+  });
+
+  app.patch("/api/admin/profile", isAuthenticated, async (req: any, res) => {
+    try {
+      const { firstName, lastName, email, currentPassword, newPassword } = req.body;
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      // SECURITY: Only the main admin with specific email can update
+      if (user?.role !== "admin" || user?.email !== "simporefabrice15@gmail.com") {
+        return res.status(403).json({ message: "Unauthorized - Main admin access only" });
+      }
+
+      // Validate current password if changing password
+      if (newPassword) {
+        if (!currentPassword) {
+          return res.status(400).json({ message: "Current password required to change password" });
+        }
+        
+        const isValidPassword = await verifyPassword(currentPassword, user.password!);
+        if (!isValidPassword) {
+          return res.status(400).json({ message: "Current password is incorrect" });
+        }
+      }
+
+      // Check if new email is already taken (unless it's the same email)
+      if (email && email !== user.email) {
+        const existingUser = await storage.getUserByEmail(email);
+        if (existingUser) {
+          return res.status(400).json({ message: "Email already in use" });
+        }
+      }
+
+      // Prepare update data
+      const updateData: any = {};
+      if (firstName) updateData.firstName = firstName;
+      if (lastName) updateData.lastName = lastName;
+      if (email) updateData.email = email;
+      if (newPassword) {
+        updateData.password = await hashPassword(newPassword);
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ message: "No updates provided" });
+      }
+
+      // Update user in database
+      const updatedUser = await storage.updateUser(userId, updateData);
+
+      // Return updated profile (without password)
+      const { password, ...safeProfile } = updatedUser;
+      res.json({ message: "Profile updated successfully", user: safeProfile });
+    } catch (error) {
+      console.error("Error updating admin profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   // Update product images after upload
   app.put("/api/products/:productId/images", isAuthenticated, async (req: any, res) => {
     if (!req.body.imageURLs || !Array.isArray(req.body.imageURLs)) {

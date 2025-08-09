@@ -351,7 +351,20 @@ export default function AdminDashboard() {
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-zaka-dark mb-8">Administration système</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-zaka-dark">Administration système</h1>
+          {/* Profile Settings Button - Only for main admin */}
+          {user?.email === "simporefabrice15@gmail.com" && (
+            <Button
+              onClick={() => window.location.href = "/admin/profile"}
+              variant="outline"
+              className="border-zaka-orange text-zaka-orange hover:bg-zaka-orange hover:text-white"
+            >
+              <i className="fas fa-cog mr-2"></i>
+              Paramètres du profil
+            </Button>
+          )}
+        </div>
 
         {/* Admin Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

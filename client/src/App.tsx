@@ -11,6 +11,7 @@ import CustomerDashboard from "@/pages/CustomerDashboard";
 import VendorDashboard from "@/pages/VendorDashboard";
 import DriverDashboard from "@/pages/DriverDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
+import AdminProfile from "@/pages/AdminProfile";
 import Profile from "@/pages/Profile";
 import Chat from "@/pages/Chat";
 import VendorSetup from "@/pages/VendorSetup";
@@ -38,6 +39,7 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/create-admin" component={CreateAdmin} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/profile" component={AdminProfile} />
 
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
