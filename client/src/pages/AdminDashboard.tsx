@@ -360,7 +360,7 @@ export default function AdminDashboard() {
                   <CardTitle className="flex items-center justify-between">
                     <span>Demandes vendeurs en attente</span>
                     <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                      {pendingVendors.length} en attente
+                      {(pendingVendors as any[]).length} en attente
                     </Badge>
                   </CardTitle>
                 </CardHeader>
@@ -570,7 +570,7 @@ export default function AdminDashboard() {
                   <CardTitle className="flex items-center justify-between">
                     <span>Demandes chauffeurs en attente</span>
                     <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                      {pendingDrivers.length} en attente
+                      {(pendingDrivers as any[]).length} en attente
                     </Badge>
                   </CardTitle>
                 </CardHeader>

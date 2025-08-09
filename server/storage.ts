@@ -96,7 +96,7 @@ export interface IStorage {
   getDriver(id: string): Promise<Driver | undefined>;
   getDriverByUserId(userId: string): Promise<Driver | undefined>;
   getAvailableDrivers(): Promise<Driver[]>;
-  getDrivers(status?: string): Promise<Driver[]>;
+  getDrivers(status?: string): Promise<any[]>;
   updateDriverLocation(id: string, lat: number, lng: number): Promise<Driver>;
   updateDriverStatus(id: string, isOnline: boolean): Promise<Driver>;
   updateDriverApprovalStatus(id: string, status: string): Promise<Driver>;
@@ -358,7 +358,7 @@ export class DatabaseStorage implements IStorage {
     return driver;
   }
 
-  async getDrivers(status?: string): Promise<Driver[]> {
+  async getDrivers(status?: string): Promise<any[]> {
     const query = db
       .select({
         id: drivers.id,
@@ -377,8 +377,8 @@ export class DatabaseStorage implements IStorage {
         isActive: drivers.isActive,
         isOnline: drivers.isOnline,
         rating: drivers.rating,
-        currentLatitude: drivers.currentLatitude,
-        currentLongitude: drivers.currentLongitude,
+        currentLat: drivers.currentLat,
+        currentLng: drivers.currentLng,
         createdAt: drivers.createdAt,
         updatedAt: drivers.updatedAt,
         user: {
