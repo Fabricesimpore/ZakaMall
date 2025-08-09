@@ -5,7 +5,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic } from "./vite";
+import { setupVite } from "./vite";
+import { serveStaticFiles } from "./static-files";
 import logger, { requestLogger, errorLogger, logInfo } from "./logger";
 import { validateEnvironment, getNumericEnv } from "./envValidator";
 
@@ -112,30 +113,7 @@ app.get("/api/health", (_req, res) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
-    try {
-      serveStatic(app);
-    } catch (error) {
-      console.error("❌ Failed to setup static file serving:", error);
-      console.error("🔧 Falling back to basic error page...");
-      
-      // Fallback route to help debug
-      app.get("*", (req, res) => {
-        res.status(500).send(`
-          <html>
-            <body style="font-family: Arial, sans-serif; padding: 20px;">
-              <h1>🚧 ZakaMall Setup Issue</h1>
-              <p>The frontend build files are not available.</p>
-              <p><strong>URL:</strong> ${req.url}</p>
-              <p><strong>Environment:</strong> ${process.env.NODE_ENV}</p>
-              <p><strong>Time:</strong> ${new Date().toISOString()}</p>
-              <hr>
-              <p><strong>API Health Check:</strong> <a href="/api/health">/api/health</a></p>
-              <p><strong>Error:</strong> ${error.message}</p>
-            </body>
-          </html>
-        `);
-      });
-    }
+    serveStaticFiles(app);
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT

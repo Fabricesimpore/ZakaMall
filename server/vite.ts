@@ -60,25 +60,22 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  // Fix for Railway production: try multiple path resolution strategies
-  let distPath;
+  // Fix for Railway production: use process.cwd() for all paths
+  let distPath = path.resolve(process.cwd(), "dist", "public");
   
-  // Strategy 1: Standard build location
-  distPath = path.resolve(process.cwd(), "dist", "public");
+  // Alternative locations to check
+  const alternativePaths = [
+    path.resolve(process.cwd(), "public"),
+    path.resolve(process.cwd(), "build"),
+    path.resolve(process.cwd(), "client", "dist")
+  ];
   
   if (!fs.existsSync(distPath)) {
-    // Strategy 2: Alternative build location
-    distPath = path.resolve(process.cwd(), "public");
-  }
-  
-  if (!fs.existsSync(distPath)) {
-    // Strategy 3: Use import.meta if available
-    try {
-      const currentDir = import.meta.dirname || path.dirname(new URL(import.meta.url).pathname);
-      distPath = path.resolve(currentDir, "..", "dist", "public");
-    } catch (e) {
-      // Fallback to process.cwd()
-      distPath = path.resolve(process.cwd(), "dist", "public");
+    for (const altPath of alternativePaths) {
+      if (fs.existsSync(altPath)) {
+        distPath = altPath;
+        break;
+      }
     }
   }
   
@@ -97,7 +94,7 @@ export function serveStatic(app: Express) {
 
   if (!fs.existsSync(distPath)) {
     console.error(`❌ Could not find the build directory: ${distPath}`);
-    console.error("Available directories:", fs.readdirSync(path.resolve(import.meta.dirname, "..")));
+    console.error("Available directories:", fs.readdirSync(process.cwd()));
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
