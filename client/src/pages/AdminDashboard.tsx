@@ -959,6 +959,7 @@ export default function AdminDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Administrateurs du système</CardTitle>
+                {/* Delete functionality available for other admins */}
               </CardHeader>
               <CardContent>
                 {adminsLoading ? (
