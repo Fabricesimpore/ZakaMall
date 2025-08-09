@@ -45,8 +45,8 @@ type PaymentFormData = z.infer<typeof paymentFormSchema>;
 interface PaymentMethodSelectorProps {
   orderId: string;
   totalAmount: number;
-  onPaymentSuccess: (_paymentId: string, _transactionId: string) => void;
-  onPaymentError: (_errorMessage: string) => void;
+  onPaymentSuccess: (paymentId: string, transactionId: string) => void;
+  onPaymentError: (errorMessage: string) => void;
 }
 
 export default function PaymentMethodSelector({

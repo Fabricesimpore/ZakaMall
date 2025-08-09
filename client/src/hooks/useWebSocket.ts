@@ -6,10 +6,10 @@ interface WebSocketMessage {
   [key: string]: any;
 }
 
-export function useWebSocket(onMessage?: (message: WebSocketMessage) => void) {
+export function useWebSocket(onMessage?: (_message: WebSocketMessage) => void) {
   const { user } = useAuth();
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const isConnectedRef = useRef(false);
 
   const connect = useCallback(() => {

@@ -1,0 +1,500 @@
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/AdminDashboard.tsx
+Warning:    89:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   263:80  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   301:80  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/Cart.tsx
+Warning:   190:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   190:75  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   192:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   193:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   202:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   205:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   246:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/CheckoutForm.tsx
+Warning:   147:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   188:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/CustomerOrderTracking.tsx
+Warning:   63:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/DriverDashboard.tsx
+Warning:   113:6   warning  React Hook useEffect has a missing dependency: 'updateLocationMutation'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+Warning:   300:61  warning  Unexpected any. Specify a different type                                                                                   @typescript-eslint/no-explicit-any
+Warning:   302:56  warning  Unexpected any. Specify a different type                                                                                   @typescript-eslint/no-explicit-any
+Warning:   305:60  warning  Unexpected any. Specify a different type                                                                                   @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/ObjectUploader.tsx
+Error:   18:17  error  '_result' is defined but never used  no-unused-vars
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/PaymentMethodSelector.tsx
+Error:   48:22  error  '_paymentId' is defined but never used      no-unused-vars
+Error:   48:42  error  '_transactionId' is defined but never used  no-unused-vars
+Error:   49:20  error  '_errorMessage' is defined but never used   no-unused-vars
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/ProductImageUploader.tsx
+Error:   13:22  error    '_images' is defined but never used       no-unused-vars
+Warning:   29:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   62:75  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/VendorOrders.tsx
+Warning:   57:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   64:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   65:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   66:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   67:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   68:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   69:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   72:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/VendorProducts.tsx
+Warning:    74:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   150:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/ui/badge.tsx
+Warning:   33:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/ui/button.tsx
+Warning:   49:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/ui/carousel.tsx
+Error:   17:13  error  'api' is defined but never used  no-unused-vars
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/ui/chart.tsx
+Error:   12:4  error  '_key' is defined but never used  no-unused-vars
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/ui/form.tsx
+Warning:   161:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/ui/navigation-menu.tsx
+Warning:   111:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/ui/sidebar.tsx
+Error:    31:13  error    '_isOpen' is defined but never used                                                                                             no-unused-vars
+Error:    33:19  error    '_isOpen' is defined but never used                                                                                             no-unused-vars
+Error:    54:21  error    'open' is defined but never used                                                                                                no-unused-vars
+Error:    77:30  error    '_currentValue' is defined but never used                                                                                       no-unused-vars
+Warning:   743:3   warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/components/ui/toggle.tsx
+Warning:   41:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/hooks/use-toast.ts
+Error:    15:7   error  '_actionTypes' is assigned a value but only used as a type  @typescript-eslint/no-unused-vars
+Error:   124:25  error  'state' is defined but never used                           no-unused-vars
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/hooks/useWebSocket.ts
+Warning:    6:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Error:    9:43  error    'message' is defined but never used       no-unused-vars
+Error:   12:38  error    'NodeJS' is not defined                   no-undef
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/lib/queryClient.ts
+Error:   27:30  error  'options' is defined but never used  no-unused-vars
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/pages/AdminDashboard.tsx
+Error:   113:15  error    'error' is defined but never used                                        no-unused-vars
+Error:   113:15  error    'error' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+Warning:   186:60  warning  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+Warning:   201:60  warning  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+Warning:   216:60  warning  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+Warning:   231:60  warning  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+Warning:   263:32  warning  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+Warning:   265:33  warning  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+Warning:   265:52  warning  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+Warning:   319:34  warning  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+Warning:   331:39  warning  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+Warning:   331:61  warning  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/pages/Chat.tsx
+Warning:    26:52  warning  Unexpected any. Specify a different type                                                                               @typescript-eslint/no-explicit-any
+Warning:    30:54  warning  Unexpected any. Specify a different type                                                                               @typescript-eslint/no-explicit-any
+Warning:    38:15  warning  Unexpected any. Specify a different type                                                                               @typescript-eslint/no-explicit-any
+Warning:    86:6   warning  React Hook useEffect has a missing dependency: 'markAsReadMutation'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+Warning:   103:70  warning  Unexpected any. Specify a different type                                                                               @typescript-eslint/no-explicit-any
+Warning:   108:72  warning  Unexpected any. Specify a different type                                                                               @typescript-eslint/no-explicit-any
+Warning:   113:49  warning  Unexpected any. Specify a different type                                                                               @typescript-eslint/no-explicit-any
+Error:   198:33  error    'React' is not defined                                                                                                 no-undef
+Warning:   204:43  warning  Unexpected any. Specify a different type                                                                               @typescript-eslint/no-explicit-any
+Warning:   296:61  warning  Unexpected any. Specify a different type                                                                               @typescript-eslint/no-explicit-any
+Warning:   359:41  warning  Unexpected any. Specify a different type                                                                               @typescript-eslint/no-explicit-any
+Warning:   457:47  warning  Unexpected any. Specify a different type                                                                               @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/pages/CreateAdmin.tsx
+Warning:   19:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/pages/CustomerDashboard.tsx
+Error:    20:11  error    'user' is assigned a value but never used         no-unused-vars
+Error:    20:11  error    'user' is assigned a value but never used         @typescript-eslint/no-unused-vars
+Error:    24:11  error    'toast' is assigned a value but never used        no-unused-vars
+Error:    24:11  error    'toast' is assigned a value but never used        @typescript-eslint/no-unused-vars
+Warning:    26:76  warning  Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+Warning:    30:72  warning  Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+Error:    42:44  error    'cartLoading' is assigned a value but never used  no-unused-vars
+Error:    42:44  error    'cartLoading' is assigned a value but never used  @typescript-eslint/no-unused-vars
+Warning:    42:69  warning  Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+Warning:    82:45  warning  Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+Warning:   107:52  warning  Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+Warning:   142:41  warning  Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/pages/DriverDashboard.tsx
+Error:    79:63  error    'currentLoading' is assigned a value but never used  no-unused-vars
+Error:    79:63  error    'currentLoading' is assigned a value but never used  @typescript-eslint/no-unused-vars
+Warning:   191:36  warning  Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+Warning:   395:49  warning  Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+Warning:   471:53  warning  Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/pages/DriverSetup.tsx
+Error:   52:11  error  'user' is assigned a value but never used  no-unused-vars
+Error:   52:11  error  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/pages/Landing.tsx
+Error:    77:35  error  Replace `'white',·backgroundColor:·'#ff7722'` with `"white",·backgroundColor:·"#ff7722"`                                                      prettier/prettier
+Error:   116:35  error  Replace `'white',·borderColor:·'white',·backgroundColor:·'transparent'` with `"white",·borderColor:·"white",·backgroundColor:·"transparent"`  prettier/prettier
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/pages/PaymentTest.tsx
+Error:   47:14  error  'error' is defined but never used  no-unused-vars
+Error:   47:14  error  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/pages/ProductForm.tsx
+Warning:   277:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/pages/Products.tsx
+Warning:   39:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/pages/TestPayment.tsx
+Error:   12:10  error    'paymentSuccess' is assigned a value but never used  no-unused-vars
+Error:   12:10  error    'paymentSuccess' is assigned a value but never used  @typescript-eslint/no-unused-vars
+Warning:   46:23  warning  Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/pages/VendorDashboard.tsx
+Warning:   122:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   183:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/client/src/pages/VendorSetup.tsx
+Error:   43:10  error  'isSubmitting' is assigned a value but never used     no-unused-vars
+Error:   43:10  error  'isSubmitting' is assigned a value but never used     @typescript-eslint/no-unused-vars
+Error:   43:24  error  'setIsSubmitting' is assigned a value but never used  no-unused-vars
+Error:   43:24  error  'setIsSubmitting' is assigned a value but never used  @typescript-eslint/no-unused-vars
+Error:   44:11  error  'user' is assigned a value but never used             no-unused-vars
+Error:   44:11  error  'user' is assigned a value but never used             @typescript-eslint/no-unused-vars
+
+/home/runner/work/ZakaMall/ZakaMall/server/emailService.ts
+Error:    51:19  error  Replace ``Email·config·check:·user=${!!this.emailConfig.user},·pass=${!!this.emailConfig.pass},·service=${this.emailConfig.service}`);` with `⏎········`Email·config·check:·user=${!!this.emailConfig.user},·pass=${!!this.emailConfig.pass},·service=${this.emailConfig.service}``  prettier/prettier
+Error:    52:7   error  Insert `);⏎`                                                                                                                                                                                                                                                                         prettier/prettier
+Error:    55:1   error  Delete `······`                                                                                                                                                                                                                                                                      prettier/prettier
+Error:    74:1   error  Delete `··········`                                                                                                                                                                                                                                                                  prettier/prettier
+Error:    80:1   error  Delete `··········`                                                                                                                                                                                                                                                                  prettier/prettier
+Error:   123:58  error  Replace `'<p>Bonjour,</p>'` with `"<p>Bonjour,</p>"`                                                                                                                                                                                                                                 prettier/prettier
+Error:   148:36  error  'message' is defined but never used                                                                                                                                                                                                                                                  no-unused-vars
+Error:   148:36  error  'message' is defined but never used. Allowed unused args must match /^_/u                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+Error:   148:46  error  Replace `·to:·string;·subject:·string;·text:·string;·html:·string` with `⏎····to:·string;⏎····subject:·string;⏎····text:·string;⏎····html:·string;⏎·`                                                                                                                                prettier/prettier
+Error:   153:5   error  Delete `··⏎····`                                                                                                                                                                                                                                                                     prettier/prettier
+Error:   160:44  error  Replace `·to:·string;·subject:·string;·text:·string;·html:·string` with `⏎····to:·string;⏎····subject:·string;⏎····text:·string;⏎····html:·string;⏎·`                                                                                                                                prettier/prettier
+Error:   165:1   error  Delete `······`                                                                                                                                                                                                                                                                      prettier/prettier
+Error:   167:17  error  Replace `'POST'` with `"POST"`                                                                                                                                                                                                                                                       prettier/prettier
+Error:   169:11  error  Replace `'Content-Type':·'application/json'` with `"Content-Type":·"application/json"`                                                                                                                                                                                               prettier/prettier
+Error:   170:11  error  Replace `'Accept':·'application/json'` with `Accept:·"application/json",`                                                                                                                                                                                                            prettier/prettier
+Error:   178:18  error  Replace `'https://example.com/thanks'` with `"https://example.com/thanks"`                                                                                                                                                                                                           prettier/prettier
+Error:   187:21  error  Replace `'Formspree·not·available:'` with `"Formspree·not·available:"`                                                                                                                                                                                                               prettier/prettier
+Error:   196:52  error  Replace `·to:·string;·subject:·string;·text:·string;·html:·string` with `⏎····to:·string;⏎····subject:·string;⏎····text:·string;⏎····html:·string;⏎·`                                                                                                                                prettier/prettier
+Error:   202:1   error  Delete `······`                                                                                                                                                                                                                                                                      prettier/prettier
+Error:   209:36  error  Replace `'https://api.emailjs.com/api/v1.0/email/send'` with `"https://api.emailjs.com/api/v1.0/email/send"`                                                                                                                                                                         prettier/prettier
+Error:   210:17  error  Replace `'POST'` with `"POST"`                                                                                                                                                                                                                                                       prettier/prettier
+Error:   212:11  error  Replace `'Content-Type':·'application/json'` with `"Content-Type":·"application/json"`                                                                                                                                                                                               prettier/prettier
+Error:   213:11  error  Replace `'User-Agent':·'Mozilla/5.0·(Windows·NT·10.0;·Win64;·x64)·AppleWebKit/537.36'` with `"User-Agent":·"Mozilla/5.0·(Windows·NT·10.0;·Win64;·x64)·AppleWebKit/537.36"`                                                                                                           prettier/prettier
+Error:   214:11  error  Replace `'Referer':·'https://zakamart.app'` with `Referer:·"https://zakamart.app"`                                                                                                                                                                                                   prettier/prettier
+Error:   215:11  error  Replace `'Origin':·'https://zakamart.app'` with `Origin:·"https://zakamart.app"`                                                                                                                                                                                                     prettier/prettier
+Error:   223:39  error  Replace `'@'` with `"@"`                                                                                                                                                                                                                                                             prettier/prettier
+Error:   227:24  error  Replace `'ZakaMall'` with `"ZakaMall"`                                                                                                                                                                                                                                               prettier/prettier
+Error:   238:21  error  Replace `'EmailJS·server-side·failed:'` with `"EmailJS·server-side·failed:"`                                                                                                                                                                                                         prettier/prettier
+Error:   300:48  error  Insert `⏎`                                                                                                                                                                                                                                                                           prettier/prettier
+
+/home/runner/work/ZakaMall/ZakaMall/server/index.ts
+Warning:   12:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   42:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Error:   42:52  error    '_next' is defined but never used         no-unused-vars
+
+/home/runner/work/ZakaMall/ZakaMall/server/objectAcl.ts
+Error:    7:3   error  'USER_LIST' is defined but never used                                     no-unused-vars
+Error:    8:3   error  'EMAIL_DOMAIN' is defined but never used                                  no-unused-vars
+Error:    9:3   error  'GROUP_MEMBER' is defined but never used                                  no-unused-vars
+Error:   10:3   error  'SUBSCRIBER' is defined but never used                                    no-unused-vars
+Error:   20:3   error  'READ' is defined but never used                                          no-unused-vars
+Error:   21:3   error  'WRITE' is defined but never used                                         no-unused-vars
+Error:   50:21  error  'type' is defined but never used                                          no-unused-vars
+Error:   51:21  error  'id' is defined but never used                                            no-unused-vars
+Error:   55:29  error  'userId' is defined but never used                                        no-unused-vars
+Error:   64:25  error  'userId' is defined but never used                                        no-unused-vars
+Error:   64:25  error  'userId' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/ZakaMall/ZakaMall/server/paymentService.ts
+Error:   404:25  error  'request' is defined but never used                                        no-unused-vars
+Error:   404:25  error  'request' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/ZakaMall/ZakaMall/server/replitAuth.ts
+Warning:    48:9   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:    57:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   135:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Error:   157:12  error    'error' is defined but never used         no-unused-vars
+Error:   157:12  error    'error' is defined but never used         @typescript-eslint/no-unused-vars
+
+/home/runner/work/ZakaMall/ZakaMall/server/routes.ts
+Warning:     45:15  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:     76:47  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    167:67  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    222:75  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    377:58  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    401:66  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    420:55  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    424:55  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    435:63  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    453:68  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    481:72  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    506:57  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    521:56  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    529:58  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    537:69  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    556:57  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    581:71  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    594:69  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    619:58  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    672:63  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    691:54  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    704:53  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    715:59  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    728:60  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    739:56  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    751:56  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    768:55  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    774:20  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    794:59  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    810:68  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    823:75  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    837:57  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    862:69  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    873:69  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    884:64  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    902:59  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    913:60  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    947:76  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    967:77  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:    991:61  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1006:73  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1019:75  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1268:67  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1304:61  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1321:64  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1338:65  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1357:74  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1374:68  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1402:68  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1425:70  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1448:71  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1471:62  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1481:22  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1498:75  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1523:74  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1558:68  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1592:62  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1609:61  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1626:66  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1644:64  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1663:77  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1691:64  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1708:60  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1725:61  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1742:71  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1765:67  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1789:75  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1842:67  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1917:75  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Warning:   1973:73  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+Error:   2023:40  error    'req' is defined but never used                                        no-unused-vars
+Error:   2023:40  error    'req' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+Warning:   2023:45  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/server/smsService.ts
+Error:    19:58  error  'firstName' is defined but never used                                                                                                                                                                   no-unused-vars
+Error:    19:58  error  'firstName' is defined but never used. Allowed unused args must match /^_/u                                                                                                                             @typescript-eslint/no-unused-vars
+Error:    21:1   error  Delete `····`                                                                                                                                                                                           prettier/prettier
+Error:    27:1   error  Delete `····`                                                                                                                                                                                           prettier/prettier
+Error:    35:1   error  Delete `······`                                                                                                                                                                                         prettier/prettier
+Error:    55:1   error  Delete `······`                                                                                                                                                                                         prettier/prettier
+Error:    67:40  error  Replace `''` with `""`                                                                                                                                                                                  prettier/prettier
+Error:    68:1   error  Delete `····`                                                                                                                                                                                           prettier/prettier
+Error:    70:28  error  Replace `'226'` with `"226"`                                                                                                                                                                            prettier/prettier
+Error:    76:35  error  Replace `'0'` with `"0"`                                                                                                                                                                                prettier/prettier
+Error:    80:1   error  Delete `····`                                                                                                                                                                                           prettier/prettier
+Error:    96:71  error  Replace `'base64'` with `"base64"`                                                                                                                                                                      prettier/prettier
+Error:    97:1   error  Delete `······`                                                                                                                                                                                         prettier/prettier
+Error:    98:36  error  Replace ``https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,` with `⏎········`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,⏎·······`                   prettier/prettier
+Error:    99:1   error  Replace `········method:·'POST'` with `··········method:·"POST"`                                                                                                                                        prettier/prettier
+Error:   100:1   error  Insert `··`                                                                                                                                                                                             prettier/prettier
+Error:   101:11  error  Replace `'Authorization'` with `··Authorization`                                                                                                                                                        prettier/prettier
+Error:   102:11  error  Replace `'Content-Type':·'application/x-www-form-urlencoded'` with `··"Content-Type":·"application/x-www-form-urlencoded"`                                                                              prettier/prettier
+Error:   103:1   error  Insert `··`                                                                                                                                                                                             prettier/prettier
+Error:   104:1   error  Insert `··`                                                                                                                                                                                             prettier/prettier
+Error:   105:1   error  Insert `··`                                                                                                                                                                                             prettier/prettier
+Error:   106:11  error  Insert `··`                                                                                                                                                                                             prettier/prettier
+Error:   107:1   error  Insert `··`                                                                                                                                                                                             prettier/prettier
+Error:   108:9   error  Insert `··`                                                                                                                                                                                             prettier/prettier
+Error:   109:1   error  Replace `······}` with `········}⏎······`                                                                                                                                                               prettier/prettier
+Error:   117:1   error  Delete `········`                                                                                                                                                                                       prettier/prettier
+Error:   120:23  error  Replace ``⚠️·Twilio·doesn't·support·SMS·to·${phone}·region.·Using·fallback·to·console.`` with `⏎············`⚠️·Twilio·doesn't·support·SMS·to·${phone}·region.·Using·fallback·to·console.`⏎··········`  prettier/prettier
+Error:   127:1   error  Delete `········`                                                                                                                                                                                       prettier/prettier
+Error:   142:36  error  Replace `'https://textbelt.com/text'` with `"https://textbelt.com/text"`                                                                                                                                prettier/prettier
+Error:   143:17  error  Replace `'POST'` with `"POST"`                                                                                                                                                                          prettier/prettier
+Error:   145:11  error  Replace `'Content-Type':·'application/json'` with `"Content-Type":·"application/json"`                                                                                                                  prettier/prettier
+Error:   155:1   error  Delete `······`                                                                                                                                                                                         prettier/prettier
+Error:   176:29  error  Replace `·process.env.ORANGE_SMS_ENDPOINT·||` with `⏎········process.env.ORANGE_SMS_ENDPOINT·||⏎·······`                                                                                                prettier/prettier
+Error:   184:29  error  Insert `,`                                                                                                                                                                                              prettier/prettier
+Error:   187:10  error  Insert `,`                                                                                                                                                                                              prettier/prettier
+Error:   191:17  error  Replace `'POST'` with `"POST"`                                                                                                                                                                          prettier/prettier
+Error:   193:11  error  Replace `'Authorization'` with `Authorization`                                                                                                                                                          prettier/prettier
+Error:   194:11  error  Replace `'Content-Type':·'application/json'` with `"Content-Type":·"application/json"`                                                                                                                  prettier/prettier
+Error:   195:11  error  Replace `'Accept':·'application/json'` with `Accept:·"application/json"`                                                                                                                                prettier/prettier
+Error:   201:15  error  'result' is assigned a value but never used                                                                                                                                                             no-unused-vars
+Error:   201:15  error  'result' is assigned a value but never used                                                                                                                                                             @typescript-eslint/no-unused-vars
+Error:   222:1   error  Delete `······`                                                                                                                                                                                         prettier/prettier
+Error:   223:36  error  Replace `'https://api.africastalking.com/version1/messaging'` with `"https://api.africastalking.com/version1/messaging"`                                                                                prettier/prettier
+Error:   224:17  error  Replace `'POST'` with `"POST"`                                                                                                                                                                          prettier/prettier
+Error:   226:11  error  Replace `'ApiKey'` with `ApiKey`                                                                                                                                                                        prettier/prettier
+Error:   227:11  error  Replace `'Content-Type':·'application/x-www-form-urlencoded'` with `"Content-Type":·"application/x-www-form-urlencoded"`                                                                                prettier/prettier
+Error:   228:11  error  Replace `'Accept':·'application/json'` with `Accept:·"application/json"`                                                                                                                                prettier/prettier
+Error:   234:42  error  Replace `''` with `""`                                                                                                                                                                                  prettier/prettier
+Error:   239:1   error  Delete `······`                                                                                                                                                                                         prettier/prettier
+Error:   260:44  error  Insert `⏎`                                                                                                                                                                                              prettier/prettier
+
+/home/runner/work/ZakaMall/ZakaMall/server/storage.ts
+Error:     17:3   error    'sessions' is defined but never used           no-unused-vars
+Error:     17:3   error    'sessions' is defined but never used           @typescript-eslint/no-unused-vars
+Error:     31:8   error    'OrderItem' is defined but never used          no-unused-vars
+Error:     31:8   error    'OrderItem' is defined but never used          @typescript-eslint/no-unused-vars
+Error:     52:10  error    'randomUUID' is defined but never used         no-unused-vars
+Error:     52:10  error    'randomUUID' is defined but never used         @typescript-eslint/no-unused-vars
+Error:     56:11  error    'id' is defined but never used                 no-unused-vars
+Error:     57:18  error    'phone' is defined but never used              no-unused-vars
+Error:     58:14  error    'user' is defined but never used               no-unused-vars
+Error:     59:14  error    'user' is defined but never used               no-unused-vars
+Error:     60:23  error    'user' is defined but never used               no-unused-vars
+Error:     61:18  error    'userId' is defined but never used             no-unused-vars
+Error:     61:34  error    'role' is defined but never used               no-unused-vars
+Error:     62:18  error    'role' is defined but never used               no-unused-vars
+Error:     64:14  error    'userId' is defined but never used             no-unused-vars
+Error:     67:27  error    'verification' is defined but never used       no-unused-vars
+Error:     68:19  error    'phone' is defined but never used              no-unused-vars
+Error:     68:34  error    'code' is defined but never used               no-unused-vars
+Error:     69:29  error    'id' is defined but never used                 no-unused-vars
+Error:     72:27  error    'verification' is defined but never used       no-unused-vars
+Error:     73:19  error    'email' is defined but never used              no-unused-vars
+Error:     73:34  error    'code' is defined but never used               no-unused-vars
+Error:     74:29  error    'id' is defined but never used                 no-unused-vars
+Error:     75:18  error    'email' is defined but never used              no-unused-vars
+Error:     76:23  error    'userData' is defined but never used           no-unused-vars
+Warning:     76:33  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Error:     79:20  error    'userData' is defined but never used           no-unused-vars
+Warning:     79:30  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Error:     80:18  error    'identifier' is defined but never used         no-unused-vars
+Warning:     80:47  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Error:     81:21  error    'identifier' is defined but never used         no-unused-vars
+Error:     84:16  error    'vendor' is defined but never used             no-unused-vars
+Error:     85:13  error    'id' is defined but never used                 no-unused-vars
+Error:     86:21  error    'userId' is defined but never used             no-unused-vars
+Error:     87:14  error    'status' is defined but never used             no-unused-vars
+Error:     89:5   error    'id' is defined but never used                 no-unused-vars
+Error:     90:5   error    'status' is defined but never used             no-unused-vars
+Error:     94:16  error    'driver' is defined but never used             no-unused-vars
+Error:     95:13  error    'id' is defined but never used                 no-unused-vars
+Error:     96:21  error    'userId' is defined but never used             no-unused-vars
+Error:     98:24  error    'id' is defined but never used                 no-unused-vars
+Error:     98:36  error    'lat' is defined but never used                no-unused-vars
+Error:     98:49  error    'lng' is defined but never used                no-unused-vars
+Error:     99:22  error    'id' is defined but never used                 no-unused-vars
+Error:     99:34  error    'isOnline' is defined but never used           no-unused-vars
+Error:    102:18  error    'category' is defined but never used           no-unused-vars
+Error:    104:15  error    'id' is defined but never used                 no-unused-vars
+Error:    107:17  error    'product' is defined but never used            no-unused-vars
+Error:    108:14  error    'id' is defined but never used                 no-unused-vars
+Error:    109:18  error    'id' is defined but never used                 no-unused-vars
+Error:    110:15  error    'filters' is defined but never used            no-unused-vars
+Error:    116:21  error    'vendorId' is defined but never used           no-unused-vars
+Error:    117:17  error    'id' is defined but never used                 no-unused-vars
+Error:    117:29  error    'updates' is defined but never used            no-unused-vars
+Error:    118:22  error    'id' is defined but never used                 no-unused-vars
+Error:    118:34  error    'quantity' is defined but never used           no-unused-vars
+Error:    119:23  error    'id' is defined but never used                 no-unused-vars
+Error:    119:35  error    'images' is defined but never used             no-unused-vars
+Error:    120:17  error    'id' is defined but never used                 no-unused-vars
+Error:    121:23  error    'vendorId' is defined but never used           no-unused-vars
+Error:    124:13  error    'item' is defined but never used               no-unused-vars
+Error:    125:16  error    'userId' is defined but never used             no-unused-vars
+Error:    126:18  error    'id' is defined but never used                 no-unused-vars
+Error:    126:30  error    'quantity' is defined but never used           no-unused-vars
+Error:    127:18  error    'id' is defined but never used                 no-unused-vars
+Error:    128:13  error    'userId' is defined but never used             no-unused-vars
+Error:    131:15  error    'order' is defined but never used              no-unused-vars
+Error:    131:35  error    'items' is defined but never used              no-unused-vars
+Error:    132:12  error    'id' is defined but never used                 no-unused-vars
+Error:    133:13  error    'filters' is defined but never used            no-unused-vars
+Error:    139:21  error    'id' is defined but never used                 no-unused-vars
+Error:    139:33  error    'status' is defined but never used             no-unused-vars
+Error:    140:23  error    'orderId' is defined but never used            no-unused-vars
+Error:    140:40  error    'driverId' is defined but never used           no-unused-vars
+Error:    143:16  error    'review' is defined but never used             no-unused-vars
+Error:    144:21  error    'productId' is defined but never used          no-unused-vars
+Error:    147:18  error    'vendorId' is defined but never used           no-unused-vars
+Error:    153:18  error    'driverId' is defined but never used           no-unused-vars
+Error:    166:18  error    'chatRoom' is defined but never used           no-unused-vars
+Error:    167:20  error    'userId' is defined but never used             no-unused-vars
+Error:    168:22  error    'participant' is defined but never used        no-unused-vars
+Error:    169:20  error    'userId' is defined but never used             no-unused-vars
+Error:    169:36  error    'chatRoomId' is defined but never used         no-unused-vars
+Error:    170:17  error    'message' is defined but never used            no-unused-vars
+Error:    171:19  error    'chatRoomId' is defined but never used         no-unused-vars
+Error:    171:39  error    'limit' is defined but never used              no-unused-vars
+Error:    171:55  error    'offset' is defined but never used             no-unused-vars
+Error:    172:15  error    'query' is defined but never used              no-unused-vars
+Error:    173:27  error    'chatRoomId' is defined but never used         no-unused-vars
+Error:    176:17  error    'payment' is defined but never used            no-unused-vars
+Error:    177:14  error    'id' is defined but never used                 no-unused-vars
+Error:    178:20  error    'orderId' is defined but never used            no-unused-vars
+Error:    180:5   error    'id' is defined but never used                 no-unused-vars
+Error:    181:5   error    'status' is defined but never used             no-unused-vars
+Error:    182:5   error    'failureReason' is defined but never used      no-unused-vars
+Error:    185:5   error    'id' is defined but never used                 no-unused-vars
+Error:    186:5   error    'transactionId' is defined but never used      no-unused-vars
+Error:    187:5   error    'operatorReference' is defined but never used  no-unused-vars
+Error:    189:22  error    'userId' is defined but never used             no-unused-vars
+Error:    189:38  error    'chatRoomId' is defined but never used         no-unused-vars
+Error:    190:24  error    'chatRoomId' is defined but never used         no-unused-vars
+Error:    190:44  error    'excludeUserId' is defined but never used      no-unused-vars
+Error:    191:23  error    'userId' is defined but never used             no-unused-vars
+Error:    194:27  error    'orderId' is defined but never used            no-unused-vars
+Warning:    194:53  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Error:    197:18  error    'vendorId' is defined but never used           no-unused-vars
+Error:    197:36  error    'notes' is defined but never used              no-unused-vars
+Error:    198:19  error    'filters' is defined but never used            no-unused-vars
+Warning:    208:38  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:    581:59  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:    598:32  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:    895:23  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:    918:23  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:   1008:39  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:   1014:36  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:   1019:53  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:   1028:59  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:   1045:64  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:   1085:61  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/shared/schema.ts
+Warning:   138:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   146:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   658:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   678:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   686:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 410 problems (242 errors, 168 warnings)
+  75 errors and 0 warnings potentially fixable with the `--fix` option.
+
+Error: Process completed with exit code 1.

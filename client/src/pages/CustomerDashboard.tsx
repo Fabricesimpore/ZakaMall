@@ -17,11 +17,10 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 
 export default function CustomerDashboard() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { isLoading: authLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [showCart, setShowCart] = useState(false);
-  const { toast } = useToast();
 
   const { data: categories = [], isLoading: categoriesLoading } = useQuery<any[]>({
     queryKey: ["/api/categories"],
@@ -39,7 +38,7 @@ export default function CustomerDashboard() {
     },
   });
 
-  const { data: cartItems = [], isLoading: cartLoading } = useQuery<any[]>({
+  const { data: cartItems = [] } = useQuery<any[]>({
     queryKey: ["/api/cart"],
   });
 

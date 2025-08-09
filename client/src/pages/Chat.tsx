@@ -195,7 +195,7 @@ export default function Chat() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!messageText.trim() || !selectedRoom) return;
     sendMessageMutation.mutate(messageText.trim());
