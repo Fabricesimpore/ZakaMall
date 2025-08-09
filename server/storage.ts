@@ -116,8 +116,12 @@ export interface IStorage {
     search?: string;
     limit?: number;
     offset?: number;
-    sortBy?: 'price' | 'createdAt' | 'name';
+    sortBy?: 'price' | 'createdAt' | 'name' | 'rating';
     sortOrder?: 'asc' | 'desc';
+    minPrice?: number;
+    maxPrice?: number;
+    inStock?: boolean;
+    tags?: string[];
   }): Promise<{ items: Product[]; total: number; hasMore: boolean }>;
   getVendorProducts(vendorId: string): Promise<Product[]>;
   updateProduct(id: string, updates: Partial<InsertProduct>): Promise<Product>;
@@ -448,8 +452,12 @@ export class DatabaseStorage implements IStorage {
     search?: string;
     limit?: number;
     offset?: number;
-    sortBy?: 'price' | 'createdAt' | 'name';
+    sortBy?: 'price' | 'createdAt' | 'name' | 'rating';
     sortOrder?: 'asc' | 'desc';
+    minPrice?: number;
+    maxPrice?: number;
+    inStock?: boolean;
+    tags?: string[];
   }): Promise<{ items: Product[]; total: number; hasMore: boolean }> {
     const conditions = [eq(products.isActive, true)];
 
@@ -462,10 +470,39 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (filters?.search) {
+      // Enhanced search: name, description, and SKU
+      const searchTerm = filters.search.toLowerCase();
       conditions.push(
         or(
-          ilike(products.name, `%${filters.search}%`),
-          ilike(products.description, `%${filters.search}%`)
+          ilike(products.name, `%${searchTerm}%`),
+          ilike(products.description, `%${searchTerm}%`),
+          ilike(products.sku, `%${searchTerm}%`)
+        )!
+      );
+    }
+
+    // Price range filtering
+    if (filters?.minPrice !== undefined) {
+      conditions.push(sql`${products.price}::numeric >= ${filters.minPrice}`);
+    }
+    
+    if (filters?.maxPrice !== undefined) {
+      conditions.push(sql`${products.price}::numeric <= ${filters.maxPrice}`);
+    }
+
+    // Stock filtering
+    if (filters?.inStock === true) {
+      conditions.push(
+        or(
+          eq(products.trackQuantity, false), // Products that don't track quantity are always "in stock"
+          sql`${products.quantity} > 0`      // Products with quantity > 0
+        )!
+      );
+    } else if (filters?.inStock === false) {
+      conditions.push(
+        and(
+          eq(products.trackQuantity, true),
+          sql`${products.quantity} <= 0`
         )!
       );
     }
@@ -486,6 +523,11 @@ export class DatabaseStorage implements IStorage {
         break;
       case 'name':
         orderByClause = sortOrder === 'asc' ? asc(products.name) : desc(products.name);
+        break;
+      case 'rating':
+        // Note: This requires a more complex query to calculate average rating
+        // For now, we'll sort by creation date and add rating sorting later
+        orderByClause = sortOrder === 'asc' ? asc(products.createdAt) : desc(products.createdAt);
         break;
       default:
         orderByClause = sortOrder === 'asc' ? asc(products.createdAt) : desc(products.createdAt);
@@ -531,13 +573,105 @@ export class DatabaseStorage implements IStorage {
     return product;
   }
 
-  async updateProductStock(id: string, quantity: number): Promise<Product> {
+  async updateProductStock(id: string, quantity: number, reason?: string): Promise<Product> {
     const [product] = await db
       .update(products)
       .set({ quantity, updatedAt: new Date() })
       .where(eq(products.id, id))
       .returning();
+    
+    console.log(`[INVENTORY] Updated stock for product ${id}: ${quantity} units. Reason: ${reason || 'Manual adjustment'}`);
     return product;
+  }
+
+  async restoreInventoryForOrder(orderId: string): Promise<void> {
+    // This method restores inventory when an order is cancelled
+    return await db.transaction(async (tx) => {
+      // Get all order items for this order
+      const items = await tx
+        .select({
+          productId: orderItems.productId,
+          quantity: orderItems.quantity,
+          productName: products.name,
+          trackQuantity: products.trackQuantity
+        })
+        .from(orderItems)
+        .innerJoin(products, eq(orderItems.productId, products.id))
+        .where(eq(orderItems.orderId, orderId));
+
+      // Restore inventory for each item that tracks quantity
+      for (const item of items) {
+        if (item.trackQuantity) {
+          await tx
+            .update(products)
+            .set({
+              quantity: sql`${products.quantity} + ${item.quantity}`,
+              updatedAt: new Date()
+            })
+            .where(eq(products.id, item.productId));
+          
+          console.log(`[INVENTORY] Restored ${item.quantity} units for product "${item.productName}" (Order cancellation: ${orderId})`);
+        }
+      }
+    });
+  }
+
+  async getLowStockProducts(threshold: number = 10): Promise<Product[]> {
+    return await db
+      .select()
+      .from(products)
+      .where(
+        and(
+          eq(products.trackQuantity, true),
+          sql`${products.quantity} <= ${threshold}`,
+          eq(products.isActive, true)
+        )
+      )
+      .orderBy(asc(products.quantity));
+  }
+
+  async getCategories(): Promise<any[]> {
+    return await db
+      .select()
+      .from(categories)
+      .orderBy(categories.name);
+  }
+
+  async getCategoriesWithProductCount(): Promise<any[]> {
+    return await db
+      .select({
+        id: categories.id,
+        name: categories.name,
+        description: categories.description,
+        productCount: sql<number>`count(${products.id})::int`
+      })
+      .from(categories)
+      .leftJoin(products, and(
+        eq(categories.id, products.categoryId),
+        eq(products.isActive, true)
+      ))
+      .groupBy(categories.id, categories.name, categories.description)
+      .orderBy(categories.name);
+  }
+
+  async getPopularSearchTerms(limit: number = 10): Promise<{ term: string; count: number }[]> {
+    // This would typically be implemented with a search_logs table
+    // For now, return empty array - would need to implement search logging first
+    return [];
+  }
+
+  async getOutOfStockProducts(): Promise<Product[]> {
+    return await db
+      .select()
+      .from(products)
+      .where(
+        and(
+          eq(products.trackQuantity, true),
+          sql`${products.quantity} <= 0`,
+          eq(products.isActive, true)
+        )
+      )
+      .orderBy(products.name);
   }
 
   async getProductById(id: string): Promise<Product | undefined> {
@@ -631,18 +765,58 @@ export class DatabaseStorage implements IStorage {
 
   // Order operations
   async createOrder(orderData: InsertOrder, items: InsertOrderItem[]): Promise<Order> {
-    const orderNumber = `ZK-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+    // Start transaction to ensure data consistency
+    return await db.transaction(async (tx) => {
+      // Check inventory for all items first
+      const inventoryChecks = await Promise.all(
+        items.map(async (item) => {
+          const [product] = await tx
+            .select({ id: products.id, name: products.name, quantity: products.quantity, trackQuantity: products.trackQuantity })
+            .from(products)
+            .where(eq(products.id, item.productId));
+          
+          if (!product) {
+            throw new Error(`Product ${item.productId} not found`);
+          }
+          
+          // Check if we need to track quantity and if we have enough stock
+          if (product.trackQuantity && (product.quantity || 0) < (item.quantity || 1)) {
+            throw new Error(`Insufficient stock for "${product.name}". Available: ${product.quantity || 0}, Requested: ${item.quantity || 1}`);
+          }
+          
+          return { productId: item.productId, requestedQuantity: item.quantity || 1, product };
+        })
+      );
 
-    const [order] = await db
-      .insert(orders)
-      .values({ ...orderData, orderNumber })
-      .returning();
+      // If we get here, all items have sufficient stock
+      const orderNumber = `ZK-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
 
-    // Insert order items
-    const orderItemsWithOrderId = items.map((item) => ({ ...item, orderId: order.id }));
-    await db.insert(orderItems).values(orderItemsWithOrderId);
+      const [order] = await tx
+        .insert(orders)
+        .values({ ...orderData, orderNumber })
+        .returning();
 
-    return order;
+      // Insert order items
+      const orderItemsWithOrderId = items.map((item) => ({ ...item, orderId: order.id }));
+      await tx.insert(orderItems).values(orderItemsWithOrderId);
+
+      // Reserve/decrement inventory for items that track quantity
+      for (const check of inventoryChecks) {
+        if (check.product.trackQuantity) {
+          await tx
+            .update(products)
+            .set({ 
+              quantity: sql`${products.quantity} - ${check.requestedQuantity}`,
+              updatedAt: new Date()
+            })
+            .where(eq(products.id, check.productId));
+          
+          console.log(`[INVENTORY] Reserved ${check.requestedQuantity} units of product ${check.productId} for order ${orderNumber}`);
+        }
+      }
+
+      return order;
+    });
   }
 
   async getOrder(id: string): Promise<Order | undefined> {

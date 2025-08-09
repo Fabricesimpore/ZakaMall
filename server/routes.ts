@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { toMinorUnit, toMajorUnit, formatMoney, isValidMoneyAmount, calculateCommission } from "./utils/money";
+import { orderNotificationService } from "./notifications/orderNotifications";
 import {
   setupAuth,
   isAuthenticated,
@@ -792,11 +793,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/products", async (req, res) => {
     try {
-      const { vendorId, categoryId, search, limit, offset, sortBy, sortOrder, page, pageSize } = req.query;
+      const { 
+        vendorId, 
+        categoryId, 
+        search, 
+        limit, 
+        offset, 
+        sortBy, 
+        sortOrder, 
+        page, 
+        pageSize,
+        minPrice,
+        maxPrice,
+        inStock,
+        tags
+      } = req.query;
 
       // Support both offset and page-based pagination
       const effectiveLimit = limit ? parseInt(limit as string) : (pageSize ? parseInt(pageSize as string) : 20);
       const effectiveOffset = offset ? parseInt(offset as string) : (page ? (parseInt(page as string) - 1) * effectiveLimit : 0);
+
+      // Parse price filters
+      const parsedMinPrice = minPrice ? parseFloat(minPrice as string) : undefined;
+      const parsedMaxPrice = maxPrice ? parseFloat(maxPrice as string) : undefined;
+
+      // Parse boolean filters
+      const parsedInStock = inStock === 'true' ? true : inStock === 'false' ? false : undefined;
+
+      // Parse tags array
+      const parsedTags = tags ? (typeof tags === 'string' ? [tags] : tags as string[]) : undefined;
 
       const result = await storage.getProducts({
         vendorId: vendorId as string,
@@ -804,8 +829,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         search: search as string,
         limit: effectiveLimit,
         offset: effectiveOffset,
-        sortBy: sortBy as 'price' | 'createdAt' | 'name' | undefined,
+        sortBy: sortBy as 'price' | 'createdAt' | 'name' | 'rating' | undefined,
         sortOrder: sortOrder as 'asc' | 'desc' | undefined,
+        minPrice: parsedMinPrice,
+        maxPrice: parsedMaxPrice,
+        inStock: parsedInStock,
+        tags: parsedTags,
       });
 
       // Return paginated response with metadata
@@ -816,6 +845,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         page: page ? parseInt(page as string) : Math.floor(effectiveOffset / effectiveLimit) + 1,
         pageSize: effectiveLimit,
         totalPages: Math.ceil(result.total / effectiveLimit),
+        filters: {
+          appliedFilters: {
+            search: search || null,
+            categoryId: categoryId || null,
+            vendorId: vendorId || null,
+            priceRange: parsedMinPrice || parsedMaxPrice ? { min: parsedMinPrice, max: parsedMaxPrice } : null,
+            inStock: parsedInStock,
+            sortBy: sortBy || 'createdAt',
+            sortOrder: sortOrder || 'desc'
+          }
+        }
       });
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -928,9 +968,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Clear cart after successful order
       await storage.clearCart(userId);
 
+      // Send email notifications asynchronously
+      setTimeout(async () => {
+        try {
+          // Get customer and vendor information for notifications
+          const customer = await storage.getUser(userId);
+          const vendor = await storage.getVendorById(order.vendorId);
+          const vendorUser = vendor ? await storage.getUser(vendor.userId) : null;
+
+          // Get order items with product details
+          const orderItems = await storage.getOrderItems(order.id);
+          const itemsWithDetails = await Promise.all(
+            orderItems.map(async (item) => {
+              const product = await storage.getProduct(item.productId);
+              return {
+                productName: product?.name || 'Produit',
+                quantity: item.quantity,
+                price: item.price,
+                totalPrice: item.totalPrice || (parseFloat(item.price) * item.quantity).toString(),
+              };
+            })
+          );
+
+          const notificationData = {
+            order: {
+              ...order,
+              customer,
+              vendor: vendorUser ? { ...vendorUser, businessName: vendor?.businessName } : undefined,
+              items: itemsWithDetails,
+            },
+          };
+
+          // Send order confirmation to customer
+          if (customer?.email) {
+            await orderNotificationService.sendOrderConfirmation(notificationData);
+          }
+
+          // Send new order notification to vendor
+          if (vendorUser?.email) {
+            await orderNotificationService.sendVendorOrderNotification(notificationData);
+          }
+        } catch (emailError) {
+          console.error('Error sending order confirmation emails:', emailError);
+          // Don't fail the order creation if email fails
+        }
+      }, 100); // Small delay to ensure response is sent first
+
       res.json(order);
     } catch (error) {
       console.error("Error creating order:", error);
+      
+      // Check if it's an inventory error
+      if (error instanceof Error) {
+        if (error.message.includes("Insufficient stock")) {
+          return res.status(400).json({ 
+            message: error.message,
+            type: "INSUFFICIENT_STOCK" 
+          });
+        }
+        if (error.message.includes("not found")) {
+          return res.status(404).json({ 
+            message: error.message,
+            type: "PRODUCT_NOT_FOUND"
+          });
+        }
+      }
+      
       res.status(500).json({ message: "Failed to create order" });
     }
   });
@@ -980,9 +1083,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/orders/:id/status", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const { status } = req.body;
+      const { status, message } = req.body;
 
       const order = await storage.updateOrderStatus(id, status);
+      
+      // Send status update notification asynchronously
+      setTimeout(async () => {
+        try {
+          const customer = await storage.getUser(order.customerId);
+          const vendor = await storage.getVendorById(order.vendorId);
+          const vendorUser = vendor ? await storage.getUser(vendor.userId) : null;
+
+          const notificationData = {
+            order: {
+              ...order,
+              customer,
+              vendor: vendorUser ? { ...vendorUser, businessName: vendor?.businessName } : undefined,
+            },
+          };
+
+          if (customer?.email) {
+            await orderNotificationService.sendStatusUpdate(notificationData, status, message);
+          }
+        } catch (emailError) {
+          console.error('Error sending status update email:', emailError);
+        }
+      }, 100);
+
       res.json(order);
     } catch (error) {
       console.error("Error updating order status:", error);
@@ -1025,6 +1152,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching product reviews:", error);
       res.status(500).json({ message: "Failed to fetch product reviews" });
+    }
+  });
+
+  // Categories and search endpoints
+  app.get("/api/categories", async (req, res) => {
+    try {
+      const withCount = req.query.withCount === 'true';
+      
+      const categories = withCount 
+        ? await storage.getCategoriesWithProductCount()
+        : await storage.getCategories();
+      
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      res.status(500).json({ message: "Failed to fetch categories" });
+    }
+  });
+
+  app.get("/api/search/suggestions", async (req, res) => {
+    try {
+      const { q } = req.query;
+      
+      if (!q || typeof q !== 'string' || q.length < 2) {
+        return res.json({ suggestions: [] });
+      }
+
+      // Search for product names and categories that match the query
+      const productSuggestions = await storage.getProducts({
+        search: q,
+        limit: 5,
+      });
+
+      const categorySuggestions = await storage.getCategories();
+      const matchingCategories = categorySuggestions.filter((cat: any) => 
+        cat.name.toLowerCase().includes(q.toLowerCase())
+      ).slice(0, 3);
+
+      const suggestions = [
+        ...productSuggestions.items.map((product: any) => ({
+          type: 'product',
+          id: product.id,
+          text: product.name,
+          category: product.categoryId,
+          price: product.price
+        })),
+        ...matchingCategories.map((category: any) => ({
+          type: 'category',
+          id: category.id,
+          text: category.name,
+          description: category.description
+        }))
+      ].slice(0, 8);
+
+      res.json({ suggestions });
+    } catch (error) {
+      console.error("Error fetching search suggestions:", error);
+      res.status(500).json({ message: "Failed to fetch suggestions" });
+    }
+  });
+
+  app.get("/api/search/popular", async (req, res) => {
+    try {
+      const popularTerms = await storage.getPopularSearchTerms();
+      res.json(popularTerms);
+    } catch (error) {
+      console.error("Error fetching popular search terms:", error);
+      res.status(500).json({ message: "Failed to fetch popular terms" });
+    }
+  });
+
+  // Inventory management routes
+  app.get("/api/inventory/low-stock", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      const threshold = req.query.threshold ? parseInt(req.query.threshold as string) : 10;
+
+      if (user?.role !== "vendor" && user?.role !== "admin") {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      let products;
+      if (user.role === "vendor") {
+        const vendor = await storage.getVendorByUserId(userId);
+        if (!vendor) {
+          return res.status(404).json({ message: "Vendor not found" });
+        }
+        // Filter by vendor's products only
+        products = await storage.getLowStockProducts(threshold);
+        products = products.filter((p: any) => p.vendorId === vendor.id);
+      } else {
+        // Admin can see all low stock products
+        products = await storage.getLowStockProducts(threshold);
+      }
+
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching low stock products:", error);
+      res.status(500).json({ message: "Failed to fetch low stock products" });
+    }
+  });
+
+  app.get("/api/inventory/out-of-stock", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      if (user?.role !== "vendor" && user?.role !== "admin") {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      let products;
+      if (user.role === "vendor") {
+        const vendor = await storage.getVendorByUserId(userId);
+        if (!vendor) {
+          return res.status(404).json({ message: "Vendor not found" });
+        }
+        products = await storage.getOutOfStockProducts();
+        products = products.filter((p: any) => p.vendorId === vendor.id);
+      } else {
+        products = await storage.getOutOfStockProducts();
+      }
+
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching out of stock products:", error);
+      res.status(500).json({ message: "Failed to fetch out of stock products" });
+    }
+  });
+
+  app.put("/api/products/:id/stock", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { quantity, reason } = req.body;
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      if (user?.role !== "vendor" && user?.role !== "admin") {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      // Validate quantity
+      if (typeof quantity !== "number" || quantity < 0) {
+        return res.status(400).json({ message: "Invalid quantity" });
+      }
+
+      // If vendor, verify they own the product
+      if (user.role === "vendor") {
+        const vendor = await storage.getVendorByUserId(userId);
+        const product = await storage.getProduct(id);
+        
+        if (!vendor || !product || product.vendorId !== vendor.id) {
+          return res.status(404).json({ message: "Product not found or access denied" });
+        }
+      }
+
+      const updatedProduct = await storage.updateProductStock(id, quantity, reason);
+      res.json(updatedProduct);
+    } catch (error) {
+      console.error("Error updating product stock:", error);
+      res.status(500).json({ message: "Failed to update product stock" });
     }
   });
 

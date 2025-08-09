@@ -47,6 +47,11 @@ export class EmailService {
     return await this.sendEmail(message);
   }
 
+  // Generic public method for sending any email
+  async sendCustomEmail(message: EmailMessage): Promise<boolean> {
+    return await this.sendEmail(message);
+  }
+
   private async sendEmail(message: EmailMessage): Promise<boolean> {
     try {
       // Debug logging
