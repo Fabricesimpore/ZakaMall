@@ -78,28 +78,41 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 // Helper function to create user session
-export function createUserSession(req: any, user: any) {
-  const userSession = {
-    claims: { 
-      sub: user.id,
-      email: user.email,
-      phone: user.phone,
-      firstName: user.firstName,
-      lastName: user.lastName,
-    },
-    isAuthenticated: true,
-    user: {
-      id: user.id,
-      email: user.email,
-      phone: user.phone,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role,
+export function createUserSession(req: any, user: any): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const userSession = {
+      claims: { 
+        sub: user.id,
+        email: user.email,
+        phone: user.phone,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      isAuthenticated: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        phone: user.phone,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      }
+    };
+    
+    (req as any).user = userSession;
+    if (req.session) {
+      (req.session as any).user = userSession;
+      // Force session save
+      req.session.save((err: any) => {
+        if (err) {
+          console.error("Session save error:", err);
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    } else {
+      resolve();
     }
-  };
-  
-  (req as any).user = userSession;
-  if (req.session) {
-    (req.session as any).user = userSession;
-  }
+  });
 }

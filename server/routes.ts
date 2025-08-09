@@ -48,7 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user.password) {
         // For backward compatibility, allow test login without password
         if (process.env.NODE_ENV === "development") {
-          createUserSession(req, user);
+          await createUserSession(req, user);
           return res.json({
             success: true,
             user: {
@@ -70,7 +70,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create user session
-      createUserSession(req, user);
+      await createUserSession(req, user);
 
       res.json({
         success: true,
@@ -113,7 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create user session without password check (test only)
-      createUserSession(req, user);
+      await createUserSession(req, user);
       
       res.json({
         success: true,
