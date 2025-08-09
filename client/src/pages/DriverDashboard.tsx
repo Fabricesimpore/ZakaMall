@@ -11,35 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-
-const driverRegistrationSchema = z.object({
-  vehicleType: z.string().min(1, "Le type de véhicule est requis"),
-  licenseNumber: z.string().min(1, "Le numéro de permis est requis"),
-});
 
 export default function DriverDashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const [isOnline, setIsOnline] = useState(false);
-  const [isDriverRegistrationOpen, setIsDriverRegistrationOpen] = useState(false);
   const { toast } = useToast();
 
   // Redirect to home if not authenticated
@@ -181,52 +156,6 @@ export default function DriverDashboard() {
     },
   });
 
-  const driverRegistrationForm = useForm<z.infer<typeof driverRegistrationSchema>>({
-    resolver: zodResolver(driverRegistrationSchema),
-    defaultValues: {
-      vehicleType: "",
-      licenseNumber: "",
-    },
-  });
-
-  const registerDriverMutation = useMutation({
-    mutationFn: async (driverData: any) => {
-      return await apiRequest("POST", "/api/drivers", driverData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      toast({
-        title: "Succès",
-        description:
-          "Inscription livreur réussie ! Vous pouvez maintenant accepter des livraisons.",
-      });
-      setIsDriverRegistrationOpen(false);
-      // Refresh the page to show the driver dashboard
-      window.location.reload();
-    },
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Non autorisé",
-          description: "Vous êtes déconnecté. Reconnexion en cours...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Erreur",
-        description: "Impossible de vous inscrire comme livreur",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const onDriverRegistrationSubmit = (values: z.infer<typeof driverRegistrationSchema>) => {
-    registerDriverMutation.mutate(values);
-  };
 
   const handleStatusChange = (checked: boolean) => {
     setIsOnline(checked);
@@ -241,80 +170,64 @@ export default function DriverDashboard() {
     );
   }
 
-  if (!driver?.roleData && user?.role !== "driver") {
+  if (!driver?.roleData || user?.role !== "driver") {
     return (
-      <div className="min-h-screen bg-zaka-light">
+      <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <Card>
             <CardContent className="p-8 text-center">
               <i className="fas fa-motorcycle text-6xl text-zaka-orange mb-4"></i>
-              <h2 className="text-2xl font-bold mb-4">Devenir livreur</h2>
-              <p className="text-zaka-gray mb-6">
-                Vous devez d'abord vous inscrire en tant que livreur pour accéder à ce tableau de
-                bord.
+              <h2 className="text-2xl font-bold mb-4">Devenir livreur sur ZakaMall</h2>
+              <p className="text-gray-600 mb-6">
+                Rejoignez notre équipe de livreurs et gagnez de l'argent en livrant des commandes.
+                Vous devez compléter le processus d'inscription livreur pour accéder à ce tableau de bord.
               </p>
-              <Dialog open={isDriverRegistrationOpen} onOpenChange={setIsDriverRegistrationOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-zaka-orange hover:bg-zaka-orange">
-                    S'inscrire comme livreur
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Inscription livreur</DialogTitle>
-                  </DialogHeader>
-                  <Form {...driverRegistrationForm}>
-                    <form
-                      onSubmit={driverRegistrationForm.handleSubmit(onDriverRegistrationSubmit)}
-                      className="space-y-6"
-                    >
-                      <FormField
-                        control={driverRegistrationForm.control}
-                        name="vehicleType"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Type de véhicule *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex: Moto, Vélo, Voiture" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={driverRegistrationForm.control}
-                        name="licenseNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Numéro de permis *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Numéro de votre permis de conduire" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="flex justify-end space-x-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setIsDriverRegistrationOpen(false)}
-                        >
-                          Annuler
-                        </Button>
-                        <Button
-                          type="submit"
-                          className="bg-zaka-orange hover:bg-zaka-orange"
-                          disabled={registerDriverMutation.isPending}
-                        >
-                          {registerDriverMutation.isPending ? "Inscription..." : "S'inscrire"}
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
+              
+              <div className="bg-blue-50 p-4 rounded-lg mb-6">
+                <h3 className="font-semibold text-blue-900 mb-2">
+                  <i className="fas fa-check-circle mr-2"></i>
+                  Avantages livreur ZakaMall
+                </h3>
+                <ul className="text-sm text-blue-800 text-left space-y-1">
+                  <li>• Revenus flexibles selon votre disponibilité</li>
+                  <li>• Paiements hebdomadaires garantis</li>
+                  <li>• Application mobile facile à utiliser</li>
+                  <li>• Support client 24/7</li>
+                  <li>• Assurance véhicule incluse</li>
+                </ul>
+              </div>
+
+              <div className="bg-orange-50 p-4 rounded-lg mb-6">
+                <h4 className="font-semibold text-orange-900 mb-2">
+                  <i className="fas fa-info-circle mr-2"></i>
+                  Processus d'inscription (3 étapes)
+                </h4>
+                <ul className="text-sm text-orange-800 text-left space-y-1">
+                  <li>1. Informations personnelles et véhicule</li>
+                  <li>2. Vérification du permis de conduire</li>
+                  <li>3. Validation et formation en ligne</li>
+                  <li>4. Approbation sous 24-48h par notre équipe</li>
+                </ul>
+              </div>
+
+              <Button 
+                onClick={() => window.location.href = "/driver-setup"}
+                className="bg-zaka-orange hover:bg-zaka-orange text-white px-8 py-3 text-lg"
+              >
+                <i className="fas fa-arrow-right mr-2"></i>
+                Commencer l'inscription livreur
+              </Button>
+              
+              <p className="text-xs text-gray-500 mt-4">
+                Déjà inscrit en tant que livreur mais en attente d'approbation?{" "}
+                <button 
+                  onClick={() => window.location.href = "/driver-pending"}
+                  className="text-zaka-orange hover:underline"
+                >
+                  Vérifiez votre statut
+                </button>
+              </p>
             </CardContent>
           </Card>
         </div>
