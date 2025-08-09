@@ -24,16 +24,33 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 const vendorSetupSchema = z.object({
   businessName: z.string().min(3, "Le nom de l'entreprise doit avoir au moins 3 caractères"),
   businessDescription: z.string().min(10, "La description doit avoir au moins 10 caractères"),
-  businessAddress: z.string().min(10, "L'adresse complète est requise"),
+  businessAddress: z.string().min(5, "Localisation de votre entreprise requise"),
   businessPhone: z
     .string()
     .min(8, "Numéro de téléphone professionnel requis")
     .regex(/^(\+226)?[0-9]{8}$/, "Format: +226XXXXXXXX ou 8 chiffres"),
   taxId: z.string().optional(),
-  bankAccount: z.string().min(5, "Numéro de compte bancaire requis"),
-  bankName: z.string().min(3, "Nom de la banque requis"),
+  paymentMethod: z.enum(["bank", "orange", "moov"], {
+    required_error: "Mode de paiement requis",
+  }),
+  // Bank fields (conditional)
+  bankAccount: z.string().optional(),
+  bankName: z.string().optional(),
+  // Mobile money fields (conditional)
+  mobileMoneyNumber: z.string().optional(),
+  mobileMoneyName: z.string().optional(),
   identityDocument: z.string().optional(),
   businessLicense: z.string().optional(),
+}).refine((data) => {
+  if (data.paymentMethod === "bank") {
+    return data.bankName && data.bankAccount && data.bankName.length >= 3 && data.bankAccount.length >= 5;
+  } else if (data.paymentMethod === "orange" || data.paymentMethod === "moov") {
+    return data.mobileMoneyNumber && data.mobileMoneyName && 
+           data.mobileMoneyNumber.length >= 8 && data.mobileMoneyName.length >= 3;
+  }
+  return true;
+}, {
+  message: "Informations de paiement incomplètes",
 });
 
 type VendorSetupForm = z.infer<typeof vendorSetupSchema>;
@@ -52,8 +69,11 @@ export default function VendorSetup() {
       businessAddress: "",
       businessPhone: "",
       taxId: "",
+      paymentMethod: "bank",
       bankAccount: "",
       bankName: "",
+      mobileMoneyNumber: "",
+      mobileMoneyName: "",
       identityDocument: "",
       businessLicense: "",
     },
@@ -110,7 +130,12 @@ export default function VendorSetup() {
           "businessPhone",
         ];
       } else if (step === 2) {
-        fieldsToValidate = ["bankName", "bankAccount"];
+        const paymentMethod = form.getValues("paymentMethod");
+        if (paymentMethod === "bank") {
+          fieldsToValidate = ["paymentMethod", "bankName", "bankAccount"];
+        } else {
+          fieldsToValidate = ["paymentMethod", "mobileMoneyNumber", "mobileMoneyName"];
+        }
       }
 
       // Trigger validation for the current step fields
@@ -192,9 +217,9 @@ export default function VendorSetup() {
                       name="businessAddress"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Adresse complète *</FormLabel>
+                          <FormLabel>Localisation de l'entreprise *</FormLabel>
                           <FormControl>
-                            <Textarea placeholder="Secteur, rue, ville..." {...field} />
+                            <Textarea placeholder="Secteur 15, Ouagadougou / Zone commerciale de Bobo-Dioulasso / Quartier Dassasgho..." {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

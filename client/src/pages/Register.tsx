@@ -141,7 +141,6 @@ export default function Register() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="votre@email.com"
                     required
                   />
                 </div>
@@ -152,7 +151,6 @@ export default function Register() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Minimum 6 caractères"
                     required
                     minLength={6}
                   />
@@ -164,7 +162,6 @@ export default function Register() {
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Retapez votre mot de passe"
                     required
                     minLength={6}
                   />
@@ -187,7 +184,6 @@ export default function Register() {
                     id="verificationCode"
                     value={verificationCode}
                     onChange={(e) => setVerificationCode(e.target.value)}
-                    placeholder="123456"
                     maxLength={6}
                     required
                   />

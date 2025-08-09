@@ -39,7 +39,7 @@ const driverSetupSchema = z.object({
   vehiclePlate: z.string().min(5, "Plaque d'immatriculation requise"),
   emergencyContact: z.string().min(8, "Contact d'urgence requis"),
   emergencyName: z.string().min(3, "Nom du contact d'urgence requis"),
-  workZone: z.string().min(5, "Zone de travail préférée requise"),
+  workZone: z.string().min(3, "Zone de couverture requise"),
   experience: z.enum(["nouveau", "1-2ans", "3-5ans", "plus5ans"], {
     required_error: "Expérience requise",
   }),
@@ -300,7 +300,7 @@ export default function DriverSetup() {
                       name="workZone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Zone de travail préférée *</FormLabel>
+                          <FormLabel>Zone de couverture *</FormLabel>
                           <FormControl>
                             <Textarea
                               placeholder="Secteurs où vous préférez faire les livraisons..."

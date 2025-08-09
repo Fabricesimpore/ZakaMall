@@ -134,7 +134,6 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
             <Input
               type="text"
               maxLength={6}
-              placeholder="000000"
               value={verificationCode}
               onChange={(e) => setVerificationCode(e.target.value.replace(/[^0-9]/g, ""))}
               className="text-center text-lg font-mono tracking-widest"
@@ -174,7 +173,7 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
               <FormItem>
                 <FormLabel>Prénom</FormLabel>
                 <FormControl>
-                  <Input placeholder="Jean" {...field} />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -187,7 +186,7 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
               <FormItem>
                 <FormLabel>Nom</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ouédraogo" {...field} />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -202,7 +201,7 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
             <FormItem>
               <FormLabel>Adresse email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="jean.ouedraogo@example.com" {...field} />
+                <Input type="email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -216,7 +215,7 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
             <FormItem>
               <FormLabel>Mot de passe</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
+                <Input type="password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
