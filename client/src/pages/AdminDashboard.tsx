@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -17,6 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +44,17 @@ export default function AdminDashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Create user form state
+  const [createUserDialogOpen, setCreateUserDialogOpen] = useState(false);
+  const [createUserForm, setCreateUserForm] = useState({
+    email: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+    phone: "",
+    role: "customer"
+  });
 
   // Redirect to home if not authenticated or not admin
   useEffect(() => {
@@ -139,6 +161,37 @@ export default function AdminDashboard() {
     },
   });
 
+  const createUserMutation = useMutation({
+    mutationFn: async (userData: typeof createUserForm) => {
+      return await apiRequest("POST", "/api/admin/users", userData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/admins"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard"] });
+      setCreateUserDialogOpen(false);
+      setCreateUserForm({
+        email: "",
+        password: "",
+        firstName: "",
+        lastName: "",
+        phone: "",
+        role: "customer"
+      });
+      toast({
+        title: "Succès",
+        description: "Utilisateur créé avec succès",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de créer l'utilisateur",
+        variant: "destructive",
+      });
+    },
+  });
+
   const updateVendorStatusMutation = useMutation({
     mutationFn: async ({ vendorId, status }: { vendorId: string; status: string }) => {
       return await apiRequest("PATCH", `/api/vendors/${vendorId}/status`, { status });
@@ -217,6 +270,26 @@ export default function AdminDashboard() {
 
   const handleDriverStatusChange = (driverId: string, status: string) => {
     updateDriverStatusMutation.mutate({ driverId, status });
+  };
+
+  const handleCreateUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!createUserForm.email || !createUserForm.password || !createUserForm.firstName || !createUserForm.lastName) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive",
+      });
+      return;
+    }
+    createUserMutation.mutate(createUserForm);
+  };
+
+  const handleCreateUserFormChange = (field: string, value: string) => {
+    setCreateUserForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const getRoleBadgeColor = (role: string) => {
@@ -941,7 +1014,128 @@ export default function AdminDashboard() {
           <TabsContent value="users">
             <Card>
               <CardHeader>
-                <CardTitle>Tous les utilisateurs</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Tous les utilisateurs</span>
+                  <Dialog open={createUserDialogOpen} onOpenChange={setCreateUserDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-zaka-orange hover:bg-zaka-orange/90">
+                        <i className="fas fa-plus mr-2"></i>
+                        Créer utilisateur
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Créer un nouvel utilisateur</DialogTitle>
+                        <DialogDescription>
+                          Remplissez les informations pour créer un nouvel utilisateur dans le système.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleCreateUser} className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="firstName">Prénom *</Label>
+                            <Input
+                              id="firstName"
+                              value={createUserForm.firstName}
+                              onChange={(e) => handleCreateUserFormChange("firstName", e.target.value)}
+                              placeholder="Prénom"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="lastName">Nom *</Label>
+                            <Input
+                              id="lastName"
+                              value={createUserForm.lastName}
+                              onChange={(e) => handleCreateUserFormChange("lastName", e.target.value)}
+                              placeholder="Nom de famille"
+                              required
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email *</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={createUserForm.email}
+                            onChange={(e) => handleCreateUserFormChange("email", e.target.value)}
+                            placeholder="email@exemple.com"
+                            required
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="password">Mot de passe *</Label>
+                          <Input
+                            id="password"
+                            type="password"
+                            value={createUserForm.password}
+                            onChange={(e) => handleCreateUserFormChange("password", e.target.value)}
+                            placeholder="Mot de passe"
+                            required
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="phone">Téléphone</Label>
+                          <Input
+                            id="phone"
+                            value={createUserForm.phone}
+                            onChange={(e) => handleCreateUserFormChange("phone", e.target.value)}
+                            placeholder="+226 XX XX XX XX"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="role">Rôle</Label>
+                          <Select
+                            value={createUserForm.role}
+                            onValueChange={(value) => handleCreateUserFormChange("role", value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="customer">Client</SelectItem>
+                              <SelectItem value="vendor">Vendeur</SelectItem>
+                              <SelectItem value="driver">Chauffeur</SelectItem>
+                              <SelectItem value="admin">Administrateur</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <DialogFooter>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setCreateUserDialogOpen(false)}
+                          >
+                            Annuler
+                          </Button>
+                          <Button 
+                            type="submit" 
+                            disabled={createUserMutation.isPending}
+                            className="bg-zaka-orange hover:bg-zaka-orange/90"
+                          >
+                            {createUserMutation.isPending ? (
+                              <>
+                                <i className="fas fa-spinner fa-spin mr-2"></i>
+                                Création...
+                              </>
+                            ) : (
+                              <>
+                                <i className="fas fa-plus mr-2"></i>
+                                Créer utilisateur
+                              </>
+                            )}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {usersLoading ? (

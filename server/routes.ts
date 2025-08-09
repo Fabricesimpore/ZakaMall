@@ -2301,6 +2301,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin create user endpoint
+  app.post("/api/admin/users", isAuthenticated, async (req: any, res) => {
+    try {
+      const { email, password, firstName, lastName, phone, role = "customer" } = req.body;
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      if (user?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Validate input
+      if (!email || !password || !firstName || !lastName) {
+        return res.status(400).json({ 
+          message: "Email, password, first name, and last name are required" 
+        });
+      }
+
+      if (!["customer", "vendor", "driver", "admin"].includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+
+      // Check if user with this email already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User with this email already exists" });
+      }
+
+      // Hash password
+      const hashedPassword = await hashPassword(password);
+
+      // Create user
+      const newUser = await storage.createUserWithEmail({
+        email,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        phone: phone || null,
+        role,
+        isVerified: true, // Admin-created users are pre-verified
+        verificationCode: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      // Don't return password hash
+      const { password: _, ...safeUser } = newUser;
+      res.json({ 
+        message: "User created successfully", 
+        user: safeUser 
+      });
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
   // Update product images after upload
   app.put("/api/products/:productId/images", isAuthenticated, async (req: any, res) => {
     if (!req.body.imageURLs || !Array.isArray(req.body.imageURLs)) {
