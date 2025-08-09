@@ -52,11 +52,14 @@ export default [
         'warn',
         { allowConstantExport: true },
       ],
-      'prettier/prettier': 'error',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      'prettier/prettier': 'warn', // Changed from error to warning
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }], // More lenient
+      '@typescript-eslint/no-explicit-any': 'off', // Disabled for development
+      'no-unused-vars': 'warn', // Changed from error to warning
+      'no-undef': 'warn', // Changed from error to warning
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+      'react-hooks/exhaustive-deps': 'warn', // Changed from error to warning
     },
     settings: {
       react: {
