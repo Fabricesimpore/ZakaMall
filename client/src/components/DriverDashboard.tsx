@@ -110,7 +110,7 @@ export default function DriverDashboard() {
         }
       );
     }
-  }, []);
+  }, [updateLocationMutation]);
 
   // Update location periodically when online
   useEffect(() => {
