@@ -991,7 +991,38 @@ export default function AdminDashboard() {
                               </p>
                             </div>
                           </div>
-                          <Badge className="bg-red-100 text-red-800">Administrateur</Badge>
+                          <div className="flex items-center space-x-3">
+                            <Badge className="bg-red-100 text-red-800">Administrateur</Badge>
+                            {admin.id !== user?.id && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="destructive" size="sm">
+                                    <i className="fas fa-trash mr-2"></i>
+                                    Supprimer
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Supprimer administrateur</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Êtes-vous sûr de vouloir supprimer l'administrateur "
+                                      {admin.firstName} {admin.lastName}" ? Cette action
+                                      est irréversible et supprimera tous les privilèges d'administration.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteUser(admin.id)}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      Supprimer
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
