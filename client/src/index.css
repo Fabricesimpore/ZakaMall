@@ -157,4 +157,16 @@
   .bg-zaka-light {
     background-color: var(--zaka-light);
   }
+  
+  /* Force button text visibility */
+  .btn-force-visible {
+    color: white !important;
+    background-color: var(--zaka-orange) !important;
+  }
+  
+  .btn-outline-force-visible {
+    color: white !important;
+    border-color: white !important;
+    background-color: transparent !important;
+  }
 }
