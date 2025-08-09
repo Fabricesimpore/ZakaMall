@@ -633,10 +633,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/vendors", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
       const vendorData = insertVendorSchema.parse({ ...req.body, userId });
 
       const vendor = await storage.createVendor(vendorData);
-      await storage.updateUserRole(userId, "vendor");
+      
+      // IMPORTANT: Protect admin users from losing admin role
+      if (user?.role === "admin") {
+        console.log("Admin created vendor record for testing, keeping admin role");
+        // Admin keeps their admin role even with vendor record
+      } else {
+        // Regular users become vendors
+        await storage.updateUserRole(userId, "vendor");
+      }
 
       res.json(vendor);
     } catch (error) {
@@ -718,10 +727,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/drivers", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
       const driverData = insertDriverSchema.parse({ ...req.body, userId });
 
       const driver = await storage.createDriver(driverData);
-      await storage.updateUserRole(userId, "driver");
+      
+      // IMPORTANT: Protect admin users from losing admin role
+      if (user?.role === "admin") {
+        console.log("Admin created driver record for testing, keeping admin role");
+        // Admin keeps their admin role even with driver record
+      } else {
+        // Regular users become drivers
+        await storage.updateUserRole(userId, "driver");
+      }
 
       res.json(driver);
     } catch (error) {
