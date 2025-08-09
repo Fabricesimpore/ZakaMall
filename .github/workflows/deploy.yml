@@ -38,8 +38,7 @@ jobs:
             dist/ \
             package.json \
             package-lock.json \
-            shared/ \
-            .env.production
+            shared/
 
       - name: Upload deployment artifact
         uses: actions/upload-artifact@v4
