@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,7 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
   // Email login state
   const [email, setEmail] = useState("");
 
-  // Phone login state  
+  // Phone login state
   const [phone, setPhone] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [isVerificationSent, setIsVerificationSent] = useState(false);
@@ -52,7 +52,8 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
     } catch (error) {
       toast({
         title: "Erreur",
-        description: error instanceof Error ? error.message : "Email non trouvé ou connexion échouée.",
+        description:
+          error instanceof Error ? error.message : "Email non trouvé ou connexion échouée.",
         variant: "destructive",
       });
     } finally {
@@ -140,9 +141,7 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
           <Card>
             <CardHeader>
               <CardTitle>Connexion par Email</CardTitle>
-              <CardDescription>
-                Connectez-vous avec votre adresse email existante
-              </CardDescription>
+              <CardDescription>Connectez-vous avec votre adresse email existante</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleEmailLogin} className="space-y-4">
@@ -188,9 +187,7 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
                       placeholder="+226 XX XX XX XX"
                       required
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Format: +226XXXXXXXX
-                    </p>
+                    <p className="text-xs text-muted-foreground">Format: +226XXXXXXXX</p>
                   </div>
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Envoi..." : "Envoyer le code"}
@@ -209,9 +206,7 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
                       maxLength={6}
                       required
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Code envoyé à {pendingPhone}
-                    </p>
+                    <p className="text-xs text-muted-foreground">Code envoyé à {pendingPhone}</p>
                   </div>
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Vérification..." : "Vérifier le code"}
