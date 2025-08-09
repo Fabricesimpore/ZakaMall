@@ -48,7 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set up session similar to how email verification does it
       (req as any).user = userSession;
       if (req.session) {
-        req.session.user = userSession;
+        (req.session as any).user = userSession;
       }
 
       res.json({ success: true, user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName } });
@@ -1250,7 +1250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set up session similar to how Replit auth does it
       (req as any).user = userSession;
       if (req.session) {
-        req.session.user = userSession;
+        (req.session as any).user = userSession;
       }
 
       res.json({ message: "Compte créé avec succès", user: { id: user.id, email: user.email } });
