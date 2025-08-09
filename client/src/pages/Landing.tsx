@@ -74,7 +74,7 @@ export default function Landing() {
                 <Button
                   onClick={handleLogin}
                   className="btn-force-visible hover:bg-zaka-orange/90 px-4 py-2 rounded-lg transition-colors font-medium"
-                  style={{ color: 'white', backgroundColor: '#ff7722' }}
+                  style={{ color: "white", backgroundColor: "#ff7722" }}
                 >
                   Se connecter
                 </Button>
@@ -113,7 +113,7 @@ export default function Landing() {
                   onClick={handleLogin}
                   variant="outline"
                   className="btn-outline-force-visible border-2 px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-zaka-orange transition-colors"
-                  style={{ color: 'white', borderColor: 'white', backgroundColor: 'transparent' }}
+                  style={{ color: "white", borderColor: "white", backgroundColor: "transparent" }}
                 >
                   Se connecter
                 </Button>

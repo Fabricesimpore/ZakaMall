@@ -46,6 +46,7 @@ import {
   type InsertPhoneVerification,
   type EmailVerification,
   type InsertEmailVerification,
+  type OrderTracking,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, ilike, or, count, avg, sum, sql } from "drizzle-orm";
@@ -166,36 +167,36 @@ export interface IStorage {
   createChatRoom(chatRoom: InsertChatRoom): Promise<ChatRoom>;
   getUserChatRooms(userId: string): Promise<(ChatRoom & { unreadCount: number })[]>;
   addChatParticipant(participant: InsertChatParticipant): Promise<ChatParticipant>;
-  isUserInChatRoom(userId: string, chatRoomId: string): Promise<boolean>;
-  createMessage(message: InsertMessage): Promise<Message>;
-  getChatMessages(chatRoomId: string, limit?: number, offset?: number): Promise<Message[]>;
-  searchUsers(query: string): Promise<User[]>;
-  getChatRoomParticipants(chatRoomId: string): Promise<ChatParticipant[]>;
+  isUserInChatRoom(_userId: string, _chatRoomId: string): Promise<boolean>;
+  createMessage(_message: InsertMessage): Promise<Message>;
+  getChatMessages(_chatRoomId: string, _limit?: number, _offset?: number): Promise<Message[]>;
+  searchUsers(_query: string): Promise<User[]>;
+  getChatRoomParticipants(_chatRoomId: string): Promise<ChatParticipant[]>;
 
   // Payment operations
-  createPayment(payment: InsertPayment): Promise<Payment>;
-  getPayment(id: string): Promise<Payment | undefined>;
-  getOrderPayments(orderId: string): Promise<Payment[]>;
+  createPayment(_payment: InsertPayment): Promise<Payment>;
+  getPayment(_id: string): Promise<Payment | undefined>;
+  getOrderPayments(_orderId: string): Promise<Payment[]>;
   updatePaymentStatus(
-    id: string,
-    status: "pending" | "completed" | "failed" | "refunded",
-    failureReason?: string
+    _id: string,
+    _status: "pending" | "completed" | "failed" | "refunded",
+    _failureReason?: string
   ): Promise<Payment>;
   updatePaymentTransaction(
-    id: string,
-    transactionId: string,
-    operatorReference?: string
+    _id: string,
+    _transactionId: string,
+    _operatorReference?: string
   ): Promise<Payment>;
-  markMessagesAsRead(userId: string, chatRoomId: string): Promise<void>;
-  incrementUnreadCount(chatRoomId: string, excludeUserId: string): Promise<void>;
-  getTotalUnreadCount(userId: string): Promise<number>;
+  markMessagesAsRead(_userId: string, _chatRoomId: string): Promise<void>;
+  incrementUnreadCount(_chatRoomId: string, _excludeUserId: string): Promise<void>;
+  getTotalUnreadCount(_userId: string): Promise<number>;
 
   // Order tracking
-  getOrderTrackingHistory(orderId: string): Promise<any[]>;
+  getOrderTrackingHistory(_orderId: string): Promise<OrderTracking[]>;
 
   // Admin operations
-  addVendorNotes(vendorId: string, notes: string): Promise<void>;
-  getTransactions(filters: {
+  addVendorNotes(_vendorId: string, _notes: string): Promise<void>;
+  getTransactions(_filters: {
     page: number;
     limit: number;
     status?: string;
@@ -205,7 +206,10 @@ export interface IStorage {
 }
 
 // Temporary in-memory storage for pending users (use Redis in production)
-const pendingUsers = new Map<string, any>();
+const pendingUsers = new Map<
+  string,
+  { phone: string; operator: string; code: string; timestamp: number; userData: unknown }
+>();
 
 export class DatabaseStorage implements IStorage {
   // User operations
@@ -578,7 +582,19 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (filters?.status) {
-      conditions.push(eq(orders.status, filters.status as any));
+      conditions.push(
+        eq(
+          orders.status,
+          filters.status as
+            | "pending"
+            | "confirmed"
+            | "preparing"
+            | "ready_for_pickup"
+            | "in_transit"
+            | "delivered"
+            | "cancelled"
+        )
+      );
     }
 
     if (conditions.length > 0) {
@@ -595,7 +611,17 @@ export class DatabaseStorage implements IStorage {
   async updateOrderStatus(id: string, status: string): Promise<Order> {
     const [order] = await db
       .update(orders)
-      .set({ status: status as any, updatedAt: new Date() })
+      .set({
+        status: status as
+          | "pending"
+          | "confirmed"
+          | "preparing"
+          | "ready_for_pickup"
+          | "in_transit"
+          | "delivered"
+          | "cancelled",
+        updatedAt: new Date(),
+      })
       .where(eq(orders.id, id))
       .returning();
     return order;
@@ -892,7 +918,7 @@ export class DatabaseStorage implements IStorage {
     status: "pending" | "completed" | "failed" | "refunded",
     failureReason?: string
   ): Promise<Payment> {
-    const updateData: any = {
+    const updateData: Partial<Payment> = {
       status,
       updatedAt: new Date(),
       processedAt: status !== "pending" ? new Date() : null,
@@ -915,7 +941,7 @@ export class DatabaseStorage implements IStorage {
     transactionId: string,
     operatorReference?: string
   ): Promise<Payment> {
-    const updateData: any = {
+    const updateData: Partial<Payment> = {
       transactionId,
       updatedAt: new Date(),
     };
@@ -1005,7 +1031,7 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async createUserWithEmail(userData: any): Promise<User> {
+  async createUserWithEmail(userData: UpsertUser): Promise<User> {
     const [user] = await db.insert(users).values(userData).returning();
     return user;
   }
@@ -1016,7 +1042,7 @@ export class DatabaseStorage implements IStorage {
     pendingUsers.set(key, userData);
   }
 
-  async getPendingUser(identifier: string): Promise<any> {
+  async getPendingUser(identifier: string): Promise<unknown> {
     return pendingUsers.get(identifier);
   }
 
@@ -1025,7 +1051,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Order tracking
-  async getOrderTrackingHistory(orderId: string): Promise<any[]> {
+  async getOrderTrackingHistory(orderId: string): Promise<OrderTracking[]> {
     // For now, return basic status changes. In production, you'd have a dedicated tracking table
     const order = await this.getOrder(orderId);
     if (!order) return [];
@@ -1042,7 +1068,7 @@ export class DatabaseStorage implements IStorage {
       history.push({
         status: order.status || "unknown",
         timestamp: order.updatedAt,
-        description: this.getStatusDescription(order.status as any),
+        description: this.getStatusDescription(order.status || "unknown"),
       });
     }
 
@@ -1082,7 +1108,9 @@ export class DatabaseStorage implements IStorage {
     const conditions = [];
 
     if (filters.status) {
-      conditions.push(eq(payments.status, filters.status as any));
+      conditions.push(
+        eq(payments.status, filters.status as "pending" | "completed" | "failed" | "refunded")
+      );
     }
 
     if (filters.dateFrom) {

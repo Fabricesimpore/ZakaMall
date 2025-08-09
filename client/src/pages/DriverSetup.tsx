@@ -49,7 +49,7 @@ type DriverSetupForm = z.infer<typeof driverSetupSchema>;
 
 export default function DriverSetup() {
   const [step, setStep] = useState(1);
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const { toast } = useToast();
 
   const form = useForm<DriverSetupForm>({

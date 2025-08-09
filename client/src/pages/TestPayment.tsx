@@ -9,7 +9,7 @@ import PaymentMethodSelector from "@/components/PaymentMethodSelector";
 export default function TestPayment() {
   const [step, setStep] = useState<"login" | "order" | "payment" | "success">("login");
   const [testOrderId, setTestOrderId] = useState<string | null>(null);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [_paymentSuccess, setPaymentSuccess] = useState(false);
   const { toast } = useToast();
 
   const loginMutation = useMutation({

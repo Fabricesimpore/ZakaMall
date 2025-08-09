@@ -655,7 +655,7 @@ export interface AdminStats {
   totalRevenue?: number;
   pendingVendors?: number;
   activeDrivers?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface TransactionData {
@@ -675,7 +675,7 @@ export interface DriverStats {
   dailyEarnings?: number;
   completedDeliveries?: number;
   averageRating?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface VendorStats {
@@ -683,5 +683,11 @@ export interface VendorStats {
   totalSales?: number;
   averageRating?: number;
   totalProducts?: number;
-  [key: string]: any;
+  [key: string]: unknown;
+}
+
+export interface OrderTracking {
+  status: string;
+  timestamp: Date | null;
+  description: string;
 }

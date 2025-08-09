@@ -1,0 +1,86 @@
+Skip to content
+Navigation Menu
+Fabricesimpore
+ZakaMall
+ 
+Type / to search
+Code
+Issues
+Pull requests
+Actions
+Projects
+Security
+Insights
+Settings
+Deploy to Production
+ 
+Refine code to fix errors and improve type safety across components #8
+Jobs
+Run details
+Annotations
+10 errors and 10 warnings
+deploy
+failed now in 45s
+
+1s
+1s
+3s
+15s
+15s
+8s
+Error:    169:20  error    'userId' is defined but never used             no-unused-vars
+Error:    169:36  error    'chatRoomId' is defined but never used         no-unused-vars
+Error:    170:17  error    'message' is defined but never used            no-unused-vars
+Error:    171:19  error    'chatRoomId' is defined but never used         no-unused-vars
+Error:    171:39  error    'limit' is defined but never used              no-unused-vars
+Error:    171:55  error    'offset' is defined but never used             no-unused-vars
+Error:    172:15  error    'query' is defined but never used              no-unused-vars
+Error:    173:27  error    'chatRoomId' is defined but never used         no-unused-vars
+Error:    176:17  error    'payment' is defined but never used            no-unused-vars
+Error:    177:14  error    'id' is defined but never used                 no-unused-vars
+Error:    178:20  error    'orderId' is defined but never used            no-unused-vars
+Error:    180:5   error    'id' is defined but never used                 no-unused-vars
+Error:    181:5   error    'status' is defined but never used             no-unused-vars
+Error:    182:5   error    'failureReason' is defined but never used      no-unused-vars
+Error:    185:5   error    'id' is defined but never used                 no-unused-vars
+Error:    186:5   error    'transactionId' is defined but never used      no-unused-vars
+Error:    187:5   error    'operatorReference' is defined but never used  no-unused-vars
+Error:    189:22  error    'userId' is defined but never used             no-unused-vars
+Error:    189:38  error    'chatRoomId' is defined but never used         no-unused-vars
+Error:    190:24  error    'chatRoomId' is defined but never used         no-unused-vars
+Error:    190:44  error    'excludeUserId' is defined but never used      no-unused-vars
+Error:    191:23  error    'userId' is defined but never used             no-unused-vars
+Error:    194:27  error    'orderId' is defined but never used            no-unused-vars
+Warning:    194:53  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Error:    197:18  error    'vendorId' is defined but never used           no-unused-vars
+Error:    197:36  error    'notes' is defined but never used              no-unused-vars
+Error:    198:19  error    'filters' is defined but never used            no-unused-vars
+Warning:    208:38  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:    581:59  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:    598:32  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:    895:23  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:    918:23  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:   1008:39  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:   1014:36  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:   1019:53  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:   1028:59  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:   1045:64  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+Warning:   1085:61  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+
+/home/runner/work/ZakaMall/ZakaMall/shared/schema.ts
+Warning:   138:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   146:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   658:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   678:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Warning:   686:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 405 problems (237 errors, 168 warnings)
+  75 errors and 0 warnings potentially fixable with the `--fix` option.
+
+Error: Process completed with exit code 1.
+0s
+0s
+0s
+0s
+0s
+0s

@@ -1098,10 +1098,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create the user
       const user = await storage.createUserWithPhone({
-        ...pendingUser,
+        ...(pendingUser as any),
         phone,
         phoneVerified: true,
-        id: undefined, // Let the database generate the ID
       });
 
       // Mark verification as used
@@ -1220,9 +1219,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create the user
       const user = await storage.createUserWithEmail({
-        ...pendingUser,
+        ...(pendingUser as any),
         email,
-        id: undefined, // Let the database generate the ID
       });
 
       // Mark verification as used

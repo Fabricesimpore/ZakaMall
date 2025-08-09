@@ -116,7 +116,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Vendeurs actifs</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? "..." : typedStats.activeVendors || 0}
+                    {statsLoading ? "..." : (typedStats.activeVendors || 0).toString()}
                   </p>
                 </div>
               </div>
@@ -132,7 +132,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Commandes du jour</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? "..." : typedStats.dailyOrders || 0}
+                    {statsLoading ? "..." : (typedStats.dailyOrders || 0).toString()}
                   </p>
                 </div>
               </div>
@@ -150,7 +150,7 @@ export default function AdminDashboard() {
                   <p className="text-2xl font-bold text-gray-900">
                     {statsLoading
                       ? "..."
-                      : `${(typedStats.platformRevenue || 0).toLocaleString("fr-BF")} CFA`}
+                      : `${(typedStats.platformRevenue || 0).toLocaleString()} CFA`}
                   </p>
                 </div>
               </div>
@@ -166,7 +166,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Chauffeurs disponibles</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {statsLoading ? "..." : typedStats.availableDrivers || 0}
+                    {statsLoading ? "..." : (typedStats.availableDrivers || 0).toString()}
                   </p>
                 </div>
               </div>

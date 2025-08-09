@@ -18,13 +18,13 @@ export class SMSService {
 
   async sendVerificationSMS(phone: string, code: string, firstName?: string): Promise<boolean> {
     const message = `ZakaMall: Votre code de verification est ${code}. Ce code expire dans 15 minutes. Ne le partagez pas.`;
-    
+
     return await this.sendSMS(phone, message);
   }
 
   async sendLoginSMS(phone: string, code: string): Promise<boolean> {
     const message = `ZakaMall: Votre code de connexion est ${code}. Ce code expire dans 10 minutes.`;
-    
+
     return await this.sendSMS(phone, message);
   }
 
@@ -32,7 +32,7 @@ export class SMSService {
     try {
       // Normalize phone number for Burkina Faso
       const normalizedPhone = this.normalizePhoneNumber(phone);
-      
+
       switch (this.smsConfig.provider) {
         case "orange":
           return await this.sendViaOrangeAPI(normalizedPhone, message);
@@ -52,7 +52,7 @@ export class SMSService {
       }
     } catch (error) {
       console.error("SMS sending error:", error);
-      
+
       // Fallback to console logging
       console.log(`\n=== SMS FALLBACK ===`);
       console.log(`To: ${phone}`);
@@ -64,20 +64,20 @@ export class SMSService {
 
   private normalizePhoneNumber(phone: string): string {
     // Remove all non-digit characters
-    let cleaned = phone.replace(/\D/g, '');
-    
+    let cleaned = phone.replace(/\D/g, "");
+
     // Handle Burkina Faso phone numbers
-    if (cleaned.startsWith('226')) {
+    if (cleaned.startsWith("226")) {
       // Already has country code
       return `+${cleaned}`;
     } else if (cleaned.length === 8) {
       // Local number, add Burkina Faso country code
       return `+226${cleaned}`;
-    } else if (cleaned.startsWith('0') && cleaned.length === 9) {
+    } else if (cleaned.startsWith("0") && cleaned.length === 9) {
       // Remove leading 0 and add country code
       return `+226${cleaned.substring(1)}`;
     }
-    
+
     // Return as-is if format not recognized
     return `+${cleaned}`;
   }
@@ -93,20 +93,23 @@ export class SMSService {
       const authToken = this.smsConfig.apiSecret;
       const twilioPhone = process.env.TWILIO_PHONE_NUMBER || this.smsConfig.sender;
 
-      const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64');
-      
-      const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${auth}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          To: phone,
-          From: twilioPhone || "",
-          Body: message,
-        }).toString(),
-      });
+      const auth = Buffer.from(`${accountSid}:${authToken}`).toString("base64");
+
+      const response = await fetch(
+        `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${auth}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            To: phone,
+            From: twilioPhone || "",
+            Body: message,
+          }).toString(),
+        }
+      );
 
       if (response.ok) {
         console.log(`📱 SMS sent successfully to ${phone} via Twilio`);
@@ -114,17 +117,19 @@ export class SMSService {
       } else {
         const errorData = await response.text();
         console.error("Twilio SMS failed:", errorData);
-        
+
         // Check if it's a region permission issue
         if (errorData.includes("21408") || errorData.includes("Permission to send")) {
-          console.log(`⚠️ Twilio doesn't support SMS to ${phone} region. Using fallback to console.`);
+          console.log(
+            `⚠️ Twilio doesn't support SMS to ${phone} region. Using fallback to console.`
+          );
           console.log(`\n=== TWILIO FALLBACK SMS ===`);
           console.log(`To: ${phone}`);
           console.log(`Message: ${message}`);
           console.log(`===========================\n`);
           return true; // Return true to continue the flow
         }
-        
+
         return false;
       }
     } catch (error) {
@@ -139,10 +144,10 @@ export class SMSService {
         throw new Error("Textbelt API key not configured");
       }
 
-      const response = await fetch('https://textbelt.com/text', {
-        method: 'POST',
+      const response = await fetch("https://textbelt.com/text", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           phone: phone,
@@ -152,7 +157,7 @@ export class SMSService {
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
         console.log(`📱 SMS sent successfully to ${phone} via Textbelt`);
         return true;
@@ -173,7 +178,9 @@ export class SMSService {
       }
 
       // Orange API endpoint for Burkina Faso
-      const orangeEndpoint = process.env.ORANGE_SMS_ENDPOINT || "https://api.orange.com/smsmessaging/v1/outbound/tel%3A%2B226XXXXXXXX/requests";
+      const orangeEndpoint =
+        process.env.ORANGE_SMS_ENDPOINT ||
+        "https://api.orange.com/smsmessaging/v1/outbound/tel%3A%2B226XXXXXXXX/requests";
       const authToken = this.smsConfig.apiKey;
 
       const requestBody = {
@@ -181,18 +188,18 @@ export class SMSService {
           address: [phone],
           senderAddress: `tel:+226${process.env.ORANGE_SENDER_NUMBER || "12345678"}`,
           outboundSMSTextMessage: {
-            message: message
+            message: message,
           },
           requestStatusURL: process.env.ORANGE_CALLBACK_URL || "",
-        }
+        },
       };
 
       const response = await fetch(orangeEndpoint, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify(requestBody),
       });
@@ -219,24 +226,24 @@ export class SMSService {
       }
 
       const username = process.env.AFRICASTALKING_USERNAME || "sandbox";
-      
-      const response = await fetch('https://api.africastalking.com/version1/messaging', {
-        method: 'POST',
+
+      const response = await fetch("https://api.africastalking.com/version1/messaging", {
+        method: "POST",
         headers: {
-          'ApiKey': this.smsConfig.apiKey,
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json',
+          ApiKey: this.smsConfig.apiKey,
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
         },
         body: new URLSearchParams({
           username: username,
           to: phone,
           message: message,
-          from: this.smsConfig.sender || '',
+          from: this.smsConfig.sender || "",
         }),
       });
 
       const result = await response.json();
-      
+
       if (result.SMSMessageData?.Recipients?.length > 0) {
         const recipient = result.SMSMessageData.Recipients[0];
         if (recipient.statusCode === 101) {

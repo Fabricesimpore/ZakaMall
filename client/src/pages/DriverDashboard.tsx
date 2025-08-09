@@ -76,7 +76,7 @@ export default function DriverDashboard() {
     enabled: !!driver?.roleData?.id,
   });
 
-  const { data: currentDeliveries = [] as Order[], isLoading: currentLoading } = useQuery<Order[]>({
+  const { data: currentDeliveries = [] as Order[], isLoading: _currentLoading } = useQuery<Order[]>({
     queryKey: ["/api/orders", { driverId: driver?.roleData?.id, status: "in_transit" }],
     enabled: !!driver?.roleData?.id,
   });

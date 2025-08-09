@@ -48,11 +48,13 @@ export class EmailService {
   private async sendEmail(message: EmailMessage): Promise<boolean> {
     try {
       // Debug logging
-      console.log(`Email config check: user=${!!this.emailConfig.user}, pass=${!!this.emailConfig.pass}, service=${this.emailConfig.service}`);
-      
+      console.log(
+        `Email config check: user=${!!this.emailConfig.user}, pass=${!!this.emailConfig.pass}, service=${this.emailConfig.service}`
+      );
+
       // Try free email services
       console.log("Attempting to send email using free services...");
-      
+
       // Try Formspree (works server-side)
       const formspreeResult = await this.sendViaFormspree(message);
       if (formspreeResult) {
@@ -71,13 +73,13 @@ export class EmailService {
       if (this.emailConfig.user && this.emailConfig.pass && this.emailConfig.service === "gmail") {
         try {
           console.log("Attempting Gmail fallback...");
-          
+
           const httpResult = await this.sendViaHTTPService(message);
           if (httpResult) {
             console.log(`📧 Email sent successfully to ${message.to} via HTTP service`);
             return true;
           }
-          
+
           console.log("Gmail fallback unavailable");
         } catch (emailError) {
           console.error("Gmail fallback error:", emailError);
@@ -120,7 +122,7 @@ export class EmailService {
           
           <h2>Vérification de votre compte</h2>
           
-          ${firstName ? `<p>Bonjour ${firstName},</p>` : '<p>Bonjour,</p>'}
+          ${firstName ? `<p>Bonjour ${firstName},</p>` : "<p>Bonjour,</p>"}
           
           <p>Merci de vous être inscrit sur ZakaMall! Voici votre code de vérification:</p>
           
@@ -145,29 +147,38 @@ export class EmailService {
     `;
   }
 
-  private async sendViaHTTPService(message: { to: string; subject: string; text: string; html: string }): Promise<boolean> {
+  private async sendViaHTTPService(message: {
+    to: string;
+    subject: string;
+    text: string;
+    html: string;
+  }): Promise<boolean> {
     try {
       // This is now handled by the main send method with Formspree and EmailJS server-side
       console.log("HTTP service deprecated - using modern free email services");
       return false;
-      
     } catch (error) {
       console.error("HTTP email service exception:", error);
       return false;
     }
   }
 
-  private async sendViaFormspree(message: { to: string; subject: string; text: string; html: string }): Promise<boolean> {
+  private async sendViaFormspree(message: {
+    to: string;
+    subject: string;
+    text: string;
+    html: string;
+  }): Promise<boolean> {
     try {
       // Formspree is a free service that can send emails from forms
       // We'll use their endpoint to send transactional emails
       const formspreeId = process.env.FORMSPREE_ID || "xpznqbql"; // Default demo form
-      
+
       const response = await fetch(`https://formspree.io/f/${formspreeId}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify({
           email: message.to,
@@ -175,7 +186,7 @@ export class EmailService {
           message: message.text,
           _replyto: this.emailConfig.from,
           _subject: message.subject,
-          _next: 'https://example.com/thanks',
+          _next: "https://example.com/thanks",
         }),
       });
 
@@ -184,7 +195,7 @@ export class EmailService {
         return true;
       } else {
         const error = await response.text();
-        console.log('Formspree not available:', error);
+        console.log("Formspree not available:", error);
         return false;
       }
     } catch (error) {
@@ -193,26 +204,31 @@ export class EmailService {
     }
   }
 
-  private async sendViaEmailJSServerSide(message: { to: string; subject: string; text: string; html: string }): Promise<boolean> {
+  private async sendViaEmailJSServerSide(message: {
+    to: string;
+    subject: string;
+    text: string;
+    html: string;
+  }): Promise<boolean> {
     try {
       // EmailJS server-side approach using different endpoint
       const serviceId = process.env.EMAILJS_SERVICE_ID;
       const templateId = process.env.EMAILJS_TEMPLATE_ID;
       const userId = process.env.EMAILJS_USER_ID;
-      
+
       if (!serviceId || !templateId || !userId) {
         console.log("EmailJS not configured");
         return false;
       }
 
       // Try using EmailJS with User-Agent spoofing to appear as browser
-      const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-        method: 'POST',
+      const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Referer': 'https://zakamart.app',
-          'Origin': 'https://zakamart.app',
+          "Content-Type": "application/json",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          Referer: "https://zakamart.app",
+          Origin: "https://zakamart.app",
         },
         body: JSON.stringify({
           service_id: serviceId,
@@ -220,11 +236,11 @@ export class EmailService {
           user_id: userId,
           template_params: {
             to_email: message.to,
-            to_name: message.to.split('@')[0],
+            to_name: message.to.split("@")[0],
             message_subject: message.subject,
             message_text: message.text,
             message_html: message.html,
-            from_name: 'ZakaMall',
+            from_name: "ZakaMall",
             reply_to: this.emailConfig.from,
           },
         }),
@@ -235,7 +251,7 @@ export class EmailService {
         return true;
       } else {
         const error = await response.text();
-        console.log('EmailJS server-side failed:', error);
+        console.log("EmailJS server-side failed:", error);
         return false;
       }
     } catch (error) {
