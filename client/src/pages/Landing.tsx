@@ -125,7 +125,11 @@ export default function Landing() {
                     <Button
                       variant="outline"
                       className="btn-outline-force-visible border-2 px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-zaka-orange transition-colors"
-                      style={{ color: "white", borderColor: "white", backgroundColor: "transparent" }}
+                      style={{
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                      }}
                     >
                       Se connecter
                     </Button>
