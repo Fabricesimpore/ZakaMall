@@ -264,11 +264,49 @@ export class DatabaseStorage implements IStorage {
     userId: string,
     role: "customer" | "vendor" | "driver" | "admin"
   ): Promise<User> {
+    // Update user role
     const [user] = await db
       .update(users)
       .set({ role, updatedAt: new Date() })
       .where(eq(users.id, userId))
       .returning();
+
+    // If promoting to vendor, create vendor record if it doesn't exist
+    if (role === "vendor") {
+      const existingVendor = await this.getVendorByUserId(userId);
+      if (!existingVendor) {
+        // Create basic vendor record for admin-promoted user
+        await this.createVendor({
+          userId,
+          businessName: `${user.firstName} ${user.lastName} Business`,
+          businessDescription: "Admin-created vendor account",
+          businessAddress: "Address to be updated",
+          businessPhone: user.phone || "Phone to be updated",
+          bankName: "Bank to be updated",
+          bankAccount: "Account to be updated",
+          status: "approved", // Admin-promoted vendors are auto-approved
+        });
+      }
+    }
+
+    // If promoting to driver, create driver record if it doesn't exist
+    if (role === "driver") {
+      const existingDriver = await this.getDriverByUserId(userId);
+      if (!existingDriver) {
+        // Create basic driver record for admin-promoted user
+        await this.createDriver({
+          userId,
+          vehicleType: "To be updated",
+          licenseNumber: "To be updated",
+          experience: "To be updated",
+          status: "approved", // Admin-promoted drivers are auto-approved
+          isOnline: false,
+          currentLat: null,
+          currentLng: null,
+        });
+      }
+    }
+
     return user;
   }
 
@@ -324,11 +362,29 @@ export class DatabaseStorage implements IStorage {
     id: string,
     status: "pending" | "approved" | "rejected" | "suspended"
   ): Promise<Vendor> {
+    // First update the vendor status
     const [vendor] = await db
       .update(vendors)
       .set({ status, updatedAt: new Date() })
       .where(eq(vendors.id, id))
       .returning();
+
+    // If approving vendor, also update user role to "vendor"
+    if (status === "approved" && vendor) {
+      await db
+        .update(users)
+        .set({ role: "vendor", updatedAt: new Date() })
+        .where(eq(users.id, vendor.userId));
+    }
+
+    // If rejecting/suspending vendor, change user role back to "customer"
+    if ((status === "rejected" || status === "suspended") && vendor) {
+      await db
+        .update(users)
+        .set({ role: "customer", updatedAt: new Date() })
+        .where(eq(users.id, vendor.userId));
+    }
+
     return vendor;
   }
 
@@ -420,11 +476,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDriverApprovalStatus(id: string, status: string): Promise<Driver> {
+    // First update the driver status
     const [driver] = await db
       .update(drivers)
       .set({ status: status as any, updatedAt: new Date() })
       .where(eq(drivers.id, id))
       .returning();
+
+    // If approving driver, also update user role to "driver"
+    if (status === "approved" && driver) {
+      await db
+        .update(users)
+        .set({ role: "driver", updatedAt: new Date() })
+        .where(eq(users.id, driver.userId));
+    }
+
+    // If rejecting/suspending driver, change user role back to "customer"
+    if ((status === "rejected" || status === "suspended") && driver) {
+      await db
+        .update(users)
+        .set({ role: "customer", updatedAt: new Date() })
+        .where(eq(users.id, driver.userId));
+    }
+
     return driver;
   }
 
