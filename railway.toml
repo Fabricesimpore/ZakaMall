@@ -1,0 +1,15 @@
+[build]
+builder = "nixpacks"
+
+[build.nixpacksConfig]
+buildCommand = "npm run build"
+
+[deploy]
+startCommand = "npm start"
+restartPolicyType = "always"
+restartPolicyMaxRetries = 3
+
+[[services]]
+name = "web"
+buildCommand = "npm run build"
+startCommand = "npm start"
