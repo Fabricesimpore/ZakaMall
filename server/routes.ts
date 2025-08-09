@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated, hashPassword, verifyPassword, createUserSession } from "./auth";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import { PaymentServiceFactory } from "./paymentService";
@@ -27,29 +27,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
   }
 
-  // Test route to simulate authenticated user login
-  app.post("/api/test/login", async (req, res) => {
-    const { email } = req.body;
+  // Login endpoint with password verification
+  app.post("/api/auth/login", async (req, res) => {
+    const { email, password } = req.body;
 
     try {
+      // Validate input
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email et mot de passe requis" });
+      }
+
       // Find user by email
       const user = await storage.getUserByEmail(email);
 
       if (!user) {
-        return res.status(400).json({ error: "User not found with this email" });
+        return res.status(401).json({ error: "Email ou mot de passe incorrect" });
       }
 
-      // Establish persistent session for the user
-      const userSession = {
-        claims: { sub: user.id },
-        isAuthenticated: true,
-      };
-
-      // Set up session similar to how email verification does it
-      (req as any).user = userSession;
-      if (req.session) {
-        (req.session as any).user = userSession;
+      // Check if user has a password (for users who signed up with password)
+      if (!user.password) {
+        // For backward compatibility, allow test login without password
+        if (process.env.NODE_ENV === "development") {
+          createUserSession(req, user);
+          return res.json({
+            success: true,
+            user: {
+              id: user.id,
+              email: user.email,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              role: user.role,
+            },
+          });
+        }
+        return res.status(400).json({ error: "Ce compte n'a pas de mot de passe. Utilisez une autre méthode de connexion." });
       }
+
+      // Verify password
+      const isValidPassword = await verifyPassword(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ error: "Email ou mot de passe incorrect" });
+      }
+
+      // Create user session
+      createUserSession(req, user);
 
       res.json({
         success: true,
@@ -58,6 +79,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
+          role: user.role,
+        },
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ error: "Erreur lors de la connexion" });
+    }
+  });
+  
+  // Logout endpoint
+  app.post("/api/auth/logout", (req, res) => {
+    req.session?.destroy((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+        return res.status(500).json({ error: "Failed to logout" });
+      }
+      res.clearCookie("connect.sid");
+      res.json({ success: true, message: "Logged out successfully" });
+    });
+  });
+  
+  // Legacy test login (kept for backwards compatibility)
+  app.post("/api/test/login", async (req, res) => {
+    const { email } = req.body;
+    
+    try {
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        return res.status(400).json({ error: "User not found with this email" });
+      }
+      
+      // Create user session without password check (test only)
+      createUserSession(req, user);
+      
+      res.json({
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
         },
       });
     } catch (error) {
@@ -1166,11 +1231,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Email authentication routes
   app.post("/api/auth/email-signup", async (req, res) => {
     try {
-      const { firstName, lastName, email, role } = req.body;
+      const { firstName, lastName, email, password, role } = req.body;
 
       // Validate email format
       if (!email || !email.includes("@")) {
         return res.status(400).json({ message: "Format d'email invalide" });
+      }
+
+      // Validate password
+      if (!password || password.length < 6) {
+        return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères" });
       }
 
       // Check if email already exists
@@ -1178,6 +1248,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingUser) {
         return res.status(400).json({ message: "Cette adresse email est déjà utilisée" });
       }
+
+      // Hash the password
+      const hashedPassword = await hashPassword(password);
 
       // Generate verification code
       const verificationCode = randomInt(100000, 999999).toString();
@@ -1189,12 +1262,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
       });
 
-      // Store pending user data
+      // Store pending user data with hashed password
       await storage.storePendingUser({
         email,
         firstName,
         lastName,
         role,
+        password: hashedPassword,
       });
 
       // Send verification email

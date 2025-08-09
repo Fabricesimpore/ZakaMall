@@ -17,6 +17,7 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
 
   // Email login state
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   // Phone login state
   const [phone, setPhone] = useState("");
@@ -29,11 +30,11 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
     setIsLoading(true);
 
     try {
-      // Simple email login for existing users
-      const response = await fetch("/api/test/login", {
+      // Login with email and password
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
@@ -156,9 +157,24 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
                     required
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Mot de passe</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    minLength={6}
+                  />
+                </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Connexion..." : "Se connecter"}
                 </Button>
+                <p className="text-sm text-center text-muted-foreground">
+                  Pas encore de compte? <a href="/register" className="text-primary hover:underline">S'inscrire</a>
+                </p>
               </form>
             </CardContent>
           </Card>

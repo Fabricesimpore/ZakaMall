@@ -23,6 +23,7 @@ import TestPayment from "@/pages/TestPayment";
 import PaymentTest from "@/pages/PaymentTest";
 import CreateAdmin from "@/pages/CreateAdmin";
 import ProductForm from "@/pages/ProductForm";
+import Register from "@/pages/Register";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/cart" component={CartPage} />
       <Route path="/test-payment" component={TestPayment} />
       <Route path="/payment-test" component={PaymentTest} />
+      <Route path="/register" component={Register} />
       <Route path="/create-admin" component={CreateAdmin} />
       <Route path="/admin" component={AdminDashboard} />
 

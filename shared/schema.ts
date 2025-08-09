@@ -75,6 +75,7 @@ export const users = pgTable("users", {
   phone: varchar("phone").unique(),
   phoneVerified: boolean("phone_verified").default(false),
   phoneOperator: varchar("phone_operator"),
+  password: varchar("password"), // Added for local authentication
   role: userRoleEnum("role").default("customer").notNull(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
