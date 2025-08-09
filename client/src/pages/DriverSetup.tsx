@@ -105,8 +105,27 @@ export default function DriverSetup() {
     setupMutation.mutate(data);
   };
 
-  const nextStep = () => {
-    if (step < 3) setStep(step + 1);
+  const nextStep = async () => {
+    // Define fields required for each step
+    const stepFields: Record<number, (keyof DriverSetupForm)[]> = {
+      1: ["vehicleType", "licenseNumber", "vehicleModel", "vehicleYear", "vehicleColor", "vehiclePlate"],
+      2: ["emergencyContact", "emergencyName", "workZone", "experience"],
+      3: [] // Final step, no additional fields
+    };
+
+    // Validate current step fields before advancing
+    const fieldsToValidate = stepFields[step] || [];
+    const isValid = await form.trigger(fieldsToValidate);
+
+    if (isValid && step < 3) {
+      setStep(step + 1);
+    } else if (!isValid) {
+      toast({
+        title: "Champs requis",
+        description: "Veuillez remplir tous les champs obligatoires avant de continuer.",
+        variant: "destructive",
+      });
+    }
   };
 
   const prevStep = () => {

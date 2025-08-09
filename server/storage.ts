@@ -328,6 +328,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(userId: string): Promise<void> {
+    // Delete in correct order to handle foreign key constraints
+    
+    // 1. Delete messages sent by this user
+    await db.delete(messages).where(eq(messages.senderId, userId));
+    
+    // 2. Delete chat participants
+    await db.delete(chatParticipants).where(eq(chatParticipants.userId, userId));
+    
+    // 3. Delete chat rooms created by this user (messages already deleted)
+    await db.delete(chatRooms).where(eq(chatRooms.createdBy, userId));
+    
+    // 4. Delete reviews by this user
+    await db.delete(reviews).where(eq(reviews.userId, userId));
+    
+    // 5. Delete cart items
+    await db.delete(cart).where(eq(cart.userId, userId));
+    
+    // 6. Delete orders where user is customer (order items will be handled by cascade)
+    await db.delete(orders).where(eq(orders.customerId, userId));
+    
+    // 7. Delete driver record if exists
+    await db.delete(drivers).where(eq(drivers.userId, userId));
+    
+    // 8. Delete vendor record if exists (this might cascade to products)
+    await db.delete(vendors).where(eq(vendors.userId, userId));
+    
+    // 9. Finally delete the user
     await db.delete(users).where(eq(users.id, userId));
   }
 
