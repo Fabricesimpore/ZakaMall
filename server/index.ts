@@ -121,7 +121,8 @@ app.get("/api/health", (_req, res) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = getNumericEnv("PORT", 5000);
-  server.listen(port, "127.0.0.1", () => {
-    logInfo("Server started", { port, host: "127.0.0.1", environment: process.env.NODE_ENV });
+  server.listen(port, "0.0.0.0", () => {
+    logInfo("Server started", { port, host: "0.0.0.0", environment: process.env.NODE_ENV });
+    console.log(`🚀 ZakaMall server running on port ${port}`);
   });
 })();
