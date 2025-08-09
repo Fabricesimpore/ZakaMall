@@ -128,7 +128,8 @@ export interface IStorage {
   updateProductStock(id: string, quantity: number): Promise<Product>;
   updateProductImages(id: string, images: string[]): Promise<Product>;
   deleteProduct(id: string): Promise<void>;
-  getLowStockProducts(vendorId: string): Promise<Product[]>;
+  getLowStockProducts(threshold?: number): Promise<Product[]>;
+  getVendorLowStockProducts(vendorId: string): Promise<Product[]>;
 
   // Cart operations
   addToCart(item: InsertCartItem): Promise<CartItem>;
@@ -140,6 +141,7 @@ export interface IStorage {
   // Order operations
   createOrder(order: InsertOrder, items: InsertOrderItem[]): Promise<Order>;
   getOrder(id: string): Promise<Order | undefined>;
+  getOrderItemsByOrderId(orderId: string): Promise<OrderItem[]>;
   getOrders(filters?: {
     customerId?: string;
     vendorId?: string;
@@ -630,13 +632,6 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(products.quantity));
   }
 
-  async getCategories(): Promise<any[]> {
-    return await db
-      .select()
-      .from(categories)
-      .orderBy(categories.name);
-  }
-
   async getCategoriesWithProductCount(): Promise<any[]> {
     return await db
       .select({
@@ -692,7 +687,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(products).where(eq(products.id, id));
   }
 
-  async getLowStockProducts(vendorId: string): Promise<Product[]> {
+  async getVendorLowStockProducts(vendorId: string): Promise<Product[]> {
     return await db
       .select()
       .from(products)
@@ -822,6 +817,13 @@ export class DatabaseStorage implements IStorage {
   async getOrder(id: string): Promise<Order | undefined> {
     const [order] = await db.select().from(orders).where(eq(orders.id, id));
     return order;
+  }
+
+  async getOrderItemsByOrderId(orderId: string): Promise<OrderItem[]> {
+    return await db
+      .select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, orderId));
   }
 
   async getOrders(filters?: {

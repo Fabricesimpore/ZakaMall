@@ -231,7 +231,7 @@ export class OrderNotificationService {
             <p>Merci pour votre commande ! Voici les détails :</p>
             
             <p><strong>Numéro de commande :</strong> <span class="status-badge">${order.orderNumber}</span></p>
-            <p><strong>Date :</strong> ${new Date(order.createdAt).toLocaleDateString('fr-FR', { 
+            <p><strong>Date :</strong> ${new Date(order.createdAt || new Date()).toLocaleDateString('fr-FR', { 
               weekday: 'long', 
               year: 'numeric', 
               month: 'long', 
@@ -278,7 +278,13 @@ export class OrderNotificationService {
           ${order.deliveryAddress ? `
           <div class="order-info">
             <h4>Adresse de livraison :</h4>
-            <p>${typeof order.deliveryAddress === 'string' ? order.deliveryAddress : JSON.parse(order.deliveryAddress).address}</p>
+            <p>${(() => {
+              if (typeof order.deliveryAddress === 'string') return order.deliveryAddress;
+              if (order.deliveryAddress && typeof order.deliveryAddress === 'object') {
+                return (order.deliveryAddress as any)?.address || 'Adresse non spécifiée';
+              }
+              return 'Adresse non spécifiée';
+            })()}</p>
           </div>
           ` : ''}
 
@@ -307,8 +313,8 @@ export class OrderNotificationService {
     let text = `Confirmation de commande ZakaMall\\n\\n`;
     text += `Bonjour ${customerName},\\n\\n`;
     text += `Merci pour votre commande ${order.orderNumber} !\\n\\n`;
-    text += `Date: ${new Date(order.createdAt).toLocaleDateString('fr-FR')}\\n`;
-    text += `Total: ${formatMoney(order.totalAmount)}\\n\\n`;
+    text += `Date: ${new Date(order.createdAt || new Date()).toLocaleDateString('fr-FR')}\\n`;
+    text += `Total: ${formatMoney(order.totalAmount || 0)}\\n\\n`;
     
     if (order.items && order.items.length > 0) {
       text += `Articles commandés:\\n`;
@@ -373,8 +379,8 @@ export class OrderNotificationService {
           
           <div class="order-info">
             <p><strong>Numéro de commande :</strong> ${order.orderNumber}</p>
-            <p><strong>Total :</strong> ${formatMoney(order.totalAmount)}</p>
-            <p><strong>Date de commande :</strong> ${new Date(order.createdAt).toLocaleDateString('fr-FR')}</p>
+            <p><strong>Total :</strong> ${formatMoney(order.totalAmount || 0)}</p>
+            <p><strong>Date de commande :</strong> ${new Date(order.createdAt || new Date()).toLocaleDateString('fr-FR')}</p>
           </div>
 
           ${statusLabel === 'En livraison' && order.driver ? `
@@ -417,7 +423,7 @@ export class OrderNotificationService {
       text += `\\n`;
     }
     
-    text += `Total: ${formatMoney(order.totalAmount)}\\n\\n`;
+    text += `Total: ${formatMoney(order.totalAmount || 0)}\\n\\n`;
     text += `Merci d'utiliser ZakaMall !`;
     
     return text;
@@ -491,8 +497,8 @@ export class OrderNotificationService {
           <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
             <p><strong>Commande :</strong> ${order.orderNumber}</p>
             <p><strong>Client :</strong> ${order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : 'Client'}</p>
-            <p><strong>Total :</strong> ${formatMoney(order.totalAmount)}</p>
-            <p><strong>Date :</strong> ${new Date(order.createdAt).toLocaleDateString('fr-FR')}</p>
+            <p><strong>Total :</strong> ${formatMoney(order.totalAmount || 0)}</p>
+            <p><strong>Date :</strong> ${new Date(order.createdAt || new Date()).toLocaleDateString('fr-FR')}</p>
           </div>
 
           ${order.items && order.items.length > 0 ? `
@@ -522,7 +528,7 @@ export class OrderNotificationService {
     text += `Bonjour ${vendorName},\\n\\n`;
     text += `Nouvelle commande: ${order.orderNumber}\\n`;
     text += `Client: ${order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : 'Client'}\\n`;
-    text += `Total: ${formatMoney(order.totalAmount)}\\n\\n`;
+    text += `Total: ${formatMoney(order.totalAmount || 0)}\\n\\n`;
     
     if (order.items && order.items.length > 0) {
       text += `Articles:\\n`;

@@ -973,13 +973,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           // Get customer and vendor information for notifications
           const customer = await storage.getUser(userId);
-          const vendor = await storage.getVendorById(order.vendorId);
+          const vendor = await storage.getVendor(order.vendorId);
           const vendorUser = vendor ? await storage.getUser(vendor.userId) : null;
 
           // Get order items with product details
-          const orderItems = await storage.getOrderItems(order.id);
+          const orderItems = await storage.getOrderItemsByOrderId(order.id);
           const itemsWithDetails = await Promise.all(
-            orderItems.map(async (item) => {
+            orderItems.map(async (item: any) => {
               const product = await storage.getProduct(item.productId);
               return {
                 productName: product?.name || 'Produit',
@@ -1091,7 +1091,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       setTimeout(async () => {
         try {
           const customer = await storage.getUser(order.customerId);
-          const vendor = await storage.getVendorById(order.vendorId);
+          const vendor = await storage.getVendor(order.vendorId);
           const vendorUser = vendor ? await storage.getUser(vendor.userId) : null;
 
           const notificationData = {
@@ -1854,7 +1854,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Only vendors can access low stock data" });
       }
 
-      const products = await storage.getLowStockProducts(vendor.id);
+      const products = await storage.getVendorLowStockProducts(vendor.id);
       res.json(products);
     } catch (error) {
       console.error("Error fetching low stock products:", error);

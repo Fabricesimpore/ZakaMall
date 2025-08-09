@@ -129,7 +129,7 @@ export function calculateCommission(
  */
 export function sumAmounts(amounts: (number | string | undefined | null)[]): number {
   try {
-    return amounts.reduce((sum, amount) => {
+    return amounts.reduce((sum: number, amount: number | string | undefined | null) => {
       if (amount === undefined || amount === null || amount === "") {
         return sum;
       }
