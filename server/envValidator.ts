@@ -10,10 +10,7 @@ interface EnvConfig {
 
 const envConfig: EnvConfig = {
   // Always required
-  required: [
-    "DATABASE_URL",
-    "SESSION_SECRET",
-  ],
+  required: ["DATABASE_URL", "SESSION_SECRET"],
   // Optional but recommended
   optional: [
     "EMAIL_SERVICE",
@@ -59,11 +56,16 @@ export function validateEnvironment(): void {
       process.env.SESSION_SECRET === "development-secret-change-in-production" ||
       (process.env.SESSION_SECRET && process.env.SESSION_SECRET.length < 32)
     ) {
-      errors.push("❌ SESSION_SECRET must be at least 32 characters and not the default value in production");
+      errors.push(
+        "❌ SESSION_SECRET must be at least 32 characters and not the default value in production"
+      );
     }
 
     // Validate database URL is not local
-    if (process.env.DATABASE_URL?.includes("localhost") || process.env.DATABASE_URL?.includes("127.0.0.1")) {
+    if (
+      process.env.DATABASE_URL?.includes("localhost") ||
+      process.env.DATABASE_URL?.includes("127.0.0.1")
+    ) {
       warnings.push("⚠️  DATABASE_URL points to localhost in production mode");
     }
   }
@@ -77,12 +79,11 @@ export function validateEnvironment(): void {
 
   // Payment provider warnings
   const hasOrangeMoney = !!(
-    process.env.ORANGE_MONEY_MERCHANT_CODE && 
-    process.env.ORANGE_MONEY_API_KEY
+    process.env.ORANGE_MONEY_MERCHANT_CODE && process.env.ORANGE_MONEY_API_KEY
   );
   const hasMoovMoney = !!(
-    process.env.MOOV_MONEY_MERCHANT_ID && 
-    process.env.MOOV_MONEY_API_KEY && 
+    process.env.MOOV_MONEY_MERCHANT_ID &&
+    process.env.MOOV_MONEY_API_KEY &&
     process.env.MOOV_MONEY_API_SECRET
   );
 
@@ -92,7 +93,9 @@ export function validateEnvironment(): void {
 
   // Email configuration warning
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    warnings.push("⚠️  Email service not configured. Email notifications will be logged to console.");
+    warnings.push(
+      "⚠️  Email service not configured. Email notifications will be logged to console."
+    );
   }
 
   // SMS configuration warning
@@ -107,8 +110,8 @@ export function validateEnvironment(): void {
 
   if (errors.length > 0) {
     console.error("\n❌ ERRORS FOUND:");
-    errors.forEach(error => console.error(error));
-    
+    errors.forEach((error) => console.error(error));
+
     if (isProduction) {
       console.error("\n🛑 Cannot start in production mode with configuration errors!");
       console.error("Please fix the errors above and restart the application.\n");
@@ -121,7 +124,7 @@ export function validateEnvironment(): void {
 
   if (warnings.length > 0) {
     console.warn("\n⚠️  WARNINGS:");
-    warnings.forEach(warning => console.warn(warning));
+    warnings.forEach((warning) => console.warn(warning));
   }
 
   if (errors.length === 0 && warnings.length === 0) {
@@ -134,7 +137,9 @@ export function validateEnvironment(): void {
   console.log(`   Database: ${process.env.DATABASE_URL ? "✅ Configured" : "❌ Not configured"}`);
   console.log(`   Session Security: ${process.env.SESSION_SECRET ? "✅ Set" : "❌ Not set"}`);
   console.log(`   Email Service: ${process.env.EMAIL_USER ? "✅ Configured" : "⚠️  Mock mode"}`);
-  console.log(`   SMS Service: ${process.env.SMS_PROVIDER !== "console" ? "✅ Configured" : "⚠️  Console mode"}`);
+  console.log(
+    `   SMS Service: ${process.env.SMS_PROVIDER !== "console" ? "✅ Configured" : "⚠️  Console mode"}`
+  );
   console.log(`   Orange Money: ${hasOrangeMoney ? "✅ Configured" : "⚠️  Mock mode"}`);
   console.log(`   Moov Money: ${hasMoovMoney ? "✅ Configured" : "⚠️  Mock mode"}`);
   console.log(`   Port: ${process.env.PORT || "5000"}`);
@@ -145,13 +150,15 @@ export function validateEnvironment(): void {
 export function getNumericEnv(name: string, defaultValue: number): number {
   const value = process.env[name];
   if (!value) return defaultValue;
-  
+
   const parsed = parseInt(value, 10);
   if (isNaN(parsed)) {
-    console.warn(`⚠️  Invalid numeric value for ${name}: "${value}", using default: ${defaultValue}`);
+    console.warn(
+      `⚠️  Invalid numeric value for ${name}: "${value}", using default: ${defaultValue}`
+    );
     return defaultValue;
   }
-  
+
   return parsed;
 }
 
@@ -159,6 +166,6 @@ export function getNumericEnv(name: string, defaultValue: number): number {
 export function getBooleanEnv(name: string, defaultValue: boolean): boolean {
   const value = process.env[name];
   if (!value) return defaultValue;
-  
+
   return value.toLowerCase() === "true" || value === "1";
 }

@@ -2,7 +2,13 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { toMinorUnit, toMajorUnit, formatMoney, isValidMoneyAmount, calculateCommission } from "./utils/money";
+import {
+  toMinorUnit,
+  toMajorUnit,
+  formatMoney,
+  isValidMoneyAmount,
+  calculateCommission,
+} from "./utils/money";
 import { orderNotificationService } from "./notifications/orderNotifications";
 import {
   setupAuth,
@@ -793,35 +799,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/products", async (req, res) => {
     try {
-      const { 
-        vendorId, 
-        categoryId, 
-        search, 
-        limit, 
-        offset, 
-        sortBy, 
-        sortOrder, 
-        page, 
+      const {
+        vendorId,
+        categoryId,
+        search,
+        limit,
+        offset,
+        sortBy,
+        sortOrder,
+        page,
         pageSize,
         minPrice,
         maxPrice,
         inStock,
-        tags
+        tags,
       } = req.query;
 
       // Support both offset and page-based pagination
-      const effectiveLimit = limit ? parseInt(limit as string) : (pageSize ? parseInt(pageSize as string) : 20);
-      const effectiveOffset = offset ? parseInt(offset as string) : (page ? (parseInt(page as string) - 1) * effectiveLimit : 0);
+      const effectiveLimit = limit
+        ? parseInt(limit as string)
+        : pageSize
+          ? parseInt(pageSize as string)
+          : 20;
+      const effectiveOffset = offset
+        ? parseInt(offset as string)
+        : page
+          ? (parseInt(page as string) - 1) * effectiveLimit
+          : 0;
 
       // Parse price filters
       const parsedMinPrice = minPrice ? parseFloat(minPrice as string) : undefined;
       const parsedMaxPrice = maxPrice ? parseFloat(maxPrice as string) : undefined;
 
       // Parse boolean filters
-      const parsedInStock = inStock === 'true' ? true : inStock === 'false' ? false : undefined;
+      const parsedInStock = inStock === "true" ? true : inStock === "false" ? false : undefined;
 
       // Parse tags array
-      const parsedTags = tags ? (typeof tags === 'string' ? [tags] : tags as string[]) : undefined;
+      const parsedTags = tags
+        ? typeof tags === "string"
+          ? [tags]
+          : (tags as string[])
+        : undefined;
 
       const result = await storage.getProducts({
         vendorId: vendorId as string,
@@ -829,8 +847,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         search: search as string,
         limit: effectiveLimit,
         offset: effectiveOffset,
-        sortBy: sortBy as 'price' | 'createdAt' | 'name' | 'rating' | undefined,
-        sortOrder: sortOrder as 'asc' | 'desc' | undefined,
+        sortBy: sortBy as "price" | "createdAt" | "name" | "rating" | undefined,
+        sortOrder: sortOrder as "asc" | "desc" | undefined,
         minPrice: parsedMinPrice,
         maxPrice: parsedMaxPrice,
         inStock: parsedInStock,
@@ -850,12 +868,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             search: search || null,
             categoryId: categoryId || null,
             vendorId: vendorId || null,
-            priceRange: parsedMinPrice || parsedMaxPrice ? { min: parsedMinPrice, max: parsedMaxPrice } : null,
+            priceRange:
+              parsedMinPrice || parsedMaxPrice
+                ? { min: parsedMinPrice, max: parsedMaxPrice }
+                : null,
             inStock: parsedInStock,
-            sortBy: sortBy || 'createdAt',
-            sortOrder: sortOrder || 'desc'
-          }
-        }
+            sortBy: sortBy || "createdAt",
+            sortOrder: sortOrder || "desc",
+          },
+        },
       });
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -982,7 +1003,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             orderItems.map(async (item: any) => {
               const product = await storage.getProduct(item.productId);
               return {
-                productName: product?.name || 'Produit',
+                productName: product?.name || "Produit",
                 quantity: item.quantity,
                 price: item.price,
                 totalPrice: item.totalPrice || (parseFloat(item.price) * item.quantity).toString(),
@@ -994,7 +1015,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             order: {
               ...order,
               customer,
-              vendor: vendorUser ? { ...vendorUser, businessName: vendor?.businessName } : undefined,
+              vendor: vendorUser
+                ? { ...vendorUser, businessName: vendor?.businessName }
+                : undefined,
               items: itemsWithDetails,
             },
           };
@@ -1009,7 +1032,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await orderNotificationService.sendVendorOrderNotification(notificationData);
           }
         } catch (emailError) {
-          console.error('Error sending order confirmation emails:', emailError);
+          console.error("Error sending order confirmation emails:", emailError);
           // Don't fail the order creation if email fails
         }
       }, 100); // Small delay to ensure response is sent first
@@ -1017,23 +1040,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(order);
     } catch (error) {
       console.error("Error creating order:", error);
-      
+
       // Check if it's an inventory error
       if (error instanceof Error) {
         if (error.message.includes("Insufficient stock")) {
-          return res.status(400).json({ 
+          return res.status(400).json({
             message: error.message,
-            type: "INSUFFICIENT_STOCK" 
+            type: "INSUFFICIENT_STOCK",
           });
         }
         if (error.message.includes("not found")) {
-          return res.status(404).json({ 
+          return res.status(404).json({
             message: error.message,
-            type: "PRODUCT_NOT_FOUND"
+            type: "PRODUCT_NOT_FOUND",
           });
         }
       }
-      
+
       res.status(500).json({ message: "Failed to create order" });
     }
   });
@@ -1086,7 +1109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { status, message } = req.body;
 
       const order = await storage.updateOrderStatus(id, status);
-      
+
       // Send status update notification asynchronously
       setTimeout(async () => {
         try {
@@ -1098,7 +1121,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             order: {
               ...order,
               customer,
-              vendor: vendorUser ? { ...vendorUser, businessName: vendor?.businessName } : undefined,
+              vendor: vendorUser
+                ? { ...vendorUser, businessName: vendor?.businessName }
+                : undefined,
             },
           };
 
@@ -1106,7 +1131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await orderNotificationService.sendStatusUpdate(notificationData, status, message);
           }
         } catch (emailError) {
-          console.error('Error sending status update email:', emailError);
+          console.error("Error sending status update email:", emailError);
         }
       }, 100);
 
@@ -1158,12 +1183,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Categories and search endpoints
   app.get("/api/categories", async (req, res) => {
     try {
-      const withCount = req.query.withCount === 'true';
-      
-      const categories = withCount 
+      const withCount = req.query.withCount === "true";
+
+      const categories = withCount
         ? await storage.getCategoriesWithProductCount()
         : await storage.getCategories();
-      
+
       res.json(categories);
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -1174,8 +1199,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/search/suggestions", async (req, res) => {
     try {
       const { q } = req.query;
-      
-      if (!q || typeof q !== 'string' || q.length < 2) {
+
+      if (!q || typeof q !== "string" || q.length < 2) {
         return res.json({ suggestions: [] });
       }
 
@@ -1186,24 +1211,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const categorySuggestions = await storage.getCategories();
-      const matchingCategories = categorySuggestions.filter((cat: any) => 
-        cat.name.toLowerCase().includes(q.toLowerCase())
-      ).slice(0, 3);
+      const matchingCategories = categorySuggestions
+        .filter((cat: any) => cat.name.toLowerCase().includes(q.toLowerCase()))
+        .slice(0, 3);
 
       const suggestions = [
         ...productSuggestions.items.map((product: any) => ({
-          type: 'product',
+          type: "product",
           id: product.id,
           text: product.name,
           category: product.categoryId,
-          price: product.price
+          price: product.price,
         })),
         ...matchingCategories.map((category: any) => ({
-          type: 'category',
+          type: "category",
           id: category.id,
           text: category.name,
-          description: category.description
-        }))
+          description: category.description,
+        })),
       ].slice(0, 8);
 
       res.json({ suggestions });
@@ -1303,7 +1328,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (user.role === "vendor") {
         const vendor = await storage.getVendorByUserId(userId);
         const product = await storage.getProduct(id);
-        
+
         if (!vendor || !product || product.vendorId !== vendor.id) {
           return res.status(404).json({ message: "Product not found or access denied" });
         }

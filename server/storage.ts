@@ -116,8 +116,8 @@ export interface IStorage {
     search?: string;
     limit?: number;
     offset?: number;
-    sortBy?: 'price' | 'createdAt' | 'name' | 'rating';
-    sortOrder?: 'asc' | 'desc';
+    sortBy?: "price" | "createdAt" | "name" | "rating";
+    sortOrder?: "asc" | "desc";
     minPrice?: number;
     maxPrice?: number;
     inStock?: boolean;
@@ -454,8 +454,8 @@ export class DatabaseStorage implements IStorage {
     search?: string;
     limit?: number;
     offset?: number;
-    sortBy?: 'price' | 'createdAt' | 'name' | 'rating';
-    sortOrder?: 'asc' | 'desc';
+    sortBy?: "price" | "createdAt" | "name" | "rating";
+    sortOrder?: "asc" | "desc";
     minPrice?: number;
     maxPrice?: number;
     inStock?: boolean;
@@ -487,7 +487,7 @@ export class DatabaseStorage implements IStorage {
     if (filters?.minPrice !== undefined) {
       conditions.push(sql`${products.price}::numeric >= ${filters.minPrice}`);
     }
-    
+
     if (filters?.maxPrice !== undefined) {
       conditions.push(sql`${products.price}::numeric <= ${filters.maxPrice}`);
     }
@@ -497,16 +497,11 @@ export class DatabaseStorage implements IStorage {
       conditions.push(
         or(
           eq(products.trackQuantity, false), // Products that don't track quantity are always "in stock"
-          sql`${products.quantity} > 0`      // Products with quantity > 0
+          sql`${products.quantity} > 0` // Products with quantity > 0
         )!
       );
     } else if (filters?.inStock === false) {
-      conditions.push(
-        and(
-          eq(products.trackQuantity, true),
-          sql`${products.quantity} <= 0`
-        )!
-      );
+      conditions.push(and(eq(products.trackQuantity, true), sql`${products.quantity} <= 0`)!);
     }
 
     const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
@@ -514,25 +509,25 @@ export class DatabaseStorage implements IStorage {
     // Default pagination settings
     const limit = filters?.limit || 20;
     const offset = filters?.offset || 0;
-    const sortBy = filters?.sortBy || 'createdAt';
-    const sortOrder = filters?.sortOrder || 'desc';
+    const sortBy = filters?.sortBy || "createdAt";
+    const sortOrder = filters?.sortOrder || "desc";
 
     // Build sort clause
     let orderByClause;
     switch (sortBy) {
-      case 'price':
-        orderByClause = sortOrder === 'asc' ? asc(products.price) : desc(products.price);
+      case "price":
+        orderByClause = sortOrder === "asc" ? asc(products.price) : desc(products.price);
         break;
-      case 'name':
-        orderByClause = sortOrder === 'asc' ? asc(products.name) : desc(products.name);
+      case "name":
+        orderByClause = sortOrder === "asc" ? asc(products.name) : desc(products.name);
         break;
-      case 'rating':
+      case "rating":
         // Note: This requires a more complex query to calculate average rating
         // For now, we'll sort by creation date and add rating sorting later
-        orderByClause = sortOrder === 'asc' ? asc(products.createdAt) : desc(products.createdAt);
+        orderByClause = sortOrder === "asc" ? asc(products.createdAt) : desc(products.createdAt);
         break;
       default:
-        orderByClause = sortOrder === 'asc' ? asc(products.createdAt) : desc(products.createdAt);
+        orderByClause = sortOrder === "asc" ? asc(products.createdAt) : desc(products.createdAt);
     }
 
     // Get total count for pagination
@@ -554,7 +549,7 @@ export class DatabaseStorage implements IStorage {
     return {
       items,
       total,
-      hasMore: offset + items.length < total
+      hasMore: offset + items.length < total,
     };
   }
 
@@ -581,8 +576,10 @@ export class DatabaseStorage implements IStorage {
       .set({ quantity, updatedAt: new Date() })
       .where(eq(products.id, id))
       .returning();
-    
-    console.log(`[INVENTORY] Updated stock for product ${id}: ${quantity} units. Reason: ${reason || 'Manual adjustment'}`);
+
+    console.log(
+      `[INVENTORY] Updated stock for product ${id}: ${quantity} units. Reason: ${reason || "Manual adjustment"}`
+    );
     return product;
   }
 
@@ -595,7 +592,7 @@ export class DatabaseStorage implements IStorage {
           productId: orderItems.productId,
           quantity: orderItems.quantity,
           productName: products.name,
-          trackQuantity: products.trackQuantity
+          trackQuantity: products.trackQuantity,
         })
         .from(orderItems)
         .innerJoin(products, eq(orderItems.productId, products.id))
@@ -608,11 +605,13 @@ export class DatabaseStorage implements IStorage {
             .update(products)
             .set({
               quantity: sql`${products.quantity} + ${item.quantity}`,
-              updatedAt: new Date()
+              updatedAt: new Date(),
             })
             .where(eq(products.id, item.productId));
-          
-          console.log(`[INVENTORY] Restored ${item.quantity} units for product "${item.productName}" (Order cancellation: ${orderId})`);
+
+          console.log(
+            `[INVENTORY] Restored ${item.quantity} units for product "${item.productName}" (Order cancellation: ${orderId})`
+          );
         }
       }
     });
@@ -638,13 +637,10 @@ export class DatabaseStorage implements IStorage {
         id: categories.id,
         name: categories.name,
         description: categories.description,
-        productCount: sql<number>`count(${products.id})::int`
+        productCount: sql<number>`count(${products.id})::int`,
       })
       .from(categories)
-      .leftJoin(products, and(
-        eq(categories.id, products.categoryId),
-        eq(products.isActive, true)
-      ))
+      .leftJoin(products, and(eq(categories.id, products.categoryId), eq(products.isActive, true)))
       .groupBy(categories.id, categories.name, categories.description)
       .orderBy(categories.name);
   }
@@ -766,19 +762,26 @@ export class DatabaseStorage implements IStorage {
       const inventoryChecks = await Promise.all(
         items.map(async (item) => {
           const [product] = await tx
-            .select({ id: products.id, name: products.name, quantity: products.quantity, trackQuantity: products.trackQuantity })
+            .select({
+              id: products.id,
+              name: products.name,
+              quantity: products.quantity,
+              trackQuantity: products.trackQuantity,
+            })
             .from(products)
             .where(eq(products.id, item.productId));
-          
+
           if (!product) {
             throw new Error(`Product ${item.productId} not found`);
           }
-          
+
           // Check if we need to track quantity and if we have enough stock
           if (product.trackQuantity && (product.quantity || 0) < (item.quantity || 1)) {
-            throw new Error(`Insufficient stock for "${product.name}". Available: ${product.quantity || 0}, Requested: ${item.quantity || 1}`);
+            throw new Error(
+              `Insufficient stock for "${product.name}". Available: ${product.quantity || 0}, Requested: ${item.quantity || 1}`
+            );
           }
-          
+
           return { productId: item.productId, requestedQuantity: item.quantity || 1, product };
         })
       );
@@ -800,13 +803,15 @@ export class DatabaseStorage implements IStorage {
         if (check.product.trackQuantity) {
           await tx
             .update(products)
-            .set({ 
+            .set({
               quantity: sql`${products.quantity} - ${check.requestedQuantity}`,
-              updatedAt: new Date()
+              updatedAt: new Date(),
             })
             .where(eq(products.id, check.productId));
-          
-          console.log(`[INVENTORY] Reserved ${check.requestedQuantity} units of product ${check.productId} for order ${orderNumber}`);
+
+          console.log(
+            `[INVENTORY] Reserved ${check.requestedQuantity} units of product ${check.productId} for order ${orderNumber}`
+          );
         }
       }
 
@@ -820,10 +825,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOrderItemsByOrderId(orderId: string): Promise<OrderItem[]> {
-    return await db
-      .select()
-      .from(orderItems)
-      .where(eq(orderItems.orderId, orderId));
+    return await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
   }
 
   async getOrders(filters?: {

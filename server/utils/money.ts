@@ -85,7 +85,7 @@ export function formatMoney(
     const formatted = decimal.toFixed(2);
     const parts = formatted.split(".");
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    
+
     if (currency === "XOF") {
       return `${parts.join(".")} CFA`;
     }
@@ -102,19 +102,16 @@ export function formatMoney(
  * @param rate - Commission rate (e.g., 0.05 for 5%)
  * @returns Commission amount
  */
-export function calculateCommission(
-  amount: number | string,
-  rate: number | string
-): number {
+export function calculateCommission(amount: number | string, rate: number | string): number {
   try {
     const amountDecimal = new Decimal(amount);
     const rateDecimal = new Decimal(rate);
-    
+
     if (amountDecimal.isNaN() || rateDecimal.isNaN()) {
       console.error(`Invalid commission calculation: amount=${amount}, rate=${rate}`);
       return 0;
     }
-    
+
     return amountDecimal.mul(rateDecimal).toNumber();
   } catch (error) {
     console.error(`Error calculating commission: amount=${amount}, rate=${rate}`, error);
@@ -133,13 +130,13 @@ export function sumAmounts(amounts: (number | string | undefined | null)[]): num
       if (amount === undefined || amount === null || amount === "") {
         return sum;
       }
-      
+
       const decimal = new Decimal(amount);
       if (decimal.isNaN() || !decimal.isFinite()) {
         console.warn(`Skipping invalid amount in sum: ${amount}`);
         return sum;
       }
-      
+
       return new Decimal(sum).add(decimal).toNumber();
     }, 0);
   } catch (error) {
@@ -204,19 +201,16 @@ export function parseMoneyInput(input: string): number | null {
  * @param percentage - Percentage (e.g., 15 for 15%)
  * @returns Calculated percentage value
  */
-export function calculatePercentage(
-  value: number | string,
-  percentage: number | string
-): number {
+export function calculatePercentage(value: number | string, percentage: number | string): number {
   try {
     const valueDecimal = new Decimal(value);
     const percentDecimal = new Decimal(percentage);
-    
+
     if (valueDecimal.isNaN() || percentDecimal.isNaN()) {
       console.error(`Invalid percentage calculation: value=${value}, percentage=${percentage}`);
       return 0;
     }
-    
+
     return valueDecimal.mul(percentDecimal).div(100).toNumber();
   } catch (error) {
     console.error(`Error calculating percentage: value=${value}, percentage=${percentage}`, error);

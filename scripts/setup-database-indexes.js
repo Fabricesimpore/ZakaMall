@@ -5,42 +5,42 @@
  * Creates performance indexes for production deployment
  */
 
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { Pool } from 'pg';
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+import { Pool } from "pg";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 async function setupIndexes() {
-  console.log('🚀 Setting up database indexes for production performance...\n');
+  console.log("🚀 Setting up database indexes for production performance...\n");
 
   // Validate environment
   if (!process.env.DATABASE_URL) {
-    console.error('❌ DATABASE_URL environment variable is required');
+    console.error("❌ DATABASE_URL environment variable is required");
     process.exit(1);
   }
 
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
   });
 
   try {
     // Read the SQL file
-    const sqlPath = join(__dirname, '../server/database/createIndexes.sql');
-    const indexSql = readFileSync(sqlPath, 'utf8');
+    const sqlPath = join(__dirname, "../server/database/createIndexes.sql");
+    const indexSql = readFileSync(sqlPath, "utf8");
 
-    console.log('📋 Creating performance indexes...');
-    
+    console.log("📋 Creating performance indexes...");
+
     // Execute the SQL to create indexes
     await pool.query(indexSql);
 
-    console.log('✅ Database indexes created successfully!\n');
+    console.log("✅ Database indexes created successfully!\n");
 
     // Check index creation results
-    console.log('📊 Checking index statistics...');
+    console.log("📊 Checking index statistics...");
     const indexStats = await pool.query(`
       SELECT 
         schemaname,
@@ -54,9 +54,9 @@ async function setupIndexes() {
     `);
 
     console.log(`\n✅ Created ${indexStats.rows.length} performance indexes:`);
-    
+
     const indexesByTable = {};
-    indexStats.rows.forEach(row => {
+    indexStats.rows.forEach((row) => {
       if (!indexesByTable[row.tablename]) {
         indexesByTable[row.tablename] = [];
       }
@@ -65,14 +65,14 @@ async function setupIndexes() {
 
     Object.entries(indexesByTable).forEach(([tableName, indexes]) => {
       console.log(`  📋 ${tableName}: ${indexes.length} indexes`);
-      indexes.forEach(indexName => {
+      indexes.forEach((indexName) => {
         console.log(`    - ${indexName}`);
       });
     });
 
     // Performance analysis
-    console.log('\n🔍 Database performance recommendations:');
-    
+    console.log("\n🔍 Database performance recommendations:");
+
     const tableStats = await pool.query(`
       SELECT 
         schemaname,
@@ -90,26 +90,27 @@ async function setupIndexes() {
       ORDER BY total_writes DESC, seq_scan DESC;
     `);
 
-    tableStats.rows.forEach(row => {
-      const status = row.index_usage_pct > 50 ? '✅' : row.seq_scan > 100 ? '⚠️' : '📊';
-      console.log(`  ${status} ${row.tablename}: ${row.index_usage_pct}% index usage (${row.seq_scan} seq scans, ${row.idx_scan} index scans)`);
+    tableStats.rows.forEach((row) => {
+      const status = row.index_usage_pct > 50 ? "✅" : row.seq_scan > 100 ? "⚠️" : "📊";
+      console.log(
+        `  ${status} ${row.tablename}: ${row.index_usage_pct}% index usage (${row.seq_scan} seq scans, ${row.idx_scan} index scans)`
+      );
     });
 
-    console.log('\n🎯 Index setup complete! Your database is optimized for production.\n');
+    console.log("\n🎯 Index setup complete! Your database is optimized for production.\n");
 
     // Recommendations
-    console.log('💡 Performance tips:');
-    console.log('  - Monitor index usage with: SELECT * FROM index_usage_stats;');
-    console.log('  - Check table performance with: SELECT * FROM table_performance_stats;');
-    console.log('  - Run ANALYZE regularly to update query planner statistics');
-    console.log('  - Consider adding more specific indexes based on your query patterns\n');
-
+    console.log("💡 Performance tips:");
+    console.log("  - Monitor index usage with: SELECT * FROM index_usage_stats;");
+    console.log("  - Check table performance with: SELECT * FROM table_performance_stats;");
+    console.log("  - Run ANALYZE regularly to update query planner statistics");
+    console.log("  - Consider adding more specific indexes based on your query patterns\n");
   } catch (error) {
-    console.error('❌ Error setting up indexes:', error.message);
-    
-    if (error.message.includes('already exists')) {
-      console.log('ℹ️  Some indexes already exist - this is normal.');
-      console.log('✅ Index setup completed with existing indexes preserved.\n');
+    console.error("❌ Error setting up indexes:", error.message);
+
+    if (error.message.includes("already exists")) {
+      console.log("ℹ️  Some indexes already exist - this is normal.");
+      console.log("✅ Index setup completed with existing indexes preserved.\n");
     } else {
       process.exit(1);
     }
@@ -120,6 +121,6 @@ async function setupIndexes() {
 
 // Run the script
 setupIndexes().catch((error) => {
-  console.error('❌ Failed to setup database indexes:', error);
+  console.error("❌ Failed to setup database indexes:", error);
   process.exit(1);
 });

@@ -37,7 +37,7 @@ export class OrangeMoneyService {
     this.merchantCode = process.env.ORANGE_MONEY_MERCHANT_CODE || "";
     this.apiKey = process.env.ORANGE_MONEY_API_KEY || "";
     this.isConfigured = !!(this.merchantCode && this.apiKey);
-    
+
     if (!this.isConfigured) {
       console.warn(
         "⚠️ Orange Money not configured. Running in mock mode. Set ORANGE_MONEY_MERCHANT_CODE and ORANGE_MONEY_API_KEY for production."
@@ -176,9 +176,10 @@ export class OrangeMoneyService {
       success: true,
       transactionId,
       operatorReference: `REF-${Date.now()}`,
-      message: process.env.NODE_ENV === "production" 
-        ? "Paiement initié. Vérifiez votre téléphone."
-        : "[MODE TEST] Paiement simulé - Confirmation automatique dans 5 secondes",
+      message:
+        process.env.NODE_ENV === "production"
+          ? "Paiement initié. Vérifiez votre téléphone."
+          : "[MODE TEST] Paiement simulé - Confirmation automatique dans 5 secondes",
       expiresAt: new Date(Date.now() + 10 * 60 * 1000),
     };
   }
@@ -255,7 +256,7 @@ export class MoovMoneyService {
     this.apiKey = process.env.MOOV_MONEY_API_KEY || "";
     this.apiSecret = process.env.MOOV_MONEY_API_SECRET || "";
     this.isConfigured = !!(this.merchantId && this.apiKey && this.apiSecret);
-    
+
     if (!this.isConfigured) {
       console.warn(
         "⚠️ Moov Money not configured. Running in mock mode. Set MOOV_MONEY_MERCHANT_ID, MOOV_MONEY_API_KEY, and MOOV_MONEY_API_SECRET for production."
@@ -301,14 +302,17 @@ export class MoovMoneyService {
 
   private mockPayment(request: PaymentRequest): PaymentResponse {
     const transactionId = `MOCK-MM-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    console.log(`[MOCK PAYMENT] Moov Money initiated for order ${request.orderId}: ${request.amount} CFA`);
+    console.log(
+      `[MOCK PAYMENT] Moov Money initiated for order ${request.orderId}: ${request.amount} CFA`
+    );
     return {
       success: true,
       transactionId,
       operatorReference: `REF-${Date.now()}`,
-      message: process.env.NODE_ENV === "production" 
-        ? "Paiement initié. Composez *155# pour confirmer."
-        : "[MODE TEST] Paiement Moov simulé - Confirmation automatique dans 5 secondes",
+      message:
+        process.env.NODE_ENV === "production"
+          ? "Paiement initié. Composez *155# pour confirmer."
+          : "[MODE TEST] Paiement Moov simulé - Confirmation automatique dans 5 secondes",
       expiresAt: new Date(Date.now() + 10 * 60 * 1000),
     };
   }
