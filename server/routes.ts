@@ -79,11 +79,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             },
           });
         }
-        return res
-          .status(400)
-          .json({
-            error: "Ce compte n'a pas de mot de passe. Utilisez une autre méthode de connexion.",
-          });
+        return res.status(400).json({
+          error: "Ce compte n'a pas de mot de passe. Utilisez une autre méthode de connexion.",
+        });
       }
 
       // Verify password
