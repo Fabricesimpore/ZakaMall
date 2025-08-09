@@ -36,6 +36,23 @@ export default function VendorDashboard() {
     enabled: !!user,
   });
 
+  const { data: stats = {} as VendorStats, isLoading: statsLoading } = useQuery<VendorStats>({
+    queryKey: ["/api/vendor/stats"],
+    enabled: !!user && user.role === "vendor" && !!vendor?.roleData,
+  });
+
+  const { data: recentOrders = [] as Order[], isLoading: ordersLoading } = useQuery<Order[]>({
+    queryKey: ["/api/vendor/orders", { limit: 5 }],
+    enabled: !!user && user.role === "vendor" && !!vendor?.roleData,
+  });
+
+  const { data: lowStockProducts = [] as Product[], isLoading: stockLoading } = useQuery<Product[]>(
+    {
+      queryKey: ["/api/vendor/products/low-stock"],
+      enabled: !!user && user.role === "vendor" && !!vendor?.roleData,
+    }
+  );
+
   if (authLoading || vendorLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -104,20 +121,7 @@ export default function VendorDashboard() {
       </div>
     );
   }
-  const { data: stats = {} as VendorStats, isLoading: statsLoading } = useQuery<VendorStats>({
-    queryKey: ["/api/vendor/stats"],
-  });
-
-  const { data: recentOrders = [] as Order[], isLoading: ordersLoading } = useQuery<Order[]>({
-    queryKey: ["/api/vendor/orders", { limit: 5 }],
-  });
-
-  const { data: lowStockProducts = [] as Product[], isLoading: stockLoading } = useQuery<Product[]>(
-    {
-      queryKey: ["/api/vendor/products/low-stock"],
-    }
-  );
-
+  
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
