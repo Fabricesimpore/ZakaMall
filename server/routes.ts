@@ -27,30 +27,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
   }
 
-  // Test route to simulate authenticated user for payment testing
+  // Test route to simulate authenticated user login
   app.post("/api/test/login", async (req, res) => {
-    const testUser = {
-      id: "test-user-123",
-      email: "test@example.com",
-      firstName: "Test",
-      lastName: "User",
-      profileImageUrl: null,
-    };
-
-    // Create test user in storage if doesn't exist
+    const { email } = req.body;
+    
     try {
-      await storage.upsertUser(testUser);
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        return res.status(400).json({ error: "User not found with this email" });
+      }
 
-      // Simulate user session
-      (req as any).user = {
-        claims: { sub: testUser.id },
+      // Establish persistent session for the user
+      const userSession = {
+        claims: { sub: user.id },
         isAuthenticated: true,
       };
+      
+      // Set up session similar to how email verification does it
+      (req as any).user = userSession;
+      if (req.session) {
+        req.session.user = userSession;
+      }
 
-      res.json({ success: true, user: testUser });
+      res.json({ success: true, user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName } });
     } catch (error) {
       console.error("Test login error:", error);
-      res.status(500).json({ error: "Failed to create test user" });
+      res.status(500).json({ error: "Failed to login user" });
     }
   });
 
@@ -1235,6 +1239,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await emailService.sendWelcomeEmail(user.email!, user.firstName || "");
       } catch (emailError) {
         console.error("Welcome email sending failed:", emailError);
+      }
+
+      // Establish session for the new user (simulate login)
+      const userSession = {
+        claims: { sub: user.id },
+        isAuthenticated: true,
+      };
+      
+      // Set up session similar to how Replit auth does it
+      (req as any).user = userSession;
+      if (req.session) {
+        req.session.user = userSession;
       }
 
       res.json({ message: "Compte créé avec succès", user: { id: user.id, email: user.email } });

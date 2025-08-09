@@ -133,6 +133,17 @@ export async function setupAuth(app: Express) {
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
+  const sessionUser = (req as any).session?.user;
+
+  // Check for custom session (email/phone auth) or Replit auth
+  if (user && user.claims && user.isAuthenticated) {
+    return next();
+  }
+
+  if (sessionUser && sessionUser.claims && sessionUser.isAuthenticated) {
+    (req as any).user = sessionUser;
+    return next();
+  }
 
   if (!req.isAuthenticated() || !user.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });

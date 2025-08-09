@@ -9,12 +9,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import SignupModal from "@/components/SignupModal";
+import LoginModal from "@/components/LoginModal";
 
 export default function Landing() {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   const handleLogin = () => {
-    window.location.href = "/api/login";
+    setIsLoginOpen(true);
   };
 
   return (
@@ -71,13 +73,22 @@ export default function Landing() {
                     <SignupModal onSuccess={() => setIsSignupOpen(false)} />
                   </DialogContent>
                 </Dialog>
-                <Button
-                  onClick={handleLogin}
-                  className="btn-force-visible hover:bg-zaka-orange/90 px-4 py-2 rounded-lg transition-colors font-medium"
-                  style={{ color: "white", backgroundColor: "#ff7722" }}
-                >
-                  Se connecter
-                </Button>
+                <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      className="btn-force-visible hover:bg-zaka-orange/90 px-4 py-2 rounded-lg transition-colors font-medium"
+                      style={{ color: "white", backgroundColor: "#ff7722" }}
+                    >
+                      Se connecter
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Se connecter à ZakaMall</DialogTitle>
+                    </DialogHeader>
+                    <LoginModal onSuccess={() => setIsLoginOpen(false)} />
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </div>
@@ -109,14 +120,23 @@ export default function Landing() {
                     <SignupModal onSuccess={() => {}} />
                   </DialogContent>
                 </Dialog>
-                <Button
-                  onClick={handleLogin}
-                  variant="outline"
-                  className="btn-outline-force-visible border-2 px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-zaka-orange transition-colors"
-                  style={{ color: "white", borderColor: "white", backgroundColor: "transparent" }}
-                >
-                  Se connecter
-                </Button>
+                <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="btn-outline-force-visible border-2 px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-zaka-orange transition-colors"
+                      style={{ color: "white", borderColor: "white", backgroundColor: "transparent" }}
+                    >
+                      Se connecter
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Se connecter à ZakaMall</DialogTitle>
+                    </DialogHeader>
+                    <LoginModal onSuccess={() => setIsLoginOpen(false)} />
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
             <div className="hidden md:block">
