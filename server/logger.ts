@@ -7,14 +7,14 @@ const developmentFormat = winston.format.combine(
   winston.format.printf(({ timestamp, level, message, ...meta }) => {
     const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : "";
     return `${timestamp} [${level}] ${message}${metaStr}`;
-  }),
+  })
 );
 
 // Custom format for production environment
 const productionFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.errors({ stack: true }),
-  winston.format.json(),
+  winston.format.json()
 );
 
 // Create logger instance
@@ -40,15 +40,15 @@ if (process.env.NODE_ENV === "production") {
       level: "error",
       maxsize: 10485760, // 10MB
       maxFiles: 5,
-    }),
+    })
   );
-  
+
   logger.add(
     new winston.transports.File({
       filename: "logs/combined.log",
       maxsize: 10485760, // 10MB
       maxFiles: 10,
-    }),
+    })
   );
 }
 
@@ -56,11 +56,11 @@ if (process.env.NODE_ENV === "production") {
 export const requestLogger = (req: any, res: any, next: any) => {
   const start = Date.now();
   const { method, url, ip } = req;
-  
+
   res.on("finish", () => {
     const duration = Date.now() - start;
     const { statusCode } = res;
-    
+
     const logData = {
       method,
       url,
@@ -69,21 +69,21 @@ export const requestLogger = (req: any, res: any, next: any) => {
       ip,
       userAgent: req.get("User-Agent"),
     };
-    
+
     if (statusCode >= 400) {
       logger.warn("HTTP Request", logData);
     } else {
       logger.info("HTTP Request", logData);
     }
   });
-  
+
   next();
 };
 
 // Error logging middleware
 export const errorLogger = (err: any, req: any, res: any, next: any) => {
   const { method, url, ip } = req;
-  
+
   logger.error("Application Error", {
     error: {
       name: err.name,
@@ -97,7 +97,7 @@ export const errorLogger = (err: any, req: any, res: any, next: any) => {
       userAgent: req.get("User-Agent"),
     },
   });
-  
+
   next(err);
 };
 
