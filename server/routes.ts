@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
+import { toMinorUnit, toMajorUnit, formatMoney, isValidMoneyAmount, calculateCommission } from "./utils/money";
 import {
   setupAuth,
   isAuthenticated,
@@ -304,7 +305,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Initiate payment
       const paymentResult = await paymentService.initiatePayment({
         orderId,
-        amount: parseInt(order.totalAmount),
+        amount: toMajorUnit(order.totalAmount),
         phoneNumber: phoneNumber || "",
         paymentMethod,
       });
@@ -791,16 +792,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/products", async (req, res) => {
     try {
-      const { vendorId, categoryId, search, limit } = req.query;
+      const { vendorId, categoryId, search, limit, offset, sortBy, sortOrder, page, pageSize } = req.query;
 
-      const products = await storage.getProducts({
+      // Support both offset and page-based pagination
+      const effectiveLimit = limit ? parseInt(limit as string) : (pageSize ? parseInt(pageSize as string) : 20);
+      const effectiveOffset = offset ? parseInt(offset as string) : (page ? (parseInt(page as string) - 1) * effectiveLimit : 0);
+
+      const result = await storage.getProducts({
         vendorId: vendorId as string,
         categoryId: categoryId as string,
         search: search as string,
-        limit: limit ? parseInt(limit as string) : undefined,
+        limit: effectiveLimit,
+        offset: effectiveOffset,
+        sortBy: sortBy as 'price' | 'createdAt' | 'name' | undefined,
+        sortOrder: sortOrder as 'asc' | 'desc' | undefined,
       });
 
-      res.json(products);
+      // Return paginated response with metadata
+      res.json({
+        items: result.items,
+        total: result.total,
+        hasMore: result.hasMore,
+        page: page ? parseInt(page as string) : Math.floor(effectiveOffset / effectiveLimit) + 1,
+        pageSize: effectiveLimit,
+        totalPages: Math.ceil(result.total / effectiveLimit),
+      });
     } catch (error) {
       console.error("Error fetching products:", error);
       res.status(500).json({ message: "Failed to fetch products" });
@@ -2061,7 +2077,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const paymentService = PaymentServiceFactory.getService(paymentMethod);
       const result = await paymentService.initiatePayment({
         orderId,
-        amount: parseFloat(order.totalAmount),
+        amount: toMajorUnit(order.totalAmount),
         phoneNumber: phoneNumber || "",
         paymentMethod,
       });

@@ -7,6 +7,10 @@ import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic } from "./vite";
 import logger, { requestLogger, errorLogger, logInfo } from "./logger";
+import { validateEnvironment, getNumericEnv } from "./envValidator";
+
+// Validate environment variables on startup
+validateEnvironment();
 
 const app = express();
 
@@ -20,8 +24,8 @@ app.use(express.urlencoded({ extended: false }));
 
 // Rate limiting configuration
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000", 10), // 15 minutes default
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || "100", 10), // limit each IP to 100 requests per windowMs
+  windowMs: getNumericEnv("RATE_LIMIT_WINDOW_MS", 900000), // 15 minutes default
+  max: getNumericEnv("RATE_LIMIT_MAX_REQUESTS", 100), // limit each IP to 100 requests per windowMs
   message: {
     error: "Too many requests from this IP, please try again later.",
     retryAfter: "15 minutes",
@@ -115,7 +119,7 @@ app.get("/api/health", (_req, res) => {
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || "5000", 10);
+  const port = getNumericEnv("PORT", 5000);
   server.listen(port, "127.0.0.1", () => {
     logInfo("Server started", { port, host: "127.0.0.1", environment: process.env.NODE_ENV });
   });

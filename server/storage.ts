@@ -49,7 +49,7 @@ import {
   type OrderTracking,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, ilike, or, count, avg, sum, sql } from "drizzle-orm";
+import { eq, desc, asc, and, ilike, or, count, avg, sum, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -115,7 +115,10 @@ export interface IStorage {
     categoryId?: string;
     search?: string;
     limit?: number;
-  }): Promise<Product[]>;
+    offset?: number;
+    sortBy?: 'price' | 'createdAt' | 'name';
+    sortOrder?: 'asc' | 'desc';
+  }): Promise<{ items: Product[]; total: number; hasMore: boolean }>;
   getVendorProducts(vendorId: string): Promise<Product[]>;
   updateProduct(id: string, updates: Partial<InsertProduct>): Promise<Product>;
   updateProductStock(id: string, quantity: number): Promise<Product>;
@@ -444,7 +447,10 @@ export class DatabaseStorage implements IStorage {
     categoryId?: string;
     search?: string;
     limit?: number;
-  }): Promise<Product[]> {
+    offset?: number;
+    sortBy?: 'price' | 'createdAt' | 'name';
+    sortOrder?: 'asc' | 'desc';
+  }): Promise<{ items: Product[]; total: number; hasMore: boolean }> {
     const conditions = [eq(products.isActive, true)];
 
     if (filters?.vendorId) {
@@ -466,16 +472,46 @@ export class DatabaseStorage implements IStorage {
 
     const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
 
-    if (filters?.limit) {
-      return await db
-        .select()
-        .from(products)
-        .where(whereCondition)
-        .orderBy(desc(products.createdAt))
-        .limit(filters.limit);
+    // Default pagination settings
+    const limit = filters?.limit || 20;
+    const offset = filters?.offset || 0;
+    const sortBy = filters?.sortBy || 'createdAt';
+    const sortOrder = filters?.sortOrder || 'desc';
+
+    // Build sort clause
+    let orderByClause;
+    switch (sortBy) {
+      case 'price':
+        orderByClause = sortOrder === 'asc' ? asc(products.price) : desc(products.price);
+        break;
+      case 'name':
+        orderByClause = sortOrder === 'asc' ? asc(products.name) : desc(products.name);
+        break;
+      default:
+        orderByClause = sortOrder === 'asc' ? asc(products.createdAt) : desc(products.createdAt);
     }
 
-    return await db.select().from(products).where(whereCondition).orderBy(desc(products.createdAt));
+    // Get total count for pagination
+    const countResult = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(products)
+      .where(whereCondition);
+    const total = countResult[0]?.count || 0;
+
+    // Get paginated results
+    const items = await db
+      .select()
+      .from(products)
+      .where(whereCondition)
+      .orderBy(orderByClause)
+      .limit(limit)
+      .offset(offset);
+
+    return {
+      items,
+      total,
+      hasMore: offset + items.length < total
+    };
   }
 
   async getVendorProducts(vendorId: string): Promise<Product[]> {
