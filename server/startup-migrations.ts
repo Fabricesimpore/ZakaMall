@@ -4,7 +4,7 @@
  */
 
 import { sql } from "drizzle-orm";
-import { storage } from "./storage";
+import { db } from "./db";
 
 export async function runStartupMigrations() {
   console.log("🚀 Running startup migrations...");
@@ -23,8 +23,7 @@ export async function runStartupMigrations() {
 
 async function ensureNotificationsTable() {
   try {
-    // Use the storage's db connection
-    const db = (storage as any).db; // Access the internal db connection
+    // Use the imported db connection
 
     // Check if notifications table exists
     const tableExists = await db.execute(sql`
