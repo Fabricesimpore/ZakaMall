@@ -136,26 +136,27 @@ export default function VendorDashboard() {
               <i className="fas fa-exclamation-triangle text-6xl text-yellow-500 mb-4"></i>
               <h2 className="text-2xl font-bold mb-4">Configuration du compte vendeur</h2>
               <p className="text-gray-600 mb-6">
-                Votre compte a été configuré en tant que vendeur, mais nous n'arrivons pas à charger vos données vendeur. 
-                Cela peut arriver lors de la transition de rôle.
+                Votre compte a été configuré en tant que vendeur, mais nous n'arrivons pas à charger
+                vos données vendeur. Cela peut arriver lors de la transition de rôle.
               </p>
-              
+
               <div className="bg-blue-50 p-4 rounded-lg mb-6">
                 <p className="text-sm text-blue-800">
                   <i className="fas fa-info-circle mr-2"></i>
-                  Votre compte vendeur est en cours de configuration. Veuillez rafraîchir la page ou contacter le support si le problème persiste.
+                  Votre compte vendeur est en cours de configuration. Veuillez rafraîchir la page ou
+                  contacter le support si le problème persiste.
                 </p>
               </div>
 
               <div className="space-x-4">
-                <Button 
-                  onClick={() => window.location.reload()} 
+                <Button
+                  onClick={() => window.location.reload()}
                   className="bg-zaka-orange hover:bg-zaka-orange"
                 >
                   <i className="fas fa-sync-alt mr-2"></i>
                   Actualiser la page
                 </Button>
-                
+
                 <Link href="/vendor-setup">
                   <Button variant="outline" className="border-zaka-orange text-zaka-orange">
                     <i className="fas fa-cog mr-2"></i>
@@ -177,20 +178,23 @@ export default function VendorDashboard() {
         icon: "fas fa-clock",
         color: "text-yellow-500",
         title: "Demande en cours d'examen",
-        message: "Votre demande de vendeur est en cours d'examen par notre équipe. Vous recevrez une notification une fois approuvée."
+        message:
+          "Votre demande de vendeur est en cours d'examen par notre équipe. Vous recevrez une notification une fois approuvée.",
       },
       rejected: {
-        icon: "fas fa-times-circle", 
+        icon: "fas fa-times-circle",
         color: "text-red-500",
         title: "Demande rejetée",
-        message: "Votre demande de vendeur a été rejetée. Veuillez contacter le support pour plus d'informations."
+        message:
+          "Votre demande de vendeur a été rejetée. Veuillez contacter le support pour plus d'informations.",
       },
       suspended: {
         icon: "fas fa-ban",
-        color: "text-red-500", 
+        color: "text-red-500",
         title: "Compte suspendu",
-        message: "Votre compte vendeur a été temporairement suspendu. Contactez le support pour résoudre cette situation."
-      }
+        message:
+          "Votre compte vendeur a été temporairement suspendu. Contactez le support pour résoudre cette situation.",
+      },
     };
 
     const statusInfo = statusMessages[vendor.roleData.status] || statusMessages.pending;
@@ -204,7 +208,7 @@ export default function VendorDashboard() {
               <i className={`${statusInfo.icon} text-6xl ${statusInfo.color} mb-4`}></i>
               <h2 className="text-2xl font-bold mb-4">{statusInfo.title}</h2>
               <p className="text-gray-600 mb-6">{statusInfo.message}</p>
-              
+
               <div className="bg-gray-50 p-4 rounded-lg mb-6">
                 <p className="text-sm text-gray-700">
                   <strong>Statut actuel:</strong> {vendor.roleData.status}

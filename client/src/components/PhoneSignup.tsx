@@ -26,22 +26,26 @@ import {
 } from "@/components/ui/select";
 
 // Phone number schema for Burkina Faso with strong password validation
-const phoneSignupSchema = z.object({
-  firstName: z.string().min(2, "Le prénom doit avoir au moins 2 caractères"),
-  lastName: z.string().min(2, "Le nom doit avoir au moins 2 caractères"),
-  phone: z
-    .string()
-    .min(8, "Le numéro de téléphone doit avoir 8 chiffres")
-    .max(8, "Le numéro de téléphone doit avoir 8 chiffres")
-    .regex(/^[0-9]{8}$/, "Le numéro doit contenir uniquement des chiffres"),
-  password: passwordSchema,
-  confirmPassword: z.string(),
-  operator: z.enum(["orange", "moov"], { required_error: "Veuillez choisir votre opérateur" }),
-  role: z.enum(["customer", "vendor", "driver"], { required_error: "Veuillez choisir votre rôle" }),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Les mots de passe ne correspondent pas",
-  path: ["confirmPassword"],
-});
+const phoneSignupSchema = z
+  .object({
+    firstName: z.string().min(2, "Le prénom doit avoir au moins 2 caractères"),
+    lastName: z.string().min(2, "Le nom doit avoir au moins 2 caractères"),
+    phone: z
+      .string()
+      .min(8, "Le numéro de téléphone doit avoir 8 chiffres")
+      .max(8, "Le numéro de téléphone doit avoir 8 chiffres")
+      .regex(/^[0-9]{8}$/, "Le numéro doit contenir uniquement des chiffres"),
+    password: passwordSchema,
+    confirmPassword: z.string(),
+    operator: z.enum(["orange", "moov"], { required_error: "Veuillez choisir votre opérateur" }),
+    role: z.enum(["customer", "vendor", "driver"], {
+      required_error: "Veuillez choisir votre rôle",
+    }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"],
+  });
 
 type PhoneSignupForm = z.infer<typeof phoneSignupSchema>;
 
@@ -291,8 +295,8 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
             <FormItem>
               <FormLabel>Mot de passe</FormLabel>
               <FormControl>
-                <PasswordInput 
-                  value={field.value} 
+                <PasswordInput
+                  value={field.value}
                   onChange={field.onChange}
                   error={fieldState.error?.message}
                   showStrength={true}
@@ -310,8 +314,8 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
             <FormItem>
               <FormLabel>Confirmer le mot de passe</FormLabel>
               <FormControl>
-                <PasswordInput 
-                  value={field.value} 
+                <PasswordInput
+                  value={field.value}
                   onChange={field.onChange}
                   placeholder="Confirmez votre mot de passe"
                   error={fieldState.error?.message}

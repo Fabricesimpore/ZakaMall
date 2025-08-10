@@ -26,17 +26,21 @@ import {
 } from "@/components/ui/select";
 
 // Email signup schema with strong password validation
-const emailSignupSchema = z.object({
-  firstName: z.string().min(2, "Le prénom doit avoir au moins 2 caractères"),
-  lastName: z.string().min(2, "Le nom doit avoir au moins 2 caractères"),
-  email: z.string().email("Adresse email invalide"),
-  password: passwordSchema,
-  confirmPassword: z.string(),
-  role: z.enum(["customer", "vendor", "driver"], { required_error: "Veuillez choisir votre rôle" }),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Les mots de passe ne correspondent pas",
-  path: ["confirmPassword"],
-});
+const emailSignupSchema = z
+  .object({
+    firstName: z.string().min(2, "Le prénom doit avoir au moins 2 caractères"),
+    lastName: z.string().min(2, "Le nom doit avoir au moins 2 caractères"),
+    email: z.string().email("Adresse email invalide"),
+    password: passwordSchema,
+    confirmPassword: z.string(),
+    role: z.enum(["customer", "vendor", "driver"], {
+      required_error: "Veuillez choisir votre rôle",
+    }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"],
+  });
 
 type EmailSignupForm = z.infer<typeof emailSignupSchema>;
 
@@ -222,8 +226,8 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
             <FormItem>
               <FormLabel>Mot de passe</FormLabel>
               <FormControl>
-                <PasswordInput 
-                  value={field.value} 
+                <PasswordInput
+                  value={field.value}
                   onChange={field.onChange}
                   error={fieldState.error?.message}
                   showStrength={true}
@@ -241,8 +245,8 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
             <FormItem>
               <FormLabel>Confirmer le mot de passe</FormLabel>
               <FormControl>
-                <PasswordInput 
-                  value={field.value} 
+                <PasswordInput
+                  value={field.value}
                   onChange={field.onChange}
                   placeholder="Confirmez votre mot de passe"
                   error={fieldState.error?.message}

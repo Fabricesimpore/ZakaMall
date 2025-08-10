@@ -24,7 +24,7 @@ export default function Register() {
 
     // Validate password strength
     const passwordStrength = getPasswordStrength(password);
-    if (passwordStrength.level === 'very-weak' || passwordStrength.level === 'weak') {
+    if (passwordStrength.level === "very-weak" || passwordStrength.level === "weak") {
       toast({
         title: "Mot de passe trop faible",
         description: "Veuillez choisir un mot de passe plus fort selon les critères indiqués",
@@ -159,11 +159,7 @@ export default function Register() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Mot de passe</Label>
-                  <PasswordInput
-                    value={password}
-                    onChange={setPassword}
-                    showStrength={true}
-                  />
+                  <PasswordInput value={password} onChange={setPassword} showStrength={true} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
