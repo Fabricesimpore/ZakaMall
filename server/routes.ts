@@ -29,6 +29,7 @@ import {
   insertMessageSchema,
 } from "@shared/schema";
 import { randomInt } from "crypto";
+import { validatePassword } from "./utils/passwordValidation";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -1573,11 +1574,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ message: "Format de téléphone invalide. Utilisez +226XXXXXXXX" });
       }
 
-      // Validate password
-      if (!password || password.length < 6) {
-        return res
-          .status(400)
-          .json({ message: "Le mot de passe doit avoir au moins 6 caractères" });
+      // Validate password strength
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation.isValid) {
+        return res.status(400).json({ 
+          message: passwordValidation.message || "Le mot de passe ne respecte pas les critères de sécurité" 
+        });
       }
 
       // Check if phone already exists
@@ -1706,11 +1708,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Format d'email invalide" });
       }
 
-      // Validate password
-      if (!password || password.length < 6) {
-        return res
-          .status(400)
-          .json({ message: "Le mot de passe doit contenir au moins 6 caractères" });
+      // Validate password strength
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation.isValid) {
+        return res.status(400).json({ 
+          message: passwordValidation.message || "Le mot de passe ne respecte pas les critères de sécurité" 
+        });
       }
 
       // Check if email already exists
@@ -2756,6 +2759,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(notifications);
     } catch (error) {
       console.error("Error fetching notifications:", error);
+      // If notifications table doesn't exist, return empty array instead of error
+      if (error.message && error.message.includes('relation "notifications" does not exist')) {
+        console.warn("Notifications table not found, returning empty array. Run db:migrate:prod to create the table.");
+        res.json([]);
+        return;
+      }
       res.status(500).json({ error: "Failed to fetch notifications" });
     }
   });
@@ -2767,6 +2776,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ count });
     } catch (error) {
       console.error("Error fetching unread notification count:", error);
+      // If notifications table doesn't exist, return count of 0
+      if (error.message && error.message.includes('relation "notifications" does not exist')) {
+        console.warn("Notifications table not found, returning count 0. Run db:migrate:prod to create the table.");
+        res.json({ count: 0 });
+        return;
+      }
       res.status(500).json({ error: "Failed to fetch unread count" });
     }
   });
@@ -2778,6 +2793,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       console.error("Error marking notification as read:", error);
+      // If notifications table doesn't exist, return success anyway
+      if (error.message && error.message.includes('relation "notifications" does not exist')) {
+        console.warn("Notifications table not found, ignoring mark as read. Run db:migrate:prod to create the table.");
+        res.json({ success: true });
+        return;
+      }
       res.status(500).json({ error: "Failed to mark notification as read" });
     }
   });
@@ -2789,6 +2810,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
+      // If notifications table doesn't exist, return success anyway
+      if (error.message && error.message.includes('relation "notifications" does not exist')) {
+        console.warn("Notifications table not found, ignoring mark all as read. Run db:migrate:prod to create the table.");
+        res.json({ success: true });
+        return;
+      }
       res.status(500).json({ error: "Failed to mark all notifications as read" });
     }
   });

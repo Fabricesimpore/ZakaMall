@@ -9,6 +9,7 @@ import { setupVite } from "./vite";
 import { serveStaticFiles } from "./static-files";
 import logger, { requestLogger, errorLogger, logInfo } from "./logger";
 import { validateEnvironment, getNumericEnv } from "./envValidator";
+import { runStartupMigrations } from "./startup-migrations";
 
 // Validate environment variables on startup
 validateEnvironment();
@@ -94,6 +95,9 @@ app.get("/api/health", (_req, res) => {
 });
 
 (async () => {
+  // Run startup migrations before registering routes
+  await runStartupMigrations();
+  
   const server = await registerRoutes(app);
 
   // Error logging middleware
