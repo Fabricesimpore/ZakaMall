@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -21,20 +22,25 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const { toast } = useToast();
+  const [quantity, setQuantity] = useState(1);
+  const [isAdded, setIsAdded] = useState(false);
 
   const addToCartMutation = useMutation({
     mutationFn: async () => {
       return await apiRequest("POST", "/api/cart", {
         productId: product.id,
-        quantity: 1,
+        quantity: quantity,
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+      setIsAdded(true);
+      setTimeout(() => setIsAdded(false), 2000);
       toast({
         title: "Succès",
-        description: "Produit ajouté au panier",
+        description: `${quantity} × ${product.name} ajouté au panier`,
       });
+      setQuantity(1); // Reset quantity after adding
     },
     onError: (error: Error) => {
       if (isUnauthorizedError(error)) {
@@ -113,19 +119,56 @@ export default function ProductCard({ product }: ProductCardProps) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-zaka-gray">Stock: {product.quantity}</span>
+          {/* Stock info and Quick Actions */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-zaka-gray">Stock: {product.quantity}</span>
+              {product.quantity > 0 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                    disabled={quantity <= 1}
+                  >
+                    <i className="fas fa-minus text-xs"></i>
+                  </button>
+                  <span className="text-sm font-medium w-8 text-center">{quantity}</span>
+                  <button
+                    onClick={() => setQuantity(Math.min(product.quantity, quantity + 1))}
+                    className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                    disabled={quantity >= product.quantity}
+                  >
+                    <i className="fas fa-plus text-xs"></i>
+                  </button>
+                </div>
+              )}
+            </div>
+            
             <Button
-              className="bg-zaka-blue hover:bg-zaka-blue text-white text-sm px-4 py-2"
+              className={`w-full transition-all ${
+                isAdded 
+                  ? "bg-green-500 hover:bg-green-600" 
+                  : "bg-zaka-blue hover:bg-zaka-blue"
+              } text-white text-sm px-4 py-2`}
               onClick={() => addToCartMutation.mutate()}
               disabled={product.quantity === 0 || addToCartMutation.isPending}
             >
               {addToCartMutation.isPending ? (
-                <i className="fas fa-spinner fa-spin mr-2"></i>
+                <>
+                  <i className="fas fa-spinner fa-spin mr-2"></i>
+                  Ajout...
+                </>
+              ) : isAdded ? (
+                <>
+                  <i className="fas fa-check mr-2"></i>
+                  Ajouté!
+                </>
               ) : (
-                <i className="fas fa-cart-plus mr-2"></i>
+                <>
+                  <i className="fas fa-cart-plus mr-2"></i>
+                  {product.quantity === 0 ? "Rupture" : `Ajouter (${quantity})`}
+                </>
               )}
-              {product.quantity === 0 ? "Rupture" : "Ajouter"}
             </Button>
           </div>
         </div>
