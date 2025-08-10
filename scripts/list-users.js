@@ -51,7 +51,7 @@ async function listUsers() {
 
     // Group by role
     const usersByRole = {};
-    allUsers.rows.forEach(user => {
+    allUsers.rows.forEach((user) => {
       if (!usersByRole[user.role]) {
         usersByRole[user.role] = [];
       }
@@ -60,24 +60,23 @@ async function listUsers() {
 
     // Display users by role
     const roleEmojis = {
-      admin: '👑',
-      vendor: '🏪', 
-      driver: '🚚',
-      customer: '🛒'
+      admin: "👑",
+      vendor: "🏪",
+      driver: "🚚",
+      customer: "🛒",
     };
 
     Object.entries(usersByRole).forEach(([role, users]) => {
-      console.log(`${roleEmojis[role] || '👤'} ${role.toUpperCase()} (${users.length}):`);
-      users.forEach(user => {
+      console.log(`${roleEmojis[role] || "👤"} ${role.toUpperCase()} (${users.length}):`);
+      users.forEach((user) => {
         const date = new Date(user.created_at).toLocaleDateString();
         console.log(`  - ${user.email} | ${user.first_name} ${user.last_name} | ${date}`);
       });
-      console.log('');
+      console.log("");
     });
 
     console.log("💡 To make a user admin, run:");
     console.log("   node scripts/make-user-admin.js <user-email>");
-
   } catch (error) {
     console.error("❌ Error:", error.message);
     process.exit(1);

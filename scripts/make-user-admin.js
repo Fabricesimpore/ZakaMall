@@ -42,11 +42,15 @@ async function makeAdmin(email) {
     if (userResult.rows.length === 0) {
       console.log(`❌ User with email ${email} not found`);
       console.log("\n📋 Available users:");
-      const allUsers = await pool.query("SELECT email, role, first_name, last_name FROM users ORDER BY created_at DESC LIMIT 10");
+      const allUsers = await pool.query(
+        "SELECT email, role, first_name, last_name FROM users ORDER BY created_at DESC LIMIT 10"
+      );
       allUsers.rows.forEach((user) => {
         console.log(`  - ${user.email} (${user.role}) - ${user.first_name} ${user.last_name}`);
       });
-      console.log(`\n💡 Total users found: ${allUsers.rows.length > 10 ? '10+ (showing recent 10)' : allUsers.rows.length}`);
+      console.log(
+        `\n💡 Total users found: ${allUsers.rows.length > 10 ? "10+ (showing recent 10)" : allUsers.rows.length}`
+      );
       process.exit(1);
     }
 
@@ -74,7 +78,6 @@ async function makeAdmin(email) {
     console.log("  - User Management");
     console.log("  - Vendor Approvals");
     console.log("  - System Settings");
-
   } catch (error) {
     console.error("❌ Error:", error.message);
     process.exit(1);
