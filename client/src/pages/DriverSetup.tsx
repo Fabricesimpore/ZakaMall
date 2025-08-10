@@ -164,7 +164,7 @@ export default function DriverSetup() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Choisir le type" />
+                                <SelectValue />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -200,7 +200,7 @@ export default function DriverSetup() {
                         <FormItem>
                           <FormLabel>Marque et modèle *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Honda CB, Yamaha YBR, Toyota..." {...field} />
+                            <Input {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -215,7 +215,7 @@ export default function DriverSetup() {
                           <FormItem>
                             <FormLabel>Année *</FormLabel>
                             <FormControl>
-                              <Input placeholder="2020" {...field} />
+                              <Input {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -229,7 +229,7 @@ export default function DriverSetup() {
                           <FormItem>
                             <FormLabel>Couleur *</FormLabel>
                             <FormControl>
-                              <Input placeholder="Rouge, Noir..." {...field} />
+                              <Input {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -244,7 +244,7 @@ export default function DriverSetup() {
                         <FormItem>
                           <FormLabel>Plaque d'immatriculation *</FormLabel>
                           <FormControl>
-                            <Input placeholder="11 BF 0000 11" {...field} />
+                            <Input {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -264,7 +264,7 @@ export default function DriverSetup() {
                         <FormItem>
                           <FormLabel>Numéro de permis de conduire *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Numéro du permis" {...field} />
+                            <Input {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -280,7 +280,7 @@ export default function DriverSetup() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Choisir l'expérience" />
+                                <SelectValue />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -303,7 +303,6 @@ export default function DriverSetup() {
                           <FormLabel>Zone de couverture *</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="Secteurs où vous préférez faire les livraisons..."
                               {...field}
                             />
                           </FormControl>
@@ -325,7 +324,7 @@ export default function DriverSetup() {
                         <FormItem>
                           <FormLabel>Nom du contact d'urgence *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Nom complet" {...field} />
+                            <Input {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -339,7 +338,7 @@ export default function DriverSetup() {
                         <FormItem>
                           <FormLabel>Téléphone d'urgence *</FormLabel>
                           <FormControl>
-                            <Input placeholder="+22670123456" {...field} />
+                            <Input {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

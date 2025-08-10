@@ -156,8 +156,7 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
             <Input
               type="text"
               maxLength={6}
-              placeholder="000000"
-              value={verificationCode}
+                            value={verificationCode}
               onChange={(e) => setVerificationCode(e.target.value.replace(/[^0-9]/g, ""))}
               className="text-center text-lg font-mono tracking-widest"
             />
@@ -196,7 +195,7 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
               <FormItem>
                 <FormLabel>Prénom</FormLabel>
                 <FormControl>
-                  <Input placeholder="Jean" {...field} />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -209,7 +208,7 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
               <FormItem>
                 <FormLabel>Nom</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ouédraogo" {...field} />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -226,7 +225,7 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Choisir votre opérateur" />
+                    <SelectValue />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -261,7 +260,6 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
                     +226
                   </span>
                   <Input
-                    placeholder="70123456"
                     {...field}
                     value={formatPhoneDisplay(field.value)}
                     onChange={(e) => {
@@ -286,7 +284,7 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
             <FormItem>
               <FormLabel>Mot de passe</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
+                <Input type="password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -302,7 +300,7 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Choisir votre rôle" />
+                    <SelectValue />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>

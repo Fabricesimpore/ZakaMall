@@ -33,7 +33,7 @@ export default function CustomerDashboard() {
       if (searchTerm) params.append("search", searchTerm);
       if (selectedCategory) params.append("categoryId", selectedCategory);
       const response = await fetch(`/api/products?${params}`);
-      if (!response.ok) throw new Error("Failed to fetch products");
+      if (!response.ok) throw new Error("Impossible de charger les produits");
       return response.json();
     },
   });

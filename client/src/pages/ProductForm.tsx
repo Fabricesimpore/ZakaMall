@@ -235,7 +235,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                     <FormItem>
                       <FormLabel>Nom du produit *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Samsung Galaxy A54" {...field} />
+                        <Input {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -293,7 +293,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                       <FormItem>
                         <FormLabel>SKU (optionnel)</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ex: SGS23U512" {...field} />
+                          <Input {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -316,7 +316,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                       <FormItem>
                         <FormLabel>Prix de vente (CFA) *</FormLabel>
                         <FormControl>
-                          <Input type="number" placeholder="Ex: 185000" {...field} />
+                          <Input type="number" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -330,7 +330,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                       <FormItem>
                         <FormLabel>Prix de comparaison (CFA)</FormLabel>
                         <FormControl>
-                          <Input type="number" placeholder="Ex: 200000" {...field} />
+                          <Input type="number" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -346,7 +346,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                       <FormItem>
                         <FormLabel>Quantité en stock *</FormLabel>
                         <FormControl>
-                          <Input type="number" placeholder="Ex: 15" {...field} />
+                          <Input type="number" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -360,7 +360,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                       <FormItem>
                         <FormLabel>Poids (kg)</FormLabel>
                         <FormControl>
-                          <Input type="number" step="0.1" placeholder="Ex: 0.5" {...field} />
+                          <Input type="number" step="0.1" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -379,7 +379,6 @@ export default function ProductForm({ productId }: ProductFormProps) {
                   {imageUrls.map((url, index) => (
                     <div key={index} className="flex items-center space-x-2">
                       <Input
-                        placeholder="URL de l'image"
                         value={url}
                         onChange={(e) => updateImageUrl(index, e.target.value)}
                         className="flex-1"

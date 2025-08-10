@@ -18,7 +18,7 @@ export function useAuth() {
         if (response.status === 401) {
           return null; // Return null for unauthorized instead of throwing
         }
-        throw new Error("Failed to fetch user");
+        throw new Error("Impossible de récupérer les informations utilisateur");
       }
       return response.json();
     },

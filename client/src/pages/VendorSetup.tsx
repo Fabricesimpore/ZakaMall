@@ -18,6 +18,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { isUnauthorizedError } from "@/lib/authUtils";
 
@@ -51,6 +58,7 @@ const vendorSetupSchema = z.object({
   return true;
 }, {
   message: "Informations de paiement incomplètes",
+  path: ["paymentMethod"] // Specify path to show error on payment method field
 });
 
 type VendorSetupForm = z.infer<typeof vendorSetupSchema>;
@@ -131,10 +139,12 @@ export default function VendorSetup() {
         ];
       } else if (step === 2) {
         const paymentMethod = form.getValues("paymentMethod");
+        fieldsToValidate = ["paymentMethod"];
+        
         if (paymentMethod === "bank") {
-          fieldsToValidate = ["paymentMethod", "bankName", "bankAccount"];
-        } else {
-          fieldsToValidate = ["paymentMethod", "mobileMoneyNumber", "mobileMoneyName"];
+          fieldsToValidate.push("bankName", "bankAccount");
+        } else if (paymentMethod === "orange" || paymentMethod === "moov") {
+          fieldsToValidate.push("mobileMoneyNumber", "mobileMoneyName");
         }
       }
 
@@ -187,7 +197,7 @@ export default function VendorSetup() {
                         <FormItem>
                           <FormLabel>Nom de l'entreprise *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Boutique Maman Fatou" {...field} />
+                            <Input {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -202,7 +212,6 @@ export default function VendorSetup() {
                           <FormLabel>Description de l'activité *</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="Décrivez vos produits et services..."
                               className="min-h-[100px]"
                               {...field}
                             />
@@ -219,7 +228,7 @@ export default function VendorSetup() {
                         <FormItem>
                           <FormLabel>Localisation de l'entreprise *</FormLabel>
                           <FormControl>
-                            <Textarea placeholder="Secteur 15, Ouagadougou / Zone commerciale de Bobo-Dioulasso / Quartier Dassasgho..." {...field} />
+                            <Textarea {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -233,7 +242,7 @@ export default function VendorSetup() {
                         <FormItem>
                           <FormLabel>Téléphone professionnel *</FormLabel>
                           <FormControl>
-                            <Input placeholder="+22670123456" {...field} />
+                            <Input {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -244,35 +253,99 @@ export default function VendorSetup() {
 
                 {step === 2 && (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Informations financières</h3>
-
+                    <h3 className="text-lg font-semibold">Mode de paiement</h3>
+                    <p className="text-sm text-gray-600">
+                      Choisissez comment vous souhaitez recevoir vos paiements
+                    </p>
+                    
                     <FormField
                       control={form.control}
-                      name="bankName"
+                      name="paymentMethod"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Banque *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Coris Bank, Ecobank, UBA..." {...field} />
-                          </FormControl>
+                          <FormLabel>Type de paiement *</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Choisir le mode de paiement" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="bank">🏦 Compte bancaire</SelectItem>
+                              <SelectItem value="orange">🟠 Orange Money</SelectItem>
+                              <SelectItem value="moov">🔵 Moov Money</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="bankAccount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Numéro de compte *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Numéro de compte bancaire" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {form.watch("paymentMethod") === "bank" && (
+                      <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <h4 className="font-medium text-blue-900">Informations bancaires</h4>
+                        <FormField
+                          control={form.control}
+                          name="bankName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nom de la banque *</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="bankAccount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Numéro de compte *</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
+
+                    {(form.watch("paymentMethod") === "orange" || form.watch("paymentMethod") === "moov") && (
+                      <div className="space-y-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                        <h4 className="font-medium text-orange-900">
+                          {form.watch("paymentMethod") === "orange" ? "Orange Money" : "Moov Money"}
+                        </h4>
+                        <FormField
+                          control={form.control}
+                          name="mobileMoneyNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Numéro {form.watch("paymentMethod") === "orange" ? "Orange Money" : "Moov Money"} *</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="mobileMoneyName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nom du titulaire du compte *</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
 
                     <FormField
                       control={form.control}
@@ -281,7 +354,7 @@ export default function VendorSetup() {
                         <FormItem>
                           <FormLabel>Numéro d'identification fiscale (IFU)</FormLabel>
                           <FormControl>
-                            <Input placeholder="00000000X (optionnel)" {...field} />
+                            <Input {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -304,7 +377,7 @@ export default function VendorSetup() {
                         <FormItem>
                           <FormLabel>Pièce d'identité (CNI, Passeport)</FormLabel>
                           <FormControl>
-                            <Input placeholder="Numéro de la pièce d'identité" {...field} />
+                            <Input {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -318,7 +391,7 @@ export default function VendorSetup() {
                         <FormItem>
                           <FormLabel>Registre du commerce (optionnel)</FormLabel>
                           <FormControl>
-                            <Input placeholder="Numéro du registre de commerce" {...field} />
+                            <Input {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

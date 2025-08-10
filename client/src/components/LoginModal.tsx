@@ -153,7 +153,6 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="votre@email.com"
                     required
                   />
                 </div>
@@ -164,7 +163,6 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
                     required
                     minLength={6}
                   />
@@ -203,7 +201,6 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+226 XX XX XX XX"
                       required
                     />
                     <p className="text-xs text-muted-foreground">Format: +226XXXXXXXX</p>
@@ -221,7 +218,6 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
                       type="text"
                       value={verificationCode}
                       onChange={(e) => setVerificationCode(e.target.value)}
-                      placeholder="123456"
                       maxLength={6}
                       required
                     />

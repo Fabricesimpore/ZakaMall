@@ -29,6 +29,22 @@ import Register from "@/pages/Register";
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
+  // Show nothing while loading to prevent 404 flash
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zaka-light">
+        <div className="text-center">
+          <div className="animate-pulse">
+            <div className="w-16 h-16 bg-zaka-orange bg-opacity-20 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <i className="fas fa-shopping-bag text-2xl text-zaka-orange"></i>
+            </div>
+          </div>
+          <p className="text-zaka-gray">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Switch>
       {/* Public routes accessible to all users */}
@@ -41,7 +57,7 @@ function Router() {
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/profile" component={AdminProfile} />
 
-      {isLoading || !isAuthenticated ? (
+      {!isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (
         <>
