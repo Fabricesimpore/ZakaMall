@@ -37,9 +37,7 @@ export default function DarkModeToggle({ className = "", showLabel = false }: Da
         </div>
 
         {showLabel && (
-          <span className="text-sm font-medium">
-            {isDarkMode ? "Mode clair" : "Mode sombre"}
-          </span>
+          <span className="text-sm font-medium">{isDarkMode ? "Mode clair" : "Mode sombre"}</span>
         )}
       </div>
 
