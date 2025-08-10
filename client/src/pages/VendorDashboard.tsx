@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import VendorProducts from "@/components/VendorProducts";
 import VendorOrders from "@/components/VendorOrders";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,6 +15,7 @@ import Navbar from "@/components/Navbar";
 export default function VendorDashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
+  const [location] = useLocation();
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -61,7 +62,8 @@ export default function VendorDashboard() {
     );
   }
 
-  if (!vendor?.roleData || user?.role !== "vendor") {
+  // Check if user is not a vendor, doesn't have vendor role data, or vendor is not approved
+  if (!vendor?.roleData || user?.role !== "vendor" || vendor?.roleData?.status !== "approved") {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -246,7 +248,15 @@ export default function VendorDashboard() {
         )}
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs 
+          defaultValue={
+            location.includes('/orders') ? 'orders' :
+            location.includes('/analytics') ? 'analytics' :
+            location.includes('/inventory') ? 'products' :
+            'overview'
+          } 
+          className="space-y-6"
+        >
           <TabsList className="grid grid-cols-4 w-full lg:w-auto">
             <TabsTrigger value="overview">Aperçu</TabsTrigger>
             <TabsTrigger value="products">Produits</TabsTrigger>

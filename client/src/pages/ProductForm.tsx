@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import ProductImageUploaderForm from "@/components/ProductImageUploaderForm";
 
 import {
   Select,
@@ -144,31 +145,9 @@ export default function ProductForm({ productId }: ProductFormProps) {
     },
   });
 
-  const addImageUrl = () => {
-    const newUrls = [...imageUrls, ""];
-    setImageUrls(newUrls);
-    form.setValue("images", newUrls);
-  };
-
-  const updateImageUrl = (index: number, url: string) => {
-    const newUrls = [...imageUrls];
-    newUrls[index] = url;
-    setImageUrls(newUrls);
-    form.setValue(
-      "images",
-      newUrls.filter((u) => u.trim())
-    );
-  };
-
-  const removeImageUrl = (index: number) => {
-    const newUrls = imageUrls.filter((_, i) => i !== index);
-    setImageUrls(newUrls);
-    form.setValue("images", newUrls);
-  };
 
   const onSubmit = (data: ProductFormData) => {
-    const validImages = imageUrls.filter((url) => url.trim());
-    if (validImages.length === 0) {
+    if (imageUrls.length === 0) {
       toast({
         title: "Erreur",
         description: "Au moins une image est requise",
@@ -179,7 +158,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
     saveProductMutation.mutate({
       ...data,
-      images: validImages,
+      images: imageUrls,
     });
   };
 
@@ -374,50 +353,14 @@ export default function ProductForm({ productId }: ProductFormProps) {
               <CardHeader>
                 <CardTitle>Images du produit</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  {imageUrls.map((url, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <Input
-                        value={url}
-                        onChange={(e) => updateImageUrl(index, e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeImageUrl(index)}
-                        className="text-red-600"
-                      >
-                        <i className="fas fa-trash"></i>
-                      </Button>
-                    </div>
-                  ))}
-                  <Button type="button" variant="outline" onClick={addImageUrl} className="w-full">
-                    <i className="fas fa-plus mr-2"></i>
-                    Ajouter une image
-                  </Button>
-                </div>
-
-                {imageUrls.some((url) => url.trim()) && (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {imageUrls
-                      .filter((url) => url.trim())
-                      .map((url, index) => (
-                        <div key={index} className="relative">
-                          <img
-                            src={url}
-                            alt={`Aperçu ${index + 1}`}
-                            className="w-full h-24 object-cover rounded border"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "/placeholder-product.jpg";
-                            }}
-                          />
-                        </div>
-                      ))}
-                  </div>
-                )}
+              <CardContent>
+                <ProductImageUploaderForm 
+                  onImagesChange={(images) => {
+                    setImageUrls(images);
+                    form.setValue("images", images);
+                  }}
+                  currentImages={imageUrls}
+                />
               </CardContent>
             </Card>
 

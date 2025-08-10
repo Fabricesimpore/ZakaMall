@@ -69,6 +69,9 @@ function Router() {
           <Route path="/vendor/products/:id/edit">
             {(params) => <ProductForm productId={params.id} />}
           </Route>
+          <Route path="/vendor/inventory" component={VendorDashboard} />
+          <Route path="/vendor/orders" component={VendorDashboard} />
+          <Route path="/vendor/analytics" component={VendorDashboard} />
           <Route path="/driver" component={DriverDashboard} />
           <Route path="/profile" component={Profile} />
           <Route path="/chat" component={Chat} />

@@ -795,6 +795,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/categories", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== "admin") {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      const { name, description, slug } = req.body;
+      const category = await storage.createCategory({ 
+        id: slug || name.toLowerCase().replace(/\s+/g, '-'),
+        name, 
+        description, 
+        slug: slug || name.toLowerCase().replace(/\s+/g, '-')
+      });
+      res.json(category);
+    } catch (error) {
+      console.error("Error creating category:", error);
+      res.status(500).json({ message: "Failed to create category" });
+    }
+  });
+
   // Product routes
   app.post("/api/products", isAuthenticated, async (req: any, res) => {
     try {
