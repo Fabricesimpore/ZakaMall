@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import ProductCard from "@/components/ProductCard";
+import ProductCardSkeleton from "@/components/skeletons/ProductCardSkeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Products() {
@@ -21,17 +22,8 @@ export default function Products() {
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardContent className="p-0">
-                  <div className="w-full h-48 bg-gray-200 rounded-t-lg"></div>
-                  <div className="p-4 space-y-3">
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                    <div className="h-8 bg-gray-200 rounded"></div>
-                  </div>
-                </CardContent>
-              </Card>
+            {[...Array(12)].map((_, i) => (
+              <ProductCardSkeleton key={i} />
             ))}
           </div>
         ) : Array.isArray(products) && products.length > 0 ? (

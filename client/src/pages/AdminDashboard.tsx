@@ -5,6 +5,9 @@ import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
+import DashboardCardSkeleton from "@/components/skeletons/DashboardCardSkeleton";
+import TableSkeleton from "@/components/skeletons/TableSkeleton";
+import ListItemSkeleton from "@/components/skeletons/ListItemSkeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -373,65 +376,76 @@ export default function AdminDashboard() {
 
         {/* Admin Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-zaka-gray text-sm">Total administrateurs</p>
-                  <p className="text-2xl font-bold text-zaka-dark">
-                    {statsLoading ? "..." : (adminStats as any)?.totalAdmins || 0}
-                  </p>
-                </div>
-                <i className="fas fa-user-shield text-2xl text-red-500"></i>
-              </div>
-              <p className="text-sm text-red-600 mt-2">Actifs</p>
-            </CardContent>
-          </Card>
+          {statsLoading ? (
+            <>
+              <DashboardCardSkeleton />
+              <DashboardCardSkeleton />
+              <DashboardCardSkeleton />
+              <DashboardCardSkeleton />
+            </>
+          ) : (
+            <>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-zaka-gray text-sm">Total administrateurs</p>
+                      <p className="text-2xl font-bold text-zaka-dark">
+                        {(adminStats as any)?.totalAdmins || 0}
+                      </p>
+                    </div>
+                    <i className="fas fa-user-shield text-2xl text-red-500"></i>
+                  </div>
+                  <p className="text-sm text-red-600 mt-2">Actifs</p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-zaka-gray text-sm">Total utilisateurs</p>
-                  <p className="text-2xl font-bold text-zaka-dark">
-                    {statsLoading ? "..." : (adminStats as any)?.totalUsers || 0}
-                  </p>
-                </div>
-                <i className="fas fa-users text-2xl text-zaka-blue"></i>
-              </div>
-              <p className="text-sm text-blue-600 mt-2">Enregistrés</p>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-zaka-gray text-sm">Total utilisateurs</p>
+                      <p className="text-2xl font-bold text-zaka-dark">
+                        {(adminStats as any)?.totalUsers || 0}
+                      </p>
+                    </div>
+                    <i className="fas fa-users text-2xl text-zaka-blue"></i>
+                  </div>
+                  <p className="text-sm text-blue-600 mt-2">Enregistrés</p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-zaka-gray text-sm">Sessions actives</p>
-                  <p className="text-2xl font-bold text-zaka-dark">
-                    {statsLoading ? "..." : (adminStats as any)?.activeSessions || 0}
-                  </p>
-                </div>
-                <i className="fas fa-signal text-2xl text-zaka-green"></i>
-              </div>
-              <p className="text-sm text-green-600 mt-2">En ligne</p>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-zaka-gray text-sm">Sessions actives</p>
+                      <p className="text-2xl font-bold text-zaka-dark">
+                        {(adminStats as any)?.activeSessions || 0}
+                      </p>
+                    </div>
+                    <i className="fas fa-signal text-2xl text-zaka-green"></i>
+                  </div>
+                  <p className="text-sm text-green-600 mt-2">En ligne</p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-zaka-gray text-sm">Disponibilité</p>
-                  <p className="text-2xl font-bold text-zaka-dark">
-                    {statsLoading ? "..." : (adminStats as any)?.platformUptime || "99.9%"}
-                  </p>
-                </div>
-                <i className="fas fa-server text-2xl text-zaka-orange"></i>
-              </div>
-              <p className="text-sm text-orange-600 mt-2">Système</p>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-zaka-gray text-sm">Disponibilité</p>
+                      <p className="text-2xl font-bold text-zaka-dark">
+                        {(adminStats as any)?.platformUptime || "99.9%"}
+                      </p>
+                    </div>
+                    <i className="fas fa-server text-2xl text-zaka-orange"></i>
+                  </div>
+                  <p className="text-sm text-orange-600 mt-2">Système</p>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
 
         {/* Main Content */}
@@ -459,11 +473,7 @@ export default function AdminDashboard() {
                   {vendorsLoading ? (
                     <div className="space-y-4">
                       {[...Array(3)].map((_, i) => (
-                        <div key={i} className="animate-pulse p-6 border rounded-lg">
-                          <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                          <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
-                          <div className="h-3 bg-gray-200 rounded w-1/3"></div>
-                        </div>
+                        <ListItemSkeleton key={i} showAvatar={true} showSubtext={true} showActions={true} />
                       ))}
                     </div>
                   ) : (pendingVendors as any[])?.length > 0 ? (
