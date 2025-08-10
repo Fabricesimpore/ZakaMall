@@ -3,35 +3,39 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
+import ProductSearch from "@/components/ProductSearch";
 import Cart from "@/components/Cart";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-// import { useToast } from "@/hooks/use-toast";
 
 export default function CustomerDashboard() {
   const { isLoading: authLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [showCart, setShowCart] = useState(false);
+  const [filters, setFilters] = useState({
+    minPrice: 0,
+    maxPrice: 1000000,
+    inStock: false,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
 
   const { data: categories = [], isLoading: categoriesLoading } = useQuery<any[]>({
     queryKey: ["/api/categories"],
   });
 
   const { data: products = [], isLoading: productsLoading } = useQuery<any[]>({
-    queryKey: ["/api/products", searchTerm, selectedCategory],
+    queryKey: ["/api/products", searchTerm, selectedCategory, filters],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append("search", searchTerm);
       if (selectedCategory) params.append("categoryId", selectedCategory);
+      if (filters.minPrice > 0) params.append("minPrice", filters.minPrice.toString());
+      if (filters.maxPrice < 1000000) params.append("maxPrice", filters.maxPrice.toString());
+      if (filters.inStock) params.append("inStock", "true");
+      params.append("sortBy", filters.sortBy);
+      params.append("sortOrder", filters.sortOrder);
       const response = await fetch(`/api/products?${params}`);
       if (!response.ok) throw new Error("Impossible de charger les produits");
       return response.json();
@@ -58,47 +62,30 @@ export default function CustomerDashboard() {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-zaka-dark mb-4 md:mb-0">Marketplace</h1>
-          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-            <div className="relative">
-              <Input
-                type="text"
-                placeholder="Rechercher des produits..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-3 w-full md:w-80"
-              />
-              <i className="fas fa-search absolute left-3 top-4 text-zaka-gray"></i>
-            </div>
-            <Select
-              value={selectedCategory}
-              onValueChange={(value) => setSelectedCategory(value === "all" ? "" : value)}
-            >
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Toutes catégories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Toutes catégories</SelectItem>
-                {categories?.map((category: any) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              onClick={() => setShowCart(!showCart)}
-              className="bg-zaka-orange hover:bg-zaka-orange relative"
-            >
-              <i className="fas fa-shopping-cart mr-2"></i>
-              Panier
-              {cartItems && cartItems.length > 0 && (
-                <Badge className="absolute -top-2 -right-2 bg-red-500 text-white">
-                  {cartItems.length}
-                </Badge>
-              )}
-            </Button>
-          </div>
+          <Button
+            onClick={() => setShowCart(!showCart)}
+            className="bg-zaka-orange hover:bg-zaka-orange relative"
+          >
+            <i className="fas fa-shopping-cart mr-2"></i>
+            Panier
+            {cartItems && cartItems.length > 0 && (
+              <Badge className="absolute -top-2 -right-2 bg-red-500 text-white">
+                {cartItems.length}
+              </Badge>
+            )}
+          </Button>
         </div>
+
+        {/* Product Search */}
+        <ProductSearch
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          filters={filters}
+          onFiltersChange={setFilters}
+        />
 
         {/* Categories */}
         {!categoriesLoading && categories && (
