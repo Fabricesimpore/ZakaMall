@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -79,9 +79,26 @@ type VendorSetupForm = z.infer<typeof vendorSetupSchema>;
 
 export default function VendorSetup() {
   const [step, setStep] = useState(1);
+  
+  // Debug step changes
+  const originalSetStep = setStep;
+  const debugSetStep = (newStep: number) => {
+    console.log(`📍 Step changing from ${step} to ${newStep}`);
+    console.trace("Step change stack trace");
+    originalSetStep(newStep);
+  };
+  setStep = debugSetStep;
   const [_isSubmitting, _setIsSubmitting] = useState(false);
   const { user: _user } = useAuth();
   const { toast } = useToast();
+  
+  // Monitor step changes
+  useEffect(() => {
+    console.log(`🔄 useEffect: Step is now ${step}`);
+    if (step === 3) {
+      console.log("🎯 Step 3 reached! Monitoring for any automatic submissions...");
+    }
+  }, [step]);
 
   const form = useForm<VendorSetupForm>({
     resolver: zodResolver(vendorSetupSchema),
@@ -103,15 +120,18 @@ export default function VendorSetup() {
 
   const setupMutation = useMutation({
     mutationFn: async (data: VendorSetupForm) => {
+      console.log("🚀 API request starting for vendor setup");
       return await apiRequest("POST", "/api/vendors", data);
     },
     onSuccess: () => {
+      console.log("✅ Vendor setup mutation successful");
       toast({
         title: "Demande soumise!",
         description:
           "Votre demande de vendeur sera examinée par notre équipe. Nous vous contacterons bientôt.",
       });
       // Redirect to pending approval page
+      console.log("🔄 Redirecting to vendor-pending page");
       window.location.href = "/vendor-pending";
     },
     onError: (error: Error) => {
