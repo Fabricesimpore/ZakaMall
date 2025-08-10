@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import SearchWithSuggestions from "@/components/SearchWithSuggestions";
 import {
   Select,
   SelectContent,
@@ -81,18 +81,13 @@ export default function ProductSearch({
 
   return (
     <div className="space-y-4">
-      {/* Search Bar */}
+      {/* Enhanced Search Bar with Suggestions */}
       <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Input
-            type="text"
-            placeholder="Rechercher des produits, marques, vendeurs..."
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 pr-4 py-3"
-          />
-          <i className="fas fa-search absolute left-3 top-4 text-gray-400"></i>
-        </div>
+        <SearchWithSuggestions
+          searchTerm={searchTerm}
+          onSearchChange={onSearchChange}
+          className="flex-1"
+        />
 
         {/* Quick Category Filter */}
         <Select

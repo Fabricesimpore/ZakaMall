@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 // import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import SearchWithSuggestions from "@/components/SearchWithSuggestions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,9 +20,18 @@ export default function Navbar() {
   const { user, isLoading } = useAuth();
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [globalSearchTerm, setGlobalSearchTerm] = useState("");
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
+  };
+
+  const handleGlobalSearch = (term: string) => {
+    setGlobalSearchTerm(term);
+    if (term.trim()) {
+      // Navigate to products page with search term
+      window.location.href = `/products?search=${encodeURIComponent(term)}`;
+    }
   };
 
   const getNavLinks = () => {
@@ -64,7 +74,7 @@ export default function Navbar() {
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-16 gap-4">
           <div className="flex items-center">
             <Link href="/">
               <div className="flex-shrink-0 cursor-pointer">
@@ -72,6 +82,16 @@ export default function Navbar() {
                 <p className="text-xs text-zaka-gray">Marketplace du Burkina</p>
               </div>
             </Link>
+          </div>
+
+          {/* Global Search Bar - Hidden on mobile */}
+          <div className="hidden md:block flex-1 max-w-md">
+            <SearchWithSuggestions
+              searchTerm={globalSearchTerm}
+              onSearchChange={handleGlobalSearch}
+              placeholder="Rechercher sur ZakaMall..."
+              className="w-full"
+            />
           </div>
 
           {/* Mobile menu button */}
@@ -84,8 +104,18 @@ export default function Navbar() {
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                 <div className="flex flex-col h-full">
-                  <div className="flex items-center mb-8">
+                  <div className="flex items-center mb-4">
                     <h2 className="text-xl font-bold text-zaka-orange">Menu</h2>
+                  </div>
+                  
+                  {/* Mobile Search */}
+                  <div className="mb-6">
+                    <SearchWithSuggestions
+                      searchTerm={globalSearchTerm}
+                      onSearchChange={handleGlobalSearch}
+                      placeholder="Rechercher sur ZakaMall..."
+                      className="w-full"
+                    />
                   </div>
 
                   {user && (
