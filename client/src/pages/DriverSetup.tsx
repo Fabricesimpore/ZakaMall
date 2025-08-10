@@ -101,7 +101,19 @@ export default function DriverSetup() {
     },
   });
 
-  const onSubmit = (data: DriverSetupForm) => {
+  const onSubmit = async (data: DriverSetupForm) => {
+    // Validate step 3 fields before submitting
+    if (step === 3) {
+      const isValid = await form.trigger(["emergencyContact", "emergencyName"]);
+      if (!isValid) {
+        toast({
+          title: "Champs requis",
+          description: "Veuillez remplir tous les champs obligatoires avant de continuer.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     setupMutation.mutate(data);
   };
 
@@ -110,14 +122,13 @@ export default function DriverSetup() {
     const stepFields: Record<number, (keyof DriverSetupForm)[]> = {
       1: [
         "vehicleType",
-        "licenseNumber",
         "vehicleModel",
         "vehicleYear",
         "vehicleColor",
         "vehiclePlate",
       ],
-      2: ["emergencyContact", "emergencyName", "workZone", "experience"],
-      3: [], // Final step, no additional fields
+      2: ["licenseNumber", "experience", "workZone"],
+      3: ["emergencyContact", "emergencyName"], // Final step validation
     };
 
     // Validate current step fields before advancing
