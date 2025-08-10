@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -83,7 +83,7 @@ export default function VendorSetup() {
 
   // Debug step changes
   const setStep = (newStep: number) => {
-    console.log(`📍 Step changing from ${step} to ${newStep}`);
+    console.log(`📍 Step changing to ${newStep}`);
     console.trace("Step change stack trace");
     setStepState(newStep);
   };
@@ -92,24 +92,6 @@ export default function VendorSetup() {
   const { toast } = useToast();
 
   console.log("🔐 Auth state:", { user: _user, authLoading, isAuthenticated });
-
-  // Monitor step changes
-  useEffect(() => {
-    console.log(`🔄 useEffect: Step is now ${step}`);
-    if (step === 3) {
-      console.log("🎯 Step 3 reached! Monitoring for any automatic submissions...");
-      
-      // Add a timeout to see if anything happens automatically
-      const timer = setTimeout(() => {
-        console.log("⏰ 3 seconds passed on step 3, checking if form was submitted");
-        console.log("Form errors:", form.formState.errors);
-        console.log("Form is valid:", form.formState.isValid);
-        console.log("Form submitted count:", form.formState.submitCount);
-      }, 3000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [step, form.formState]);
 
   const form = useForm<VendorSetupForm>({
     resolver: zodResolver(vendorSetupSchema),
@@ -128,6 +110,24 @@ export default function VendorSetup() {
       businessLicense: "",
     },
   });
+
+  // Monitor step changes (after form is declared)
+  useEffect(() => {
+    console.log(`🔄 useEffect: Step is now ${step}`);
+    if (step === 3) {
+      console.log("🎯 Step 3 reached! Monitoring for any automatic submissions...");
+      
+      // Add a timeout to see if anything happens automatically
+      const timer = setTimeout(() => {
+        console.log("⏰ 3 seconds passed on step 3, checking if form was submitted");
+        console.log("Form errors:", form.formState.errors);
+        console.log("Form is valid:", form.formState.isValid);
+        console.log("Form submitted count:", form.formState.submitCount);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [step, form.formState]);
 
   const setupMutation = useMutation({
     mutationFn: async (data: VendorSetupForm) => {
