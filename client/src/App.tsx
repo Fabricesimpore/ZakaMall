@@ -31,10 +31,11 @@ import Register from "@/pages/Register";
 import OrderTracking from "@/pages/OrderTracking";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
-  // Show nothing while loading to prevent 404 flash
-  if (isLoading) {
+  // Show loading while auth is being determined to prevent 404 flash
+  // This includes initial load and when user data is being fetched
+  if (isLoading || (isAuthenticated && !user)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zaka-light">
         <div className="text-center">
