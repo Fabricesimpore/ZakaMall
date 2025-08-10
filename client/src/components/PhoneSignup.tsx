@@ -156,7 +156,7 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
             <Input
               type="text"
               maxLength={6}
-                            value={verificationCode}
+              value={verificationCode}
               onChange={(e) => setVerificationCode(e.target.value.replace(/[^0-9]/g, ""))}
               className="text-center text-lg font-mono tracking-widest"
             />
