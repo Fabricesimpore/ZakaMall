@@ -107,7 +107,7 @@ export default function Navbar() {
                   <div className="flex items-center mb-4">
                     <h2 className="text-xl font-bold text-zaka-orange">Menu</h2>
                   </div>
-                  
+
                   {/* Mobile Search */}
                   <div className="mb-6">
                     <SearchWithSuggestions

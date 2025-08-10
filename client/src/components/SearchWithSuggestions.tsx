@@ -46,7 +46,10 @@ export default function SearchWithSuggestions({
     queryKey: ["/api/search/suggestions", searchTerm],
     queryFn: async () => {
       if (!searchTerm.trim()) return [];
-      const response = await apiRequest("GET", `/api/search/suggestions?q=${encodeURIComponent(searchTerm)}`);
+      const response = await apiRequest(
+        "GET",
+        `/api/search/suggestions?q=${encodeURIComponent(searchTerm)}`
+      );
       return response.json();
     },
     enabled: searchTerm.length > 1 && isFocused,
@@ -58,9 +61,9 @@ export default function SearchWithSuggestions({
   const handleSearchSelect = (term: string) => {
     onSearchChange(term);
     setIsFocused(false);
-    
+
     // Save to recent searches
-    const newRecent = [term, ...recentSearches.filter(s => s !== term)].slice(0, 5);
+    const newRecent = [term, ...recentSearches.filter((s) => s !== term)].slice(0, 5);
     setRecentSearches(newRecent);
     localStorage.setItem("zakamart_recent_searches", JSON.stringify(newRecent));
   };
@@ -191,7 +194,9 @@ export default function SearchWithSuggestions({
                         onClick={() => handleSearchSelect(suggestion.name)}
                         className="flex items-start w-full p-3 text-left hover:bg-gray-50 rounded-md border-b border-gray-100 last:border-b-0"
                       >
-                        <i className={`${getSuggestionIcon(suggestion.type)} text-gray-400 mr-3 mt-1`}></i>
+                        <i
+                          className={`${getSuggestionIcon(suggestion.type)} text-gray-400 mr-3 mt-1`}
+                        ></i>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-medium text-sm truncate">{suggestion.name}</span>
@@ -225,9 +230,7 @@ export default function SearchWithSuggestions({
                   <div className="text-center py-4">
                     <i className="fas fa-search text-gray-300 text-2xl mb-2"></i>
                     <p className="text-sm text-gray-500">Aucune suggestion trouvée</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Essayez d'autres mots-clés
-                    </p>
+                    <p className="text-xs text-gray-400 mt-1">Essayez d'autres mots-clés</p>
                   </div>
                 )}
               </>
@@ -237,16 +240,18 @@ export default function SearchWithSuggestions({
             {searchTerm.length <= 1 && recentSearches.length === 0 && (
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Recherches populaires</h3>
-                {["téléphone", "électronique", "vêtements", "maison", "beauté"].map((term, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSearchSelect(term)}
-                    className="flex items-center w-full p-2 text-left hover:bg-gray-50 rounded-md"
-                  >
-                    <i className="fas fa-fire text-orange-400 mr-3"></i>
-                    <span className="text-sm capitalize">{term}</span>
-                  </button>
-                ))}
+                {["téléphone", "électronique", "vêtements", "maison", "beauté"].map(
+                  (term, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSearchSelect(term)}
+                      className="flex items-center w-full p-2 text-left hover:bg-gray-50 rounded-md"
+                    >
+                      <i className="fas fa-fire text-orange-400 mr-3"></i>
+                      <span className="text-sm capitalize">{term}</span>
+                    </button>
+                  )
+                )}
               </div>
             )}
           </div>
