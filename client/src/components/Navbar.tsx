@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import SearchWithSuggestions from "@/components/SearchWithSuggestions";
+import DarkModeToggle from "@/components/DarkModeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,7 +56,7 @@ export default function Navbar() {
 
   if (isLoading) {
     return (
-      <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+      <nav className="bg-background shadow-sm border-b border-border sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -72,7 +73,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-background shadow-sm border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 gap-4">
           <div className="flex items-center">
@@ -150,7 +151,8 @@ export default function Navbar() {
                     ))}
                   </div>
 
-                  <div className="mt-auto pt-4 border-t">
+                  <div className="mt-auto pt-4 border-t space-y-3">
+                    <DarkModeToggle className="w-full" showLabel />
                     <Button
                       variant="outline"
                       className="w-full text-red-600 border-red-600 hover:bg-red-50"
@@ -182,6 +184,8 @@ export default function Navbar() {
             ))}
 
             <NotificationDropdown />
+
+            <DarkModeToggle />
 
             {user && (
               <DropdownMenu>
