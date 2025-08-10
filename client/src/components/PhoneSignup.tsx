@@ -7,6 +7,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import PasswordInput from "@/components/PasswordInput";
+import { passwordSchema } from "@/lib/passwordValidation";
 import {
   Form,
   FormControl,
@@ -23,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Phone number schema for Burkina Faso
+// Phone number schema for Burkina Faso with strong password validation
 const phoneSignupSchema = z.object({
   firstName: z.string().min(2, "Le prénom doit avoir au moins 2 caractères"),
   lastName: z.string().min(2, "Le nom doit avoir au moins 2 caractères"),
@@ -32,9 +34,13 @@ const phoneSignupSchema = z.object({
     .min(8, "Le numéro de téléphone doit avoir 8 chiffres")
     .max(8, "Le numéro de téléphone doit avoir 8 chiffres")
     .regex(/^[0-9]{8}$/, "Le numéro doit contenir uniquement des chiffres"),
-  password: z.string().min(6, "Le mot de passe doit avoir au moins 6 caractères"),
+  password: passwordSchema,
+  confirmPassword: z.string(),
   operator: z.enum(["orange", "moov"], { required_error: "Veuillez choisir votre opérateur" }),
   role: z.enum(["customer", "vendor", "driver"], { required_error: "Veuillez choisir votre rôle" }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Les mots de passe ne correspondent pas",
+  path: ["confirmPassword"],
 });
 
 type PhoneSignupForm = z.infer<typeof phoneSignupSchema>;
@@ -56,6 +62,7 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
       lastName: "",
       phone: "",
       password: "",
+      confirmPassword: "",
       operator: "orange",
       role: "customer",
     },
@@ -280,11 +287,36 @@ export default function PhoneSignup({ onSuccess }: PhoneSignupProps) {
         <FormField
           control={form.control}
           name="password"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
               <FormLabel>Mot de passe</FormLabel>
               <FormControl>
-                <Input type="password" {...field} />
+                <PasswordInput 
+                  value={field.value} 
+                  onChange={field.onChange}
+                  error={fieldState.error?.message}
+                  showStrength={true}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field, fieldState }) => (
+            <FormItem>
+              <FormLabel>Confirmer le mot de passe</FormLabel>
+              <FormControl>
+                <PasswordInput 
+                  value={field.value} 
+                  onChange={field.onChange}
+                  placeholder="Confirmez votre mot de passe"
+                  error={fieldState.error?.message}
+                  showStrength={false}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -5,6 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import PasswordInput from "@/components/PasswordInput";
+import { getPasswordStrength } from "@/lib/passwordValidation";
 
 export default function Register() {
   const [, setLocation] = useLocation();
@@ -19,6 +21,17 @@ export default function Register() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate password strength
+    const passwordStrength = getPasswordStrength(password);
+    if (passwordStrength.level === 'very-weak' || passwordStrength.level === 'weak') {
+      toast({
+        title: "Mot de passe trop faible",
+        description: "Veuillez choisir un mot de passe plus fort selon les critères indiqués",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (password !== confirmPassword) {
       toast({
@@ -146,24 +159,19 @@ export default function Register() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Mot de passe</Label>
-                  <Input
-                    id="password"
-                    type="password"
+                  <PasswordInput
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
+                    onChange={setPassword}
+                    showStrength={true}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
+                  <PasswordInput
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    minLength={6}
+                    onChange={setConfirmPassword}
+                    placeholder="Confirmez votre mot de passe"
+                    showStrength={false}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
