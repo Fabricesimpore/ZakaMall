@@ -98,8 +98,18 @@ export default function VendorSetup() {
     console.log(`🔄 useEffect: Step is now ${step}`);
     if (step === 3) {
       console.log("🎯 Step 3 reached! Monitoring for any automatic submissions...");
+      
+      // Add a timeout to see if anything happens automatically
+      const timer = setTimeout(() => {
+        console.log("⏰ 3 seconds passed on step 3, checking if form was submitted");
+        console.log("Form errors:", form.formState.errors);
+        console.log("Form is valid:", form.formState.isValid);
+        console.log("Form submitted count:", form.formState.submitCount);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
     }
-  }, [step]);
+  }, [step, form.formState]);
 
   const form = useForm<VendorSetupForm>({
     resolver: zodResolver(vendorSetupSchema),
@@ -196,20 +206,66 @@ export default function VendorSetup() {
         }
       }
 
-      // Trigger validation for the current step fields
-      const isStepValid = await form.trigger(fieldsToValidate);
+      // Manual validation to avoid automatic form submission
+      const formValues = form.getValues();
+      console.log("Form values before validation:", formValues);
+      
+      let isStepValid = true;
+      let missingFields: string[] = [];
 
-      console.log(`Step ${step} validation result:`, isStepValid);
-      console.log("Fields validated:", fieldsToValidate);
-      console.log("Form values:", form.getValues());
+      // Manual validation for each step
+      if (step === 1) {
+        if (!formValues.businessName || formValues.businessName.length < 3) {
+          isStepValid = false;
+          missingFields.push("Nom de l'entreprise");
+        }
+        if (!formValues.businessDescription || formValues.businessDescription.length < 10) {
+          isStepValid = false;
+          missingFields.push("Description");
+        }
+        if (!formValues.businessAddress || formValues.businessAddress.length < 5) {
+          isStepValid = false;
+          missingFields.push("Adresse");
+        }
+        if (!formValues.businessPhone || formValues.businessPhone.length < 8) {
+          isStepValid = false;
+          missingFields.push("Téléphone");
+        }
+      } else if (step === 2) {
+        if (!formValues.paymentMethod) {
+          isStepValid = false;
+          missingFields.push("Mode de paiement");
+        } else if (formValues.paymentMethod === "bank") {
+          if (!formValues.bankName || formValues.bankName.length < 3) {
+            isStepValid = false;
+            missingFields.push("Nom de la banque");
+          }
+          if (!formValues.bankAccount || formValues.bankAccount.length < 5) {
+            isStepValid = false;
+            missingFields.push("Numéro de compte");
+          }
+        } else if (formValues.paymentMethod === "orange" || formValues.paymentMethod === "moov") {
+          if (!formValues.mobileMoneyNumber || formValues.mobileMoneyNumber.length < 8) {
+            isStepValid = false;
+            missingFields.push("Numéro mobile money");
+          }
+          if (!formValues.mobileMoneyName || formValues.mobileMoneyName.length < 3) {
+            isStepValid = false;
+            missingFields.push("Nom titulaire");
+          }
+        }
+      }
+
+      console.log(`Step ${step} manual validation result:`, isStepValid);
+      console.log("Missing fields:", missingFields);
 
       if (isStepValid) {
-        console.log(`Moving from step ${step} to step ${step + 1}`);
+        console.log(`✅ Moving from step ${step} to step ${step + 1}`);
         setStep(step + 1);
       } else {
         toast({
           title: "Champs requis",
-          description: "Veuillez remplir tous les champs obligatoires avant de continuer",
+          description: `Veuillez remplir: ${missingFields.join(", ")}`,
           variant: "destructive",
         });
       }
