@@ -79,16 +79,14 @@ type VendorSetupForm = z.infer<typeof vendorSetupSchema>;
 
 export default function VendorSetup() {
   console.log("🏪 VendorSetup component mounting");
-  const [step, setStep] = useState(1);
+  const [step, setStepState] = useState(1);
   
   // Debug step changes
-  const originalSetStep = setStep;
-  const debugSetStep = (newStep: number) => {
+  const setStep = (newStep: number) => {
     console.log(`📍 Step changing from ${step} to ${newStep}`);
     console.trace("Step change stack trace");
-    originalSetStep(newStep);
+    setStepState(newStep);
   };
-  setStep = debugSetStep;
   const [_isSubmitting, _setIsSubmitting] = useState(false);
   const { user: _user, isLoading: authLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
