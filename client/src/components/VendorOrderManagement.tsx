@@ -149,7 +149,7 @@ export default function VendorOrderManagement() {
           )}
 
           {/* Order Items */}
-          {/* @ts-ignore */}
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <div>
             <h4 className="font-semibold text-sm mb-2 flex items-center">
               <i className="fas fa-box mr-2 text-zaka-orange"></i>
