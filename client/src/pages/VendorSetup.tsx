@@ -136,6 +136,19 @@ export default function VendorSetup() {
 
   const onSubmit = (data: VendorSetupForm) => {
     console.log("Form submitted with data:", data);
+    console.log("Current step when submitting:", step);
+    
+    // Only submit if we're on step 3
+    if (step !== 3) {
+      console.log("Form submission blocked - not on step 3");
+      toast({
+        title: "Erreur",
+        description: "Veuillez compléter toutes les étapes avant de soumettre",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setupMutation.mutate(data);
   };
 
@@ -164,8 +177,13 @@ export default function VendorSetup() {
 
       // Trigger validation for the current step fields
       const isStepValid = await form.trigger(fieldsToValidate);
+      
+      console.log(`Step ${step} validation result:`, isStepValid);
+      console.log("Fields validated:", fieldsToValidate);
+      console.log("Form values:", form.getValues());
 
       if (isStepValid) {
+        console.log(`Moving from step ${step} to step ${step + 1}`);
         setStep(step + 1);
       } else {
         toast({
@@ -199,7 +217,12 @@ export default function VendorSetup() {
 
           <CardContent className="space-y-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" onKeyDown={(e) => {
+                if (e.key === 'Enter' && step < 3) {
+                  e.preventDefault();
+                  console.log("Enter key prevented form submission on step", step);
+                }
+              }}>
                 {step === 1 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Informations sur l'entreprise</h3>
