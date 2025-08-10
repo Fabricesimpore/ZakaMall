@@ -15,7 +15,7 @@ interface ObjectUploaderProps {
     method: "PUT";
     url: string;
   }>;
-  onComplete?: (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => void;
+  onComplete?: (_result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => void;
   buttonClassName?: string;
   children: ReactNode;
 }

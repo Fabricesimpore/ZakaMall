@@ -13,7 +13,7 @@ interface ProductImageUploaderFormProps {
 export default function ProductImageUploaderForm({
   onImagesChange,
   currentImages = [],
-  maxImages = 5
+  maxImages = 5,
 }: ProductImageUploaderFormProps) {
   const [uploadedImages, setUploadedImages] = useState<string[]>(currentImages);
   const [isUploading, setIsUploading] = useState(false);
@@ -27,17 +27,16 @@ export default function ProductImageUploaderForm({
       result.successful
         ?.map((file) => file.uploadURL)
         .filter((url): url is string => Boolean(url)) || [];
-    
+
     const allImages = [...uploadedImages, ...uploadedURLs];
     setUploadedImages(allImages);
     onImagesChange(allImages);
-    
+
     toast({
       title: "Images ajoutées",
       description: `${uploadedURLs.length} image(s) ajoutée(s) avec succès`,
     });
   };
-
 
   const handleGetUploadParameters = async (): Promise<{ method: "PUT"; url: string }> => {
     try {
@@ -126,8 +125,8 @@ export default function ProductImageUploaderForm({
       <div className="bg-blue-50 p-3 rounded-lg">
         <p className="text-sm text-blue-700">
           <i className="fas fa-info-circle mr-2"></i>
-          Ajoutez jusqu'à {maxImages} images de haute qualité pour présenter votre produit. La première
-          image sera utilisée comme image principale.
+          Ajoutez jusqu'à {maxImages} images de haute qualité pour présenter votre produit. La
+          première image sera utilisée comme image principale.
         </p>
       </div>
     </div>
