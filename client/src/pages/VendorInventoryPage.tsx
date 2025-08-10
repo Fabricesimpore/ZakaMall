@@ -1,0 +1,43 @@
+import { useAuth } from "@/hooks/useAuth";
+import Navbar from "@/components/Navbar";
+import VendorInventory from "@/components/VendorInventory";
+
+export default function VendorInventoryPage() {
+  const { user, isLoading: authLoading } = useAuth();
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-zaka-orange"></div>
+      </div>
+    );
+  }
+
+  // Check if user is an approved vendor
+  const vendor = user?.role === "vendor" ? user : null;
+  if (!vendor?.roleData || vendor?.roleData?.status !== "approved") {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="container mx-auto px-4 py-16 text-center">
+          <div className="max-w-md mx-auto">
+            <i className="fas fa-user-slash text-6xl text-gray-300 mb-6"></i>
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">Accès non autorisé</h1>
+            <p className="text-gray-600 mb-8">
+              Vous devez être un vendeur approuvé pour accéder à cette page.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <div className="container mx-auto px-4 py-8">
+        <VendorInventory />
+      </div>
+    </div>
+  );
+}

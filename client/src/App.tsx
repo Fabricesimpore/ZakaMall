@@ -9,6 +9,7 @@ import Landing from "@/pages/Landing";
 import Home from "@/pages/Home";
 import CustomerDashboard from "@/pages/CustomerDashboard";
 import VendorDashboard from "@/pages/VendorDashboard";
+import VendorInventoryPage from "@/pages/VendorInventoryPage";
 import DriverDashboard from "@/pages/DriverDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminProfile from "@/pages/AdminProfile";
@@ -71,7 +72,7 @@ function Router() {
           <Route path="/vendor/products/:id/edit">
             {(params) => <ProductForm productId={params.id} />}
           </Route>
-          <Route path="/vendor/inventory" component={VendorDashboard} />
+          <Route path="/vendor/inventory" component={VendorInventoryPage} />
           <Route path="/vendor/orders" component={VendorDashboard} />
           <Route path="/vendor/analytics" component={VendorDashboard} />
           <Route path="/driver" component={DriverDashboard} />
