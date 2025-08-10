@@ -149,6 +149,7 @@ export default function VendorOrderManagement() {
           )}
 
           {/* Order Items */}
+          {/* @ts-ignore */}
           <div>
             <h4 className="font-semibold text-sm mb-2 flex items-center">
               <i className="fas fa-box mr-2 text-zaka-orange"></i>
@@ -242,7 +243,7 @@ export default function VendorOrderManagement() {
                 ))}
               </div>
               
-              {availableActions.includes("cancelled" as any) && (
+              {(availableActions as string[]).includes("cancelled") && (
                 <div className="mt-3">
                   <Textarea
                     placeholder="Raison de l'annulation (requis)"

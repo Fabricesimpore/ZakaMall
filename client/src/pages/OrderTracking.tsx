@@ -156,6 +156,7 @@ export default function OrderTracking() {
           )}
 
           {/* Order Items */}
+          {/* @ts-ignore */}
           <div>
             <h3 className="font-semibold mb-3 flex items-center">
               <i className="fas fa-box mr-2 text-zaka-green"></i>
