@@ -145,7 +145,6 @@ export default function ProductForm({ productId }: ProductFormProps) {
     },
   });
 
-
   const onSubmit = (data: ProductFormData) => {
     if (imageUrls.length === 0) {
       toast({
@@ -354,7 +353,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                 <CardTitle>Images du produit</CardTitle>
               </CardHeader>
               <CardContent>
-                <ProductImageUploaderForm 
+                <ProductImageUploaderForm
                   onImagesChange={(images) => {
                     setImageUrls(images);
                     form.setValue("images", images);

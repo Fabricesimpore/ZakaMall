@@ -108,9 +108,16 @@ export default function DriverSetup() {
   const nextStep = async () => {
     // Define fields required for each step
     const stepFields: Record<number, (keyof DriverSetupForm)[]> = {
-      1: ["vehicleType", "licenseNumber", "vehicleModel", "vehicleYear", "vehicleColor", "vehiclePlate"],
+      1: [
+        "vehicleType",
+        "licenseNumber",
+        "vehicleModel",
+        "vehicleYear",
+        "vehicleColor",
+        "vehiclePlate",
+      ],
       2: ["emergencyContact", "emergencyName", "workZone", "experience"],
-      3: [] // Final step, no additional fields
+      3: [], // Final step, no additional fields
     };
 
     // Validate current step fields before advancing
@@ -302,9 +309,7 @@ export default function DriverSetup() {
                         <FormItem>
                           <FormLabel>Zone de couverture *</FormLabel>
                           <FormControl>
-                            <Textarea
-                              {...field}
-                            />
+                            <Textarea {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

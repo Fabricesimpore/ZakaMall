@@ -33,7 +33,11 @@ const statusConfig = {
   pending: { label: "En attente", color: "bg-yellow-100 text-yellow-800", icon: "clock" },
   confirmed: { label: "Confirmée", color: "bg-blue-100 text-blue-800", icon: "check-circle" },
   preparing: { label: "En préparation", color: "bg-orange-100 text-orange-800", icon: "box" },
-  ready_for_pickup: { label: "Prêt pour récupération", color: "bg-purple-100 text-purple-800", icon: "truck" },
+  ready_for_pickup: {
+    label: "Prêt pour récupération",
+    color: "bg-purple-100 text-purple-800",
+    icon: "truck",
+  },
   in_transit: { label: "En transit", color: "bg-blue-100 text-blue-800", icon: "shipping-fast" },
   delivered: { label: "Livré", color: "bg-green-100 text-green-800", icon: "check-double" },
   cancelled: { label: "Annulé", color: "bg-red-100 text-red-800", icon: "times-circle" },
@@ -43,7 +47,7 @@ export default function OrderTracking() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchOrderId, setSearchOrderId] = useState("");
-  
+
   // Get user's orders
   const { data: orders = [], isLoading } = useQuery<OrderWithDetails[]>({
     queryKey: ["/api/orders/my-orders"],
@@ -69,7 +73,7 @@ export default function OrderTracking() {
   const getStatusSteps = (currentStatus: string) => {
     const steps = ["confirmed", "preparing", "ready_for_pickup", "in_transit", "delivered"];
     const currentIndex = steps.indexOf(currentStatus);
-    
+
     return steps.map((status, index) => ({
       ...statusConfig[status as keyof typeof statusConfig],
       status,
@@ -106,7 +110,12 @@ export default function OrderTracking() {
                 Commande #{order.orderNumber}
               </CardTitle>
               <p className="text-sm text-gray-600 mt-1">
-                Passée le {formatDate(typeof order.createdAt === 'string' ? order.createdAt : order.createdAt?.toISOString() || new Date().toISOString())}
+                Passée le{" "}
+                {formatDate(
+                  typeof order.createdAt === "string"
+                    ? order.createdAt
+                    : order.createdAt?.toISOString() || new Date().toISOString()
+                )}
               </p>
             </div>
             <Badge className={status.color}>
@@ -132,15 +141,13 @@ export default function OrderTracking() {
                         step.completed
                           ? "bg-green-500 text-white"
                           : step.current
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-300 text-gray-500"
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-300 text-gray-500"
                       }`}
                     >
                       <i className={`fas fa-${step.icon} text-sm`}></i>
                     </div>
-                    <span className="text-xs mt-1 text-center max-w-16">
-                      {step.label}
-                    </span>
+                    <span className="text-xs mt-1 text-center max-w-16">{step.label}</span>
                     {index < steps.length - 1 && (
                       <div
                         className={`absolute w-full h-0.5 top-4 left-8 ${
@@ -156,7 +163,7 @@ export default function OrderTracking() {
           )}
 
           {/* Order Items */}
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {}
           <div>
             <h3 className="font-semibold mb-3 flex items-center">
               <i className="fas fa-box mr-2 text-zaka-green"></i>
@@ -164,10 +171,16 @@ export default function OrderTracking() {
             </h3>
             <div className="space-y-3">
               {order.items?.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
                   <div className="flex items-center gap-3">
                     <img
-                      src={item.productSnapshot?.images?.[0] || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='12' fill='%236b7280' text-anchor='middle' dy='.3em'%3EProduit%3C/text%3E%3C/svg%3E"}
+                      src={
+                        item.productSnapshot?.images?.[0] ||
+                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='12' fill='%236b7280' text-anchor='middle' dy='.3em'%3EProduit%3C/text%3E%3C/svg%3E"
+                      }
                       alt={item.productSnapshot?.name}
                       className="w-12 h-12 object-cover rounded"
                     />
@@ -205,8 +218,8 @@ export default function OrderTracking() {
                 Adresse de livraison
               </h4>
               <p className="text-sm">
-                {typeof order.deliveryAddress === 'object' 
-                  ? (order.deliveryAddress as any)?.address 
+                {typeof order.deliveryAddress === "object"
+                  ? (order.deliveryAddress as any)?.address
                   : order.deliveryAddress}
               </p>
               {order.deliveryInstructions && (
@@ -229,7 +242,7 @@ export default function OrderTracking() {
                 <p className="text-xs text-gray-600">{order.vendor.businessPhone}</p>
               </div>
             )}
-            
+
             {order.driver && (
               <div className="bg-orange-50 p-3 rounded-lg">
                 <h4 className="font-semibold text-sm flex items-center mb-1">
@@ -247,7 +260,8 @@ export default function OrderTracking() {
             <div className="text-center p-3 bg-yellow-50 rounded-lg">
               <p className="text-sm font-medium">
                 <i className="fas fa-clock mr-2 text-yellow-600"></i>
-                Livraison estimée: {formatDate(order.estimatedDeliveryTime?.toISOString() || new Date().toISOString())}
+                Livraison estimée:{" "}
+                {formatDate(order.estimatedDeliveryTime?.toISOString() || new Date().toISOString())}
               </p>
             </div>
           )}
@@ -305,7 +319,7 @@ export default function OrderTracking() {
               <i className="fas fa-history mr-2 text-zaka-blue"></i>
               Mes commandes
             </h2>
-            
+
             {isLoading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-zaka-orange mx-auto"></div>

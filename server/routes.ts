@@ -637,7 +637,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const vendorData = insertVendorSchema.parse({ ...req.body, userId });
 
       const vendor = await storage.createVendor(vendorData);
-      
+
       // IMPORTANT: Protect admin users from losing admin role
       if (user?.role === "admin") {
         console.log("Admin created vendor record for testing, keeping admin role");
@@ -731,7 +731,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const driverData = insertDriverSchema.parse({ ...req.body, userId });
 
       const driver = await storage.createDriver(driverData);
-      
+
       // IMPORTANT: Protect admin users from losing admin role
       if (user?.role === "admin") {
         console.log("Admin created driver record for testing, keeping admin role");
@@ -803,11 +803,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { name, description, slug } = req.body;
-      const category = await storage.createCategory({ 
-        id: slug || name.toLowerCase().replace(/\s+/g, '-'),
-        name, 
-        description, 
-        slug: slug || name.toLowerCase().replace(/\s+/g, '-')
+      const category = await storage.createCategory({
+        id: slug || name.toLowerCase().replace(/\s+/g, "-"),
+        name,
+        description,
+        slug: slug || name.toLowerCase().replace(/\s+/g, "-"),
       });
       res.json(category);
     } catch (error) {
@@ -2078,7 +2078,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedOrder = await storage.updateOrderStatus(id, status);
-      
+
       // Create notification for customer about order status change
       try {
         await storage.createOrderStatusNotification(
@@ -2091,7 +2091,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error creating order status notification:", notificationError);
         // Don't fail the request if notification fails
       }
-      
+
       res.json(updatedOrder);
     } catch (error) {
       console.error("Error updating order status:", error);
@@ -2378,8 +2378,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate input
       if (!email || !password || !firstName || !lastName) {
-        return res.status(400).json({ 
-          message: "Email, password, first name, and last name are required" 
+        return res.status(400).json({
+          message: "Email, password, first name, and last name are required",
         });
       }
 
@@ -2409,9 +2409,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Don't return password hash
       const { password: _, ...safeUser } = newUser;
-      res.json({ 
-        message: "User created successfully", 
-        user: safeUser 
+      res.json({
+        message: "User created successfully",
+        user: safeUser,
       });
     } catch (error) {
       console.error("Error creating user:", error);
@@ -2455,7 +2455,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!currentPassword) {
           return res.status(400).json({ message: "Current password required to change password" });
         }
-        
+
         const isValidPassword = await verifyPassword(currentPassword, user.password!);
         if (!isValidPassword) {
           return res.status(400).json({ message: "Current password is incorrect" });

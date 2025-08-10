@@ -227,7 +227,10 @@ export default function VendorDashboard() {
                     className="flex items-center p-3 bg-white rounded-lg border"
                   >
                     <img
-                      src={product.images?.[0] || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='12' fill='%236b7280' text-anchor='middle' dy='.3em'%3EProduit%3C/text%3E%3C/svg%3E"}
+                      src={
+                        product.images?.[0] ||
+                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='12' fill='%236b7280' text-anchor='middle' dy='.3em'%3EProduit%3C/text%3E%3C/svg%3E"
+                      }
                       alt={product.name}
                       className="w-12 h-12 object-cover rounded mr-3"
                     />
@@ -248,13 +251,16 @@ export default function VendorDashboard() {
         )}
 
         {/* Main Content Tabs */}
-        <Tabs 
+        <Tabs
           defaultValue={
-            location.includes('/orders') ? 'orders' :
-            location.includes('/analytics') ? 'analytics' :
-            location.includes('/inventory') ? 'products' :
-            'overview'
-          } 
+            location.includes("/orders")
+              ? "orders"
+              : location.includes("/analytics")
+                ? "analytics"
+                : location.includes("/inventory")
+                  ? "products"
+                  : "overview"
+          }
           className="space-y-6"
         >
           <TabsList className="grid grid-cols-4 w-full lg:w-auto">

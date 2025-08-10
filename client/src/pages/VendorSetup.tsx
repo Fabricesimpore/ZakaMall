@@ -28,38 +28,52 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { isUnauthorizedError } from "@/lib/authUtils";
 
-const vendorSetupSchema = z.object({
-  businessName: z.string().min(3, "Le nom de l'entreprise doit avoir au moins 3 caractères"),
-  businessDescription: z.string().min(10, "La description doit avoir au moins 10 caractères"),
-  businessAddress: z.string().min(5, "Localisation de votre entreprise requise"),
-  businessPhone: z
-    .string()
-    .min(8, "Numéro de téléphone professionnel requis")
-    .regex(/^(\+226)?[0-9]{8}$/, "Format: +226XXXXXXXX ou 8 chiffres"),
-  taxId: z.string().optional(),
-  paymentMethod: z.enum(["bank", "orange", "moov"], {
-    required_error: "Mode de paiement requis",
-  }),
-  // Bank fields (conditional)
-  bankAccount: z.string().optional(),
-  bankName: z.string().optional(),
-  // Mobile money fields (conditional)
-  mobileMoneyNumber: z.string().optional(),
-  mobileMoneyName: z.string().optional(),
-  identityDocument: z.string().optional(),
-  businessLicense: z.string().optional(),
-}).refine((data) => {
-  if (data.paymentMethod === "bank") {
-    return data.bankName && data.bankAccount && data.bankName.length >= 3 && data.bankAccount.length >= 5;
-  } else if (data.paymentMethod === "orange" || data.paymentMethod === "moov") {
-    return data.mobileMoneyNumber && data.mobileMoneyName && 
-           data.mobileMoneyNumber.length >= 8 && data.mobileMoneyName.length >= 3;
-  }
-  return true;
-}, {
-  message: "Informations de paiement incomplètes",
-  path: ["paymentMethod"] // Specify path to show error on payment method field
-});
+const vendorSetupSchema = z
+  .object({
+    businessName: z.string().min(3, "Le nom de l'entreprise doit avoir au moins 3 caractères"),
+    businessDescription: z.string().min(10, "La description doit avoir au moins 10 caractères"),
+    businessAddress: z.string().min(5, "Localisation de votre entreprise requise"),
+    businessPhone: z
+      .string()
+      .min(8, "Numéro de téléphone professionnel requis")
+      .regex(/^(\+226)?[0-9]{8}$/, "Format: +226XXXXXXXX ou 8 chiffres"),
+    taxId: z.string().optional(),
+    paymentMethod: z.enum(["bank", "orange", "moov"], {
+      required_error: "Mode de paiement requis",
+    }),
+    // Bank fields (conditional)
+    bankAccount: z.string().optional(),
+    bankName: z.string().optional(),
+    // Mobile money fields (conditional)
+    mobileMoneyNumber: z.string().optional(),
+    mobileMoneyName: z.string().optional(),
+    identityDocument: z.string().optional(),
+    businessLicense: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.paymentMethod === "bank") {
+        return (
+          data.bankName &&
+          data.bankAccount &&
+          data.bankName.length >= 3 &&
+          data.bankAccount.length >= 5
+        );
+      } else if (data.paymentMethod === "orange" || data.paymentMethod === "moov") {
+        return (
+          data.mobileMoneyNumber &&
+          data.mobileMoneyName &&
+          data.mobileMoneyNumber.length >= 8 &&
+          data.mobileMoneyName.length >= 3
+        );
+      }
+      return true;
+    },
+    {
+      message: "Informations de paiement incomplètes",
+      path: ["paymentMethod"], // Specify path to show error on payment method field
+    }
+  );
 
 type VendorSetupForm = z.infer<typeof vendorSetupSchema>;
 
@@ -140,7 +154,7 @@ export default function VendorSetup() {
       } else if (step === 2) {
         const paymentMethod = form.getValues("paymentMethod");
         fieldsToValidate = ["paymentMethod"];
-        
+
         if (paymentMethod === "bank") {
           fieldsToValidate.push("bankName", "bankAccount");
         } else if (paymentMethod === "orange" || paymentMethod === "moov") {
@@ -211,10 +225,7 @@ export default function VendorSetup() {
                         <FormItem>
                           <FormLabel>Description de l'activité *</FormLabel>
                           <FormControl>
-                            <Textarea
-                              className="min-h-[100px]"
-                              {...field}
-                            />
+                            <Textarea className="min-h-[100px]" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -257,7 +268,7 @@ export default function VendorSetup() {
                     <p className="text-sm text-gray-600">
                       Choisissez comment vous souhaitez recevoir vos paiements
                     </p>
-                    
+
                     <FormField
                       control={form.control}
                       name="paymentMethod"
@@ -313,7 +324,8 @@ export default function VendorSetup() {
                       </div>
                     )}
 
-                    {(form.watch("paymentMethod") === "orange" || form.watch("paymentMethod") === "moov") && (
+                    {(form.watch("paymentMethod") === "orange" ||
+                      form.watch("paymentMethod") === "moov") && (
                       <div className="space-y-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
                         <h4 className="font-medium text-orange-900">
                           {form.watch("paymentMethod") === "orange" ? "Orange Money" : "Moov Money"}
@@ -323,7 +335,13 @@ export default function VendorSetup() {
                           name="mobileMoneyNumber"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Numéro {form.watch("paymentMethod") === "orange" ? "Orange Money" : "Moov Money"} *</FormLabel>
+                              <FormLabel>
+                                Numéro{" "}
+                                {form.watch("paymentMethod") === "orange"
+                                  ? "Orange Money"
+                                  : "Moov Money"}{" "}
+                                *
+                              </FormLabel>
                               <FormControl>
                                 <Input {...field} />
                               </FormControl>

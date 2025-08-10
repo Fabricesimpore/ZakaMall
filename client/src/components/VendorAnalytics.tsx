@@ -149,7 +149,9 @@ export default function VendorAnalytics() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Clients uniques</p>
-                <p className="text-2xl font-bold text-zaka-dark">{analytics?.totalCustomers || 0}</p>
+                <p className="text-2xl font-bold text-zaka-dark">
+                  {analytics?.totalCustomers || 0}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -168,7 +170,10 @@ export default function VendorAnalytics() {
           <CardContent>
             <div className="space-y-3">
               {analytics?.topProducts?.map((product: any, index: number) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
                   <div className="flex-1">
                     <h4 className="font-medium text-sm">{product.name}</h4>
                     <p className="text-xs text-gray-600">{product.sales} ventes</p>
@@ -195,7 +200,10 @@ export default function VendorAnalytics() {
           <CardContent>
             <div className="space-y-3">
               {analytics?.recentOrders?.map((order: any) => (
-                <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div
+                  key={order.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
                   <div className="flex-1">
                     <h4 className="font-medium text-sm">{order.customer}</h4>
                     <p className="text-xs text-gray-600">Commande #{order.id}</p>
@@ -204,9 +212,7 @@ export default function VendorAnalytics() {
                     <Badge className={getStatusColor(order.status)}>
                       {getStatusLabel(order.status)}
                     </Badge>
-                    <p className="font-semibold text-sm">
-                      {formatCurrency(order.amount)}
-                    </p>
+                    <p className="font-semibold text-sm">{formatCurrency(order.amount)}</p>
                   </div>
                 </div>
               ))}

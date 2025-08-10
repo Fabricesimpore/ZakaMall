@@ -4,7 +4,8 @@
 @tailwind utilities;
 
 /* Mobile scrolling fixes */
-html, body {
+html,
+body {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;

@@ -22,10 +22,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 interface ProductSearchProps {
   searchTerm: string;
-  onSearchChange: (term: string) => void;
+  onSearchChange: (_term: string) => void;
   categories: any[];
   selectedCategory: string;
-  onCategoryChange: (category: string) => void;
+  onCategoryChange: (_category: string) => void;
   filters: {
     minPrice: number;
     maxPrice: number;
@@ -33,7 +33,7 @@ interface ProductSearchProps {
     sortBy: string;
     sortOrder: string;
   };
-  onFiltersChange: (filters: any) => void;
+  onFiltersChange: (_filters: any) => void;
 }
 
 export default function ProductSearch({
@@ -76,7 +76,7 @@ export default function ProductSearch({
     filters.minPrice > 0,
     filters.maxPrice < 1000000,
     filters.inStock,
-    filters.sortBy !== "createdAt"
+    filters.sortBy !== "createdAt",
   ].filter(Boolean).length;
 
   return (
@@ -93,7 +93,7 @@ export default function ProductSearch({
           />
           <i className="fas fa-search absolute left-3 top-4 text-gray-400"></i>
         </div>
-        
+
         {/* Quick Category Filter */}
         <Select
           value={selectedCategory || "all"}
@@ -135,7 +135,7 @@ export default function ProductSearch({
                 Affinez votre recherche avec des filtres détaillés
               </SheetDescription>
             </SheetHeader>
-            
+
             <div className="space-y-6 py-6">
               {/* Price Range */}
               <Card>
@@ -153,7 +153,9 @@ export default function ProductSearch({
                         type="number"
                         placeholder="0"
                         value={priceRange[0]}
-                        onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
+                        onChange={(e) =>
+                          setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])
+                        }
                       />
                     </div>
                     <div>
@@ -162,7 +164,9 @@ export default function ProductSearch({
                         type="number"
                         placeholder="1000000"
                         value={priceRange[1]}
-                        onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 1000000])}
+                        onChange={(e) =>
+                          setPriceRange([priceRange[0], parseInt(e.target.value) || 1000000])
+                        }
                       />
                     </div>
                   </div>
@@ -207,9 +211,7 @@ export default function ProductSearch({
                 <CardContent className="space-y-3">
                   <Select
                     value={localFilters.sortBy}
-                    onValueChange={(value) =>
-                      setLocalFilters({ ...localFilters, sortBy: value })
-                    }
+                    onValueChange={(value) => setLocalFilters({ ...localFilters, sortBy: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -221,7 +223,7 @@ export default function ProductSearch({
                       <SelectItem value="rating">Note</SelectItem>
                     </SelectContent>
                   </Select>
-                  
+
                   <Select
                     value={localFilters.sortOrder}
                     onValueChange={(value) =>
@@ -245,7 +247,10 @@ export default function ProductSearch({
 
               {/* Action Buttons */}
               <div className="flex gap-2 pt-4">
-                <Button onClick={handleApplyFilters} className="flex-1 bg-zaka-green hover:bg-zaka-green">
+                <Button
+                  onClick={handleApplyFilters}
+                  className="flex-1 bg-zaka-green hover:bg-zaka-green"
+                >
                   <i className="fas fa-check mr-2"></i>
                   Appliquer
                 </Button>
@@ -263,19 +268,16 @@ export default function ProductSearch({
       {activeFiltersCount > 0 && (
         <div className="flex flex-wrap gap-2">
           <span className="text-sm text-gray-600">Filtres actifs:</span>
-          
+
           {selectedCategory && (
             <Badge variant="outline" className="flex items-center gap-1">
-              {categories.find(c => c.id === selectedCategory)?.name}
-              <button
-                onClick={() => onCategoryChange("")}
-                className="ml-1 hover:text-red-500"
-              >
+              {categories.find((c) => c.id === selectedCategory)?.name}
+              <button onClick={() => onCategoryChange("")} className="ml-1 hover:text-red-500">
                 <i className="fas fa-times text-xs"></i>
               </button>
             </Badge>
           )}
-          
+
           {filters.minPrice > 0 && (
             <Badge variant="outline" className="flex items-center gap-1">
               Prix min: {filters.minPrice.toLocaleString()} CFA
@@ -287,7 +289,7 @@ export default function ProductSearch({
               </button>
             </Badge>
           )}
-          
+
           {filters.maxPrice < 1000000 && (
             <Badge variant="outline" className="flex items-center gap-1">
               Prix max: {filters.maxPrice.toLocaleString()} CFA
@@ -299,7 +301,7 @@ export default function ProductSearch({
               </button>
             </Badge>
           )}
-          
+
           {filters.inStock && (
             <Badge variant="outline" className="flex items-center gap-1">
               En stock seulement
@@ -311,7 +313,7 @@ export default function ProductSearch({
               </button>
             </Badge>
           )}
-          
+
           <Button
             variant="ghost"
             size="sm"

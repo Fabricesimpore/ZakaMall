@@ -62,14 +62,14 @@ export async function setupVite(app: Express, server: Server) {
 export function serveStatic(app: Express) {
   // Fix for Railway production: use process.cwd() for all paths
   let distPath = path.resolve(process.cwd(), "dist", "public");
-  
+
   // Alternative locations to check
   const alternativePaths = [
     path.resolve(process.cwd(), "public"),
     path.resolve(process.cwd(), "build"),
-    path.resolve(process.cwd(), "client", "dist")
+    path.resolve(process.cwd(), "client", "dist"),
   ];
-  
+
   if (!fs.existsSync(distPath)) {
     for (const altPath of alternativePaths) {
       if (fs.existsSync(altPath)) {
@@ -78,12 +78,12 @@ export function serveStatic(app: Express) {
       }
     }
   }
-  
+
   console.log("🔍 Static file serving debug:");
   console.log("  - Working directory:", process.cwd());
   console.log("  - Looking for static files in:", distPath);
   console.log("  - Directory exists:", fs.existsSync(distPath));
-  
+
   if (fs.existsSync(distPath)) {
     console.log("  - Files in dist/public:", fs.readdirSync(distPath));
     const assetsPath = path.join(distPath, "assets");

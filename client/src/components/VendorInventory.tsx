@@ -5,7 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { AlertTriangle, Package, TrendingDown, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Product } from "@shared/schema";
@@ -26,7 +32,7 @@ export default function VendorInventory() {
   const { data: products = [], isLoading } = useQuery<ProductWithStock[]>({
     queryKey: ["/api/vendor/products"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/vendor/products") as unknown as any[];
+      const response = (await apiRequest("GET", "/api/vendor/products")) as unknown as any[];
       return response.map((product: any) => ({
         ...product,
         stockLevel: getStockLevel(product.quantity || 0),
@@ -201,23 +207,31 @@ export default function VendorInventory() {
           <CardContent>
             <div className="space-y-2">
               {lowStockProducts.slice(0, 3).map((product) => (
-                <div key={product.id} className="flex items-center justify-between p-2 bg-white rounded">
+                <div
+                  key={product.id}
+                  className="flex items-center justify-between p-2 bg-white rounded"
+                >
                   <div className="flex items-center gap-2">
                     <img
-                      src={product.images?.[0] || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='12' fill='%236b7280' text-anchor='middle' dy='.3em'%3EProduit%3C/text%3E%3C/svg%3E"}
+                      src={
+                        product.images?.[0] ||
+                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='12' fill='%236b7280' text-anchor='middle' dy='.3em'%3EProduit%3C/text%3E%3C/svg%3E"
+                      }
                       alt={product.name}
                       className="w-8 h-8 object-cover rounded"
                     />
                     <span className="text-sm font-medium">{product.name}</span>
                   </div>
                   <Badge variant="outline" className="text-red-600 border-red-200">
-                    {product.quantity} restant{product.quantity !== 1 ? 's' : ''}
+                    {product.quantity} restant{product.quantity !== 1 ? "s" : ""}
                   </Badge>
                 </div>
               ))}
               {lowStockProducts.length > 3 && (
                 <p className="text-sm text-yellow-700 mt-2">
-                  Et {lowStockProducts.length - 3} autre{lowStockProducts.length - 3 !== 1 ? 's' : ''} produit{lowStockProducts.length - 3 !== 1 ? 's' : ''}...
+                  Et {lowStockProducts.length - 3} autre
+                  {lowStockProducts.length - 3 !== 1 ? "s" : ""} produit
+                  {lowStockProducts.length - 3 !== 1 ? "s" : ""}...
                 </p>
               )}
             </div>
@@ -261,16 +275,14 @@ export default function VendorInventory() {
           <CardContent className="text-center py-12">
             <Package className="mx-auto text-gray-300 mb-4" size={48} />
             <h3 className="text-lg font-semibold mb-2">Aucun produit trouvé</h3>
-            <p className="text-gray-600">
-              Aucun produit ne correspond aux filtres sélectionnés
-            </p>
+            <p className="text-gray-600">Aucun produit ne correspond aux filtres sélectionnés</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredProducts.map((product) => {
             const StockIcon = getStockLevelIcon(product.stockLevel);
-            
+
             return (
               <Card key={product.id} className="relative">
                 <CardHeader className="pb-3">
@@ -286,17 +298,22 @@ export default function VendorInventory() {
                   </div>
                   <p className="text-sm text-gray-600 truncate">{product.description}</p>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-3">
                     <img
-                      src={product.images?.[0] || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='12' fill='%236b7280' text-anchor='middle' dy='.3em'%3EProduit%3C/text%3E%3C/svg%3E"}
+                      src={
+                        product.images?.[0] ||
+                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='12' fill='%236b7280' text-anchor='middle' dy='.3em'%3EProduit%3C/text%3E%3C/svg%3E"
+                      }
                       alt={product.name}
                       className="w-16 h-16 object-cover rounded-lg"
                     />
                     <div>
                       <p className="text-sm text-gray-600">Prix</p>
-                      <p className="font-semibold">{parseInt(product.price).toLocaleString()} CFA</p>
+                      <p className="font-semibold">
+                        {parseInt(product.price).toLocaleString()} CFA
+                      </p>
                       <p className="text-xs text-gray-500">SKU: {product.sku}</p>
                     </div>
                   </div>
@@ -306,15 +323,18 @@ export default function VendorInventory() {
                       <span className="text-sm">Stock actuel</span>
                       <span className="font-semibold">{product.quantity} unités</span>
                     </div>
-                    
-                    {product.daysUntilOutOfStock !== undefined && product.daysUntilOutOfStock <= 7 && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-red-600">Rupture estimée</span>
-                        <span className="text-red-600 font-semibold">
-                          {product.daysUntilOutOfStock === 0 ? "Maintenant" : `${product.daysUntilOutOfStock}j`}
-                        </span>
-                      </div>
-                    )}
+
+                    {product.daysUntilOutOfStock !== undefined &&
+                      product.daysUntilOutOfStock <= 7 && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-red-600">Rupture estimée</span>
+                          <span className="text-red-600 font-semibold">
+                            {product.daysUntilOutOfStock === 0
+                              ? "Maintenant"
+                              : `${product.daysUntilOutOfStock}j`}
+                          </span>
+                        </div>
+                      )}
 
                     <div>
                       <label className="text-xs text-gray-500 block mb-1">

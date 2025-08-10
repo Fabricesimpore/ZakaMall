@@ -44,7 +44,7 @@ export default function AdminDashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   // Create user form state
   const [createUserDialogOpen, setCreateUserDialogOpen] = useState(false);
   const [createUserForm, setCreateUserForm] = useState({
@@ -53,7 +53,7 @@ export default function AdminDashboard() {
     firstName: "",
     lastName: "",
     phone: "",
-    role: "customer"
+    role: "customer",
   });
 
   // Redirect to home if not authenticated or not admin
@@ -176,7 +176,7 @@ export default function AdminDashboard() {
         firstName: "",
         lastName: "",
         phone: "",
-        role: "customer"
+        role: "customer",
       });
       toast({
         title: "Succès",
@@ -274,7 +274,12 @@ export default function AdminDashboard() {
 
   const handleCreateUser = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!createUserForm.email || !createUserForm.password || !createUserForm.firstName || !createUserForm.lastName) {
+    if (
+      !createUserForm.email ||
+      !createUserForm.password ||
+      !createUserForm.firstName ||
+      !createUserForm.lastName
+    ) {
       toast({
         title: "Erreur",
         description: "Veuillez remplir tous les champs obligatoires",
@@ -286,9 +291,9 @@ export default function AdminDashboard() {
   };
 
   const handleCreateUserFormChange = (field: string, value: string) => {
-    setCreateUserForm(prev => ({
+    setCreateUserForm((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -356,7 +361,7 @@ export default function AdminDashboard() {
           {/* Profile Settings Button - Only for main admin */}
           {user?.email === "simporefabrice15@gmail.com" && (
             <Button
-              onClick={() => window.location.href = "/admin/profile"}
+              onClick={() => (window.location.href = "/admin/profile")}
               variant="outline"
               className="border-zaka-orange text-zaka-orange hover:bg-zaka-orange hover:text-white"
             >
@@ -1020,8 +1025,9 @@ export default function AdminDashboard() {
                                     <AlertDialogTitle>Supprimer administrateur</AlertDialogTitle>
                                     <AlertDialogDescription>
                                       Êtes-vous sûr de vouloir supprimer l'administrateur "
-                                      {admin.firstName} {admin.lastName}" ? Cette action
-                                      est irréversible et supprimera tous les privilèges d'administration.
+                                      {admin.firstName} {admin.lastName}" ? Cette action est
+                                      irréversible et supprimera tous les privilèges
+                                      d'administration.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
@@ -1072,7 +1078,8 @@ export default function AdminDashboard() {
                       <DialogHeader>
                         <DialogTitle>Créer un nouvel utilisateur</DialogTitle>
                         <DialogDescription>
-                          Remplissez les informations pour créer un nouvel utilisateur dans le système.
+                          Remplissez les informations pour créer un nouvel utilisateur dans le
+                          système.
                         </DialogDescription>
                       </DialogHeader>
                       <form onSubmit={handleCreateUser} className="space-y-4">
@@ -1082,7 +1089,9 @@ export default function AdminDashboard() {
                             <Input
                               id="firstName"
                               value={createUserForm.firstName}
-                              onChange={(e) => handleCreateUserFormChange("firstName", e.target.value)}
+                              onChange={(e) =>
+                                handleCreateUserFormChange("firstName", e.target.value)
+                              }
                               placeholder="Prénom"
                               required
                             />
@@ -1092,13 +1101,15 @@ export default function AdminDashboard() {
                             <Input
                               id="lastName"
                               value={createUserForm.lastName}
-                              onChange={(e) => handleCreateUserFormChange("lastName", e.target.value)}
+                              onChange={(e) =>
+                                handleCreateUserFormChange("lastName", e.target.value)
+                              }
                               placeholder="Nom de famille"
                               required
                             />
                           </div>
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="email">Email *</Label>
                           <Input
@@ -1110,7 +1121,7 @@ export default function AdminDashboard() {
                             required
                           />
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="password">Mot de passe *</Label>
                           <Input
@@ -1122,7 +1133,7 @@ export default function AdminDashboard() {
                             required
                           />
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="phone">Téléphone</Label>
                           <Input
@@ -1132,7 +1143,7 @@ export default function AdminDashboard() {
                             placeholder="+226 XX XX XX XX"
                           />
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="role">Rôle</Label>
                           <Select
@@ -1150,7 +1161,7 @@ export default function AdminDashboard() {
                             </SelectContent>
                           </Select>
                         </div>
-                        
+
                         <DialogFooter>
                           <Button
                             type="button"
@@ -1159,8 +1170,8 @@ export default function AdminDashboard() {
                           >
                             Annuler
                           </Button>
-                          <Button 
-                            type="submit" 
+                          <Button
+                            type="submit"
                             disabled={createUserMutation.isPending}
                             className="bg-zaka-orange hover:bg-zaka-orange/90"
                           >

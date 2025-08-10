@@ -5,14 +5,14 @@ import path from "path";
 export function serveStaticFiles(app: Express) {
   // Simple, robust static file serving for Railway
   const possiblePaths = [
-    "/app/dist/public",           // Railway build output
-    "/app/public",                // Alternative
+    "/app/dist/public", // Railway build output
+    "/app/public", // Alternative
     path.join(process.cwd(), "dist", "public"), // Local relative
-    path.join(process.cwd(), "public"),         // Alternative local
+    path.join(process.cwd(), "public"), // Alternative local
   ];
 
   let staticPath: string | null = null;
-  
+
   // Find the first path that exists
   for (const testPath of possiblePaths) {
     if (fs.existsSync(testPath)) {
@@ -24,8 +24,8 @@ export function serveStaticFiles(app: Express) {
 
   if (!staticPath) {
     console.error("❌ No static files found. Checked paths:");
-    possiblePaths.forEach(p => console.error(`  - ${p} (exists: ${fs.existsSync(p)})`));
-    
+    possiblePaths.forEach((p) => console.error(`  - ${p} (exists: ${fs.existsSync(p)})`));
+
     // Create a minimal fallback
     app.get("*", (req, res) => {
       res.status(500).send(`
@@ -38,7 +38,7 @@ export function serveStaticFiles(app: Express) {
             <hr>
             <p>Checked paths:</p>
             <ul>
-              ${possiblePaths.map(p => `<li>${p} - ${fs.existsSync(p) ? '✅' : '❌'}</li>`).join('')}
+              ${possiblePaths.map((p) => `<li>${p} - ${fs.existsSync(p) ? "✅" : "❌"}</li>`).join("")}
             </ul>
           </body>
         </html>

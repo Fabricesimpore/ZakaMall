@@ -22,12 +22,15 @@ export default function AdminProfile() {
     email: "",
     currentPassword: "",
     newPassword: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
 
   // Security check - only main admin can access
   useEffect(() => {
-    if (!authLoading && (!user || user.role !== "admin" || user.email !== "simporefabrice15@gmail.com")) {
+    if (
+      !authLoading &&
+      (!user || user.role !== "admin" || user.email !== "simporefabrice15@gmail.com")
+    ) {
       toast({
         title: "Accès refusé",
         description: "Cette page est réservée au super administrateur",
@@ -44,12 +47,12 @@ export default function AdminProfile() {
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["/api/admin/profile"],
     enabled: !!user && user.role === "admin" && user.email === "simporefabrice15@gmail.com",
-  }) as { data: any, isLoading: boolean };
+  }) as { data: any; isLoading: boolean };
 
   // Update profile form with fetched data
   useEffect(() => {
     if (profile) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         firstName: profile.firstName || "",
         lastName: profile.lastName || "",
@@ -66,11 +69,11 @@ export default function AdminProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/profile"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         currentPassword: "",
         newPassword: "",
-        confirmPassword: ""
+        confirmPassword: "",
       }));
       toast({
         title: "Succès",
@@ -88,7 +91,7 @@ export default function AdminProfile() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate form
     if (!formData.firstName || !formData.lastName || !formData.email) {
       toast({
@@ -109,7 +112,7 @@ export default function AdminProfile() {
         });
         return;
       }
-      
+
       if (formData.newPassword !== formData.confirmPassword) {
         toast({
           title: "Erreur",
@@ -145,9 +148,9 @@ export default function AdminProfile() {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -212,9 +215,7 @@ export default function AdminProfile() {
                   {profile?.firstName} {profile?.lastName}
                 </h3>
                 <p className="text-zaka-gray">{profile?.email}</p>
-                <Badge className="bg-red-100 text-red-800 mt-1">
-                  Super Administrateur
-                </Badge>
+                <Badge className="bg-red-100 text-red-800 mt-1">Super Administrateur</Badge>
               </div>
             </div>
           </CardContent>
@@ -278,7 +279,7 @@ export default function AdminProfile() {
                       placeholder="Mot de passe actuel"
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="newPassword">Nouveau mot de passe</Label>
@@ -306,11 +307,7 @@ export default function AdminProfile() {
 
               {/* Submit Button */}
               <div className="flex justify-end space-x-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => window.history.back()}
-                >
+                <Button type="button" variant="outline" onClick={() => window.history.back()}>
                   Annuler
                 </Button>
                 <Button

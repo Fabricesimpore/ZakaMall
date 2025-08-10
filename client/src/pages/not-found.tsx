@@ -11,9 +11,7 @@ export default function NotFound() {
             <h1 className="text-2xl font-bold text-gray-900">404 Page non trouvée</h1>
           </div>
 
-          <p className="mt-4 text-sm text-gray-600">
-            Cette page n'existe pas ou a été déplacée.
-          </p>
+          <p className="mt-4 text-sm text-gray-600">Cette page n'existe pas ou a été déplacée.</p>
         </CardContent>
       </Card>
     </div>

@@ -333,31 +333,31 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUser(userId: string): Promise<void> {
     // Delete in correct order to handle foreign key constraints
-    
+
     // 1. Delete messages sent by this user
     await db.delete(messages).where(eq(messages.senderId, userId));
-    
+
     // 2. Delete chat participants
     await db.delete(chatParticipants).where(eq(chatParticipants.userId, userId));
-    
+
     // 3. Delete chat rooms created by this user (messages already deleted)
     await db.delete(chatRooms).where(eq(chatRooms.createdBy, userId));
-    
+
     // 4. Delete reviews by this user
     await db.delete(reviews).where(eq(reviews.userId, userId));
-    
+
     // 5. Delete cart items
     await db.delete(cart).where(eq(cart.userId, userId));
-    
+
     // 6. Delete orders where user is customer (order items will be handled by cascade)
     await db.delete(orders).where(eq(orders.customerId, userId));
-    
+
     // 7. Delete driver record if exists
     await db.delete(drivers).where(eq(drivers.userId, userId));
-    
+
     // 8. Delete vendor record if exists (this might cascade to products)
     await db.delete(vendors).where(eq(vendors.userId, userId));
-    
+
     // 9. Finally delete the user
     await db.delete(users).where(eq(users.id, userId));
   }
@@ -1013,10 +1013,7 @@ export class DatabaseStorage implements IStorage {
     const ordersWithDetails = await Promise.all(
       userOrders.map(async (order) => {
         // Get order items
-        const items = await db
-          .select()
-          .from(orderItems)
-          .where(eq(orderItems.orderId, order.id));
+        const items = await db.select().from(orderItems).where(eq(orderItems.orderId, order.id));
 
         // Get vendor info
         let vendor = null;
@@ -1054,11 +1051,14 @@ export class DatabaseStorage implements IStorage {
               .where(eq(users.id, driverInfo[0].userId))
               .limit(1);
 
-            driver = driverUser.length > 0 ? {
-              id: driverInfo[0].driverId,
-              name: driverUser[0].name,
-              phone: driverUser[0].phone,
-            } : null;
+            driver =
+              driverUser.length > 0
+                ? {
+                    id: driverInfo[0].driverId,
+                    name: driverUser[0].name,
+                    phone: driverUser[0].phone,
+                  }
+                : null;
           }
         }
 
@@ -1619,7 +1619,7 @@ export class DatabaseStorage implements IStorage {
     if (unreadOnly) {
       conditions.push(eq(notifications.isRead, false));
     }
-    
+
     return await db
       .select()
       .from(notifications)
@@ -1661,36 +1661,36 @@ export class DatabaseStorage implements IStorage {
 
   // Helper method to create common notification types
   async createOrderStatusNotification(
-    userId: string, 
-    orderId: string, 
-    status: string, 
+    userId: string,
+    orderId: string,
+    status: string,
     orderNumber: string
   ): Promise<void> {
     const statusMessages: Record<string, { title: string; message: string }> = {
       confirmed: {
         title: "Commande confirmée",
-        message: `Votre commande #${orderNumber} a été confirmée par le vendeur.`
+        message: `Votre commande #${orderNumber} a été confirmée par le vendeur.`,
       },
       preparing: {
         title: "Commande en préparation",
-        message: `Votre commande #${orderNumber} est en cours de préparation.`
+        message: `Votre commande #${orderNumber} est en cours de préparation.`,
       },
       ready_for_pickup: {
         title: "Commande prête",
-        message: `Votre commande #${orderNumber} est prête pour la livraison.`
+        message: `Votre commande #${orderNumber} est prête pour la livraison.`,
       },
       in_transit: {
         title: "Commande en transit",
-        message: `Votre commande #${orderNumber} est en cours de livraison.`
+        message: `Votre commande #${orderNumber} est en cours de livraison.`,
       },
       delivered: {
         title: "Commande livrée",
-        message: `Votre commande #${orderNumber} a été livrée avec succès.`
+        message: `Votre commande #${orderNumber} a été livrée avec succès.`,
       },
       cancelled: {
         title: "Commande annulée",
-        message: `Votre commande #${orderNumber} a été annulée.`
-      }
+        message: `Votre commande #${orderNumber} a été annulée.`,
+      },
     };
 
     const notification = statusMessages[status];
@@ -1706,12 +1706,16 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createLowStockNotification(vendorId: string, productName: string, stockQuantity: number): Promise<void> {
+  async createLowStockNotification(
+    vendorId: string,
+    productName: string,
+    stockQuantity: number
+  ): Promise<void> {
     await this.createNotification({
       userId: vendorId,
       type: "low_stock",
       title: "Stock faible",
-      message: `Le produit "${productName}" n'a plus que ${stockQuantity} unité${stockQuantity !== 1 ? 's' : ''} en stock.`,
+      message: `Le produit "${productName}" n'a plus que ${stockQuantity} unité${stockQuantity !== 1 ? "s" : ""} en stock.`,
       data: { productName, stockQuantity },
       isRead: false,
     });

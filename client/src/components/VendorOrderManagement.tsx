@@ -4,7 +4,13 @@ import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { Order } from "@shared/schema";
@@ -29,7 +35,11 @@ const statusConfig = {
   pending: { label: "En attente", color: "bg-yellow-100 text-yellow-800", icon: "clock" },
   confirmed: { label: "Confirmée", color: "bg-blue-100 text-blue-800", icon: "check-circle" },
   preparing: { label: "En préparation", color: "bg-orange-100 text-orange-800", icon: "box" },
-  ready_for_pickup: { label: "Prêt pour récupération", color: "bg-purple-100 text-purple-800", icon: "truck" },
+  ready_for_pickup: {
+    label: "Prêt pour récupération",
+    color: "bg-purple-100 text-purple-800",
+    icon: "truck",
+  },
   in_transit: { label: "En transit", color: "bg-blue-100 text-blue-800", icon: "shipping-fast" },
   delivered: { label: "Livré", color: "bg-green-100 text-green-800", icon: "check-double" },
   cancelled: { label: "Annulé", color: "bg-red-100 text-red-800", icon: "times-circle" },
@@ -58,7 +68,15 @@ export default function VendorOrderManagement() {
 
   // Update order status mutation
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ orderId, status, message }: { orderId: string; status: string; message?: string }) => {
+    mutationFn: async ({
+      orderId,
+      status,
+      message,
+    }: {
+      orderId: string;
+      status: string;
+      message?: string;
+    }) => {
       return await apiRequest("PATCH", `/api/orders/${orderId}/status`, { status, message });
     },
     onSuccess: () => {
@@ -109,8 +127,7 @@ export default function VendorOrderManagement() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <i className="fas fa-receipt text-zaka-green"></i>
-                #{order.orderNumber}
+                <i className="fas fa-receipt text-zaka-green"></i>#{order.orderNumber}
               </CardTitle>
               <p className="text-sm text-gray-600 mt-1">
                 {formatDate(order.createdAt?.toISOString() || new Date().toISOString())}
@@ -122,11 +139,7 @@ export default function VendorOrderManagement() {
                 {status.label}
               </Badge>
               {availableActions.length > 0 && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setShowActions(!showActions)}
-                >
+                <Button size="sm" variant="outline" onClick={() => setShowActions(!showActions)}>
                   <i className="fas fa-cog mr-1"></i>
                   Actions
                 </Button>
@@ -149,7 +162,7 @@ export default function VendorOrderManagement() {
           )}
 
           {/* Order Items */}
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {}
           <div>
             <h4 className="font-semibold text-sm mb-2 flex items-center">
               <i className="fas fa-box mr-2 text-zaka-orange"></i>
@@ -160,7 +173,10 @@ export default function VendorOrderManagement() {
                 <div key={item.id} className="flex items-center justify-between p-2 border rounded">
                   <div className="flex items-center gap-2">
                     <img
-                      src={item.productSnapshot?.images?.[0] || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='12' fill='%236b7280' text-anchor='middle' dy='.3em'%3EProduit%3C/text%3E%3C/svg%3E"}
+                      src={
+                        item.productSnapshot?.images?.[0] ||
+                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='12' fill='%236b7280' text-anchor='middle' dy='.3em'%3EProduit%3C/text%3E%3C/svg%3E"
+                      }
                       alt={item.productSnapshot?.name}
                       className="w-8 h-8 object-cover rounded"
                     />
@@ -185,8 +201,8 @@ export default function VendorOrderManagement() {
                 Adresse de livraison
               </h4>
               <p className="text-sm">
-                {typeof order.deliveryAddress === 'object' 
-                  ? (order.deliveryAddress as any)?.address 
+                {typeof order.deliveryAddress === "object"
+                  ? (order.deliveryAddress as any)?.address
                   : order.deliveryAddress}
               </p>
               {order.deliveryInstructions && (
@@ -236,13 +252,15 @@ export default function VendorOrderManagement() {
                     {updatingOrder === order.id ? (
                       <i className="fas fa-spinner fa-spin mr-1"></i>
                     ) : (
-                      <i className={`fas fa-${statusConfig[action as keyof typeof statusConfig].icon} mr-1`}></i>
+                      <i
+                        className={`fas fa-${statusConfig[action as keyof typeof statusConfig].icon} mr-1`}
+                      ></i>
                     )}
                     {statusConfig[action as keyof typeof statusConfig].label}
                   </Button>
                 ))}
               </div>
-              
+
               {(availableActions as string[]).includes("cancelled") && (
                 <div className="mt-3">
                   <Textarea
@@ -282,7 +300,7 @@ export default function VendorOrderManagement() {
             Gérez le statut de vos commandes et suivez leur progression
           </p>
         </div>
-        
+
         <Select value={selectedStatus} onValueChange={setSelectedStatus}>
           <SelectTrigger className="w-48">
             <SelectValue />
@@ -307,10 +325,9 @@ export default function VendorOrderManagement() {
             <i className="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
             <h3 className="text-lg font-semibold mb-2">Aucune commande</h3>
             <p className="text-gray-600">
-              {selectedStatus === "all" 
-                ? "Vous n'avez pas encore reçu de commandes" 
-                : `Aucune commande avec le statut "${statusConfig[selectedStatus as keyof typeof statusConfig]?.label}"`
-              }
+              {selectedStatus === "all"
+                ? "Vous n'avez pas encore reçu de commandes"
+                : `Aucune commande avec le statut "${statusConfig[selectedStatus as keyof typeof statusConfig]?.label}"`}
             </p>
           </CardContent>
         </Card>
