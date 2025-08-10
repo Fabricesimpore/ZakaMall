@@ -473,7 +473,12 @@ export default function AdminDashboard() {
                   {vendorsLoading ? (
                     <div className="space-y-4">
                       {[...Array(3)].map((_, i) => (
-                        <ListItemSkeleton key={i} showAvatar={true} showSubtext={true} showActions={true} />
+                        <ListItemSkeleton
+                          key={i}
+                          showAvatar={true}
+                          showSubtext={true}
+                          showActions={true}
+                        />
                       ))}
                     </div>
                   ) : (pendingVendors as any[])?.length > 0 ? (
