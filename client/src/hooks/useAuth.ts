@@ -11,8 +11,8 @@ export function useAuth() {
     queryKey: ["/api/auth/user"],
     retry: false,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnMount: true,
+    staleTime: 30 * 1000, // 30 seconds
     queryFn: async () => {
       const response = await fetch("/api/auth/user");
       if (!response.ok) {

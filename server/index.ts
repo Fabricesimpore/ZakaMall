@@ -46,9 +46,10 @@ const limiter = rateLimit({
 });
 
 // Apply rate limiting to API routes only in production
-if (process.env.NODE_ENV === "production") {
-  app.use("/api", limiter);
-}
+// Temporarily disabled for debugging admin login issue
+// if (process.env.NODE_ENV === "production") {
+//   app.use("/api", limiter);
+// }
 
 // More lenient rate limiting for authentication endpoints
 const authLimiter = rateLimit({
@@ -63,14 +64,15 @@ const authLimiter = rateLimit({
 });
 
 // Apply auth rate limiting to specific endpoints (but skip in development for easier testing)
-if (process.env.NODE_ENV === "production") {
-  app.use("/api/auth", authLimiter);
-  app.use("/api/register", authLimiter);
-  app.use("/api/login", authLimiter);
-  app.use("/api/verify", authLimiter);
-} else {
+// Temporarily disabled for debugging
+// if (process.env.NODE_ENV === "production") {
+//   app.use("/api/auth", authLimiter);
+//   app.use("/api/register", authLimiter);
+//   app.use("/api/login", authLimiter);
+//   app.use("/api/verify", authLimiter);
+// } else {
   console.log("⚠️  Auth rate limiting disabled in development mode");
-}
+// }
 
 // Request logging middleware
 app.use(requestLogger);
