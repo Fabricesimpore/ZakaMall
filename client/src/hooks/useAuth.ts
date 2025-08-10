@@ -19,9 +19,12 @@ export function useAuth() {
         if (response.status === 401) {
           return null; // Return null for unauthorized instead of throwing
         }
-        throw new Error("Impossible de récupérer les informations utilisateur");
+        console.error(`Auth error: ${response.status} ${response.statusText}`);
+        throw new Error(`Erreur ${response.status}: Impossible de récupérer les informations utilisateur`);
       }
-      return response.json();
+      const userData = await response.json();
+      console.log("User data loaded:", userData);
+      return userData;
     },
   });
 

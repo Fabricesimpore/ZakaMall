@@ -21,11 +21,11 @@ export default function CustomerDashboard() {
     sortOrder: "desc",
   });
 
-  const { data: categories = [], isLoading: categoriesLoading } = useQuery<any[]>({
+  const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useQuery<any[]>({
     queryKey: ["/api/categories"],
   });
 
-  const { data: products = [], isLoading: productsLoading } = useQuery<any[]>({
+  const { data: products = [], isLoading: productsLoading, error: productsError } = useQuery<any[]>({
     queryKey: ["/api/products", searchTerm, selectedCategory, filters],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -37,7 +37,7 @@ export default function CustomerDashboard() {
       params.append("sortBy", filters.sortBy);
       params.append("sortOrder", filters.sortOrder);
       const response = await fetch(`/api/products?${params}`);
-      if (!response.ok) throw new Error("Impossible de charger les produits");
+      if (!response.ok) throw new Error(`Erreur ${response.status}: Impossible de charger les produits`);
       return response.json();
     },
   });
@@ -88,7 +88,14 @@ export default function CustomerDashboard() {
         />
 
         {/* Categories */}
-        {!categoriesLoading && categories && (
+        {categoriesError ? (
+          <div className="bg-red-50 border border-red-200 p-4 rounded-lg mb-8">
+            <p className="text-red-600 text-sm">
+              <i className="fas fa-exclamation-circle mr-2"></i>
+              Erreur de chargement des catégories: {categoriesError.message}
+            </p>
+          </div>
+        ) : !categoriesLoading && categories && categories.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
             {categories.slice(0, 4).map((category: any) => (
               <div
@@ -101,7 +108,16 @@ export default function CustomerDashboard() {
               </div>
             ))}
           </div>
-        )}
+        ) : categoriesLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-white p-6 rounded-lg shadow animate-pulse">
+                <div className="w-12 h-12 bg-gray-200 rounded-full mx-auto mb-3"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
+              </div>
+            ))}
+          </div>
+        ) : null}
 
         <div className="flex gap-8">
           {/* Products Grid */}
@@ -110,7 +126,20 @@ export default function CustomerDashboard() {
               {searchTerm ? `Résultats pour "${searchTerm}"` : "Produits populaires"}
             </h2>
 
-            {productsLoading ? (
+            {productsError ? (
+              <div className="text-center py-12">
+                <i className="fas fa-exclamation-triangle text-6xl text-red-300 mb-4"></i>
+                <h3 className="text-xl font-semibold text-red-600 mb-2">Erreur de chargement</h3>
+                <p className="text-red-500 mb-4">{productsError.message}</p>
+                <Button 
+                  onClick={() => window.location.reload()} 
+                  className="bg-zaka-orange hover:bg-zaka-orange"
+                >
+                  <i className="fas fa-sync-alt mr-2"></i>
+                  Réessayer
+                </Button>
+              </div>
+            ) : productsLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {[...Array(8)].map((_, i) => (
                   <div key={i} className="bg-white rounded-lg shadow animate-pulse">
