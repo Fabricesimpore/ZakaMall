@@ -2285,6 +2285,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/admin/transactions", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      if (user?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Get query parameters for filtering
+      const { status, dateFrom, dateTo, limit = 50, offset = 0 } = req.query;
+
+      // For now, return mock data structure until payment system is fully implemented
+      // This prevents 404 errors in the admin dashboard
+      const transactionData = {
+        transactions: [], // Empty array for now since payment system is in development
+        total: 0
+      };
+
+      res.json(transactionData);
+    } catch (error) {
+      console.error("Error fetching admin transactions:", error);
+      res.status(500).json({ message: "Failed to fetch transactions" });
+    }
+  });
+
   app.get("/api/admin/users", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
