@@ -80,7 +80,7 @@ type VendorSetupForm = z.infer<typeof vendorSetupSchema>;
 export default function VendorSetup() {
   console.log("🏪 VendorSetup component mounting");
   const [step, setStepState] = useState(1);
-  
+
   // Debug step changes
   const setStep = (newStep: number) => {
     console.log(`📍 Step changing from ${step} to ${newStep}`);
@@ -90,9 +90,9 @@ export default function VendorSetup() {
   const [_isSubmitting, _setIsSubmitting] = useState(false);
   const { user: _user, isLoading: authLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  
+
   console.log("🔐 Auth state:", { user: _user, authLoading, isAuthenticated });
-  
+
   // Monitor step changes
   useEffect(() => {
     console.log(`🔄 useEffect: Step is now ${step}`);
@@ -158,7 +158,7 @@ export default function VendorSetup() {
   const onSubmit = (data: VendorSetupForm) => {
     console.log("Form submitted with data:", data);
     console.log("Current step when submitting:", step);
-    
+
     // Only submit if we're on step 3
     if (step !== 3) {
       console.log("Form submission blocked - not on step 3");
@@ -169,7 +169,7 @@ export default function VendorSetup() {
       });
       return;
     }
-    
+
     setupMutation.mutate(data);
   };
 
@@ -198,7 +198,7 @@ export default function VendorSetup() {
 
       // Trigger validation for the current step fields
       const isStepValid = await form.trigger(fieldsToValidate);
-      
+
       console.log(`Step ${step} validation result:`, isStepValid);
       console.log("Fields validated:", fieldsToValidate);
       console.log("Form values:", form.getValues());
@@ -240,7 +240,9 @@ export default function VendorSetup() {
       <div className="min-h-screen bg-zaka-light flex items-center justify-center">
         <div className="text-center">
           <p className="text-zaka-gray mb-4">Vous devez être connecté pour accéder à cette page</p>
-          <a href="/" className="text-zaka-green hover:underline">Retour à l'accueil</a>
+          <a href="/" className="text-zaka-green hover:underline">
+            Retour à l'accueil
+          </a>
         </div>
       </div>
     );
@@ -266,12 +268,16 @@ export default function VendorSetup() {
 
           <CardContent className="space-y-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" onKeyDown={(e) => {
-                if (e.key === 'Enter' && step < 3) {
-                  e.preventDefault();
-                  console.log("Enter key prevented form submission on step", step);
-                }
-              }}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && step < 3) {
+                    e.preventDefault();
+                    console.log("Enter key prevented form submission on step", step);
+                  }
+                }}
+              >
                 {step === 1 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Informations sur l'entreprise</h3>

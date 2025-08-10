@@ -101,7 +101,7 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
       // Redirect based on user role to setup pages
       const userData = form.getValues();
       console.log("👤 User data for redirect:", userData);
-      
+
       if (userData.role === "vendor") {
         console.log("🏪 Redirecting vendor to setup page");
         // Add a small delay to ensure session is established
