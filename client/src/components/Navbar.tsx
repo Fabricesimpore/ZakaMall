@@ -27,6 +27,7 @@ export default function Navbar() {
     const baseLinks = [
       { href: "/", label: "Accueil", icon: "fas fa-home" },
       { href: "/customer", label: "Marketplace", icon: "fas fa-shopping-bag" },
+      { href: "/orders", label: "Mes commandes", icon: "fas fa-receipt" },
       { href: "/vendor", label: "Vendeurs", icon: "fas fa-store" },
       { href: "/driver", label: "Livraison", icon: "fas fa-motorcycle" },
       { href: "/chat", label: "Messages", icon: "fas fa-comments" },

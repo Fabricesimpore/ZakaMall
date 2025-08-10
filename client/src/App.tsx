@@ -25,6 +25,7 @@ import PaymentTest from "@/pages/PaymentTest";
 import CreateAdmin from "@/pages/CreateAdmin";
 import ProductForm from "@/pages/ProductForm";
 import Register from "@/pages/Register";
+import OrderTracking from "@/pages/OrderTracking";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -50,6 +51,7 @@ function Router() {
       {/* Public routes accessible to all users */}
       <Route path="/products" component={Products} />
       <Route path="/cart" component={CartPage} />
+      <Route path="/orders" component={OrderTracking} />
       <Route path="/test-payment" component={TestPayment} />
       <Route path="/payment-test" component={PaymentTest} />
       <Route path="/register" component={Register} />

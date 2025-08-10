@@ -149,6 +149,7 @@ export interface IStorage {
     driverId?: string;
     status?: string;
   }): Promise<Order[]>;
+  getOrdersWithDetails(userId: string): Promise<any[]>;
   updateOrderStatus(id: string, status: string): Promise<Order>;
   assignOrderToDriver(orderId: string, driverId: string): Promise<Order>;
 
@@ -984,6 +985,77 @@ export class DatabaseStorage implements IStorage {
     }
 
     return await db.select().from(orders).orderBy(desc(orders.createdAt));
+  }
+
+  async getOrdersWithDetails(userId: string): Promise<any[]> {
+    const userOrders = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.customerId, userId))
+      .orderBy(desc(orders.createdAt));
+
+    const ordersWithDetails = await Promise.all(
+      userOrders.map(async (order) => {
+        // Get order items
+        const items = await db
+          .select()
+          .from(orderItems)
+          .where(eq(orderItems.orderId, order.id));
+
+        // Get vendor info
+        let vendor = null;
+        if (order.vendorId) {
+          vendor = await db
+            .select({
+              id: vendors.id,
+              businessName: vendors.businessName,
+              businessPhone: vendors.businessPhone,
+            })
+            .from(vendors)
+            .where(eq(vendors.id, order.vendorId))
+            .limit(1);
+        }
+
+        // Get driver info
+        let driver = null;
+        if (order.driverId) {
+          const driverInfo = await db
+            .select({
+              driverId: drivers.id,
+              userId: drivers.userId,
+            })
+            .from(drivers)
+            .where(eq(drivers.id, order.driverId))
+            .limit(1);
+
+          if (driverInfo.length > 0) {
+            const driverUser = await db
+              .select({
+                name: users.firstName,
+                phone: users.phone,
+              })
+              .from(users)
+              .where(eq(users.id, driverInfo[0].userId))
+              .limit(1);
+
+            driver = driverUser.length > 0 ? {
+              id: driverInfo[0].driverId,
+              name: driverUser[0].name,
+              phone: driverUser[0].phone,
+            } : null;
+          }
+        }
+
+        return {
+          ...order,
+          items,
+          vendor: vendor?.[0] || null,
+          driver,
+        };
+      })
+    );
+
+    return ordersWithDetails;
   }
 
   async updateOrderStatus(id: string, status: string): Promise<Order> {
