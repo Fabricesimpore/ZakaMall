@@ -28,7 +28,7 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Run TypeScript check
-        run: npm run check
+        run: npx tsc --noEmit --skipLibCheck
 
       - name: Run ESLint
         run: npx eslint . --ext .ts,.tsx,.js,.jsx
