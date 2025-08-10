@@ -71,7 +71,7 @@ const authLimiter = rateLimit({
 //   app.use("/api/login", authLimiter);
 //   app.use("/api/verify", authLimiter);
 // } else {
-  console.log("⚠️  Auth rate limiting disabled in development mode");
+console.log("⚠️  Auth rate limiting disabled in development mode");
 // }
 
 // Request logging middleware
