@@ -80,12 +80,16 @@ type VendorSetupForm = z.infer<typeof vendorSetupSchema>;
 export default function VendorSetup() {
   console.log("🏪 VendorSetup component mounting");
   const [step, setStepState] = useState(1);
+  const [canSubmit, setCanSubmit] = useState(false);
 
   // Debug step changes
   const setStep = (newStep: number) => {
     console.log(`📍 Step changing to ${newStep}`);
     console.trace("Step change stack trace");
     setStepState(newStep);
+    
+    // Only allow submission when actually on step 3
+    setCanSubmit(newStep === 3);
   };
   const [_isSubmitting, _setIsSubmitting] = useState(false);
   const { user: _user, isLoading: authLoading, isAuthenticated } = useAuth();
@@ -166,12 +170,15 @@ export default function VendorSetup() {
   });
 
   const onSubmit = (data: VendorSetupForm) => {
+    console.log("🚨 Form submission attempted!");
     console.log("Form submitted with data:", data);
     console.log("Current step when submitting:", step);
+    console.log("Can submit flag:", canSubmit);
 
-    // Only submit if we're on step 3
-    if (step !== 3) {
-      console.log("Form submission blocked - not on step 3");
+    // Block submission unless explicitly allowed
+    if (!canSubmit || step !== 3) {
+      console.log("❌ Form submission BLOCKED - not ready for submission");
+      console.log(`Step: ${step}, canSubmit: ${canSubmit}`);
       toast({
         title: "Erreur",
         description: "Veuillez compléter toutes les étapes avant de soumettre",
@@ -180,6 +187,7 @@ export default function VendorSetup() {
       return;
     }
 
+    console.log("✅ Form submission ALLOWED - proceeding with mutation");
     setupMutation.mutate(data);
   };
 
@@ -582,7 +590,13 @@ export default function VendorSetup() {
                     </Button>
                   ) : (
                     <Button
-                      type="submit"
+                      type="button"
+                      onClick={() => {
+                        console.log("🎯 Manual submit button clicked on step 3");
+                        setCanSubmit(true);
+                        const formData = form.getValues();
+                        onSubmit(formData);
+                      }}
                       disabled={setupMutation.isPending}
                       className="ml-auto bg-zaka-green hover:bg-zaka-green"
                     >
