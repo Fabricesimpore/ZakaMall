@@ -143,12 +143,10 @@ export default function ProductCard({ product }: ProductCardProps) {
                 </div>
               )}
             </div>
-            
+
             <Button
               className={`w-full transition-all ${
-                isAdded 
-                  ? "bg-green-500 hover:bg-green-600" 
-                  : "bg-zaka-blue hover:bg-zaka-blue"
+                isAdded ? "bg-green-500 hover:bg-green-600" : "bg-zaka-blue hover:bg-zaka-blue"
               } text-white text-sm px-4 py-2`}
               onClick={() => addToCartMutation.mutate()}
               disabled={product.quantity === 0 || addToCartMutation.isPending}

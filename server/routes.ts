@@ -2300,7 +2300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // This prevents 404 errors in the admin dashboard
       const transactionData = {
         transactions: [], // Empty array for now since payment system is in development
-        total: 0
+        total: 0,
       };
 
       res.json(transactionData);
