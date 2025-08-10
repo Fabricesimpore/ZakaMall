@@ -97,7 +97,7 @@ app.get("/api/health", (_req, res) => {
 (async () => {
   // Run startup migrations before registering routes
   await runStartupMigrations();
-  
+
   const server = await registerRoutes(app);
 
   // Error logging middleware

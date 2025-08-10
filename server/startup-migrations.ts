@@ -8,11 +8,11 @@ import { storage } from "./storage";
 
 export async function runStartupMigrations() {
   console.log("🚀 Running startup migrations...");
-  
+
   try {
     // Check and create notifications table if it doesn't exist
     await ensureNotificationsTable();
-    
+
     console.log("✅ All startup migrations completed successfully!");
   } catch (error) {
     console.error("❌ Startup migrations failed:", error);
@@ -25,7 +25,7 @@ async function ensureNotificationsTable() {
   try {
     // Use the storage's db connection
     const db = (storage as any).db; // Access the internal db connection
-    
+
     // Check if notifications table exists
     const tableExists = await db.execute(sql`
       SELECT EXISTS (

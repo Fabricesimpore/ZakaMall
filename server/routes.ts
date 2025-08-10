@@ -1577,8 +1577,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate password strength
       const passwordValidation = validatePassword(password);
       if (!passwordValidation.isValid) {
-        return res.status(400).json({ 
-          message: passwordValidation.message || "Le mot de passe ne respecte pas les critères de sécurité" 
+        return res.status(400).json({
+          message:
+            passwordValidation.message ||
+            "Le mot de passe ne respecte pas les critères de sécurité",
         });
       }
 
@@ -1711,8 +1713,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate password strength
       const passwordValidation = validatePassword(password);
       if (!passwordValidation.isValid) {
-        return res.status(400).json({ 
-          message: passwordValidation.message || "Le mot de passe ne respecte pas les critères de sécurité" 
+        return res.status(400).json({
+          message:
+            passwordValidation.message ||
+            "Le mot de passe ne respecte pas les critères de sécurité",
         });
       }
 
@@ -2761,7 +2765,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching notifications:", error);
       // If notifications table doesn't exist, return empty array instead of error
       if (error.message && error.message.includes('relation "notifications" does not exist')) {
-        console.warn("Notifications table not found, returning empty array. Run db:migrate:prod to create the table.");
+        console.warn(
+          "Notifications table not found, returning empty array. Run db:migrate:prod to create the table."
+        );
         res.json([]);
         return;
       }
@@ -2778,7 +2784,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching unread notification count:", error);
       // If notifications table doesn't exist, return count of 0
       if (error.message && error.message.includes('relation "notifications" does not exist')) {
-        console.warn("Notifications table not found, returning count 0. Run db:migrate:prod to create the table.");
+        console.warn(
+          "Notifications table not found, returning count 0. Run db:migrate:prod to create the table."
+        );
         res.json({ count: 0 });
         return;
       }
@@ -2795,7 +2803,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error marking notification as read:", error);
       // If notifications table doesn't exist, return success anyway
       if (error.message && error.message.includes('relation "notifications" does not exist')) {
-        console.warn("Notifications table not found, ignoring mark as read. Run db:migrate:prod to create the table.");
+        console.warn(
+          "Notifications table not found, ignoring mark as read. Run db:migrate:prod to create the table."
+        );
         res.json({ success: true });
         return;
       }
@@ -2812,7 +2822,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error marking all notifications as read:", error);
       // If notifications table doesn't exist, return success anyway
       if (error.message && error.message.includes('relation "notifications" does not exist')) {
-        console.warn("Notifications table not found, ignoring mark all as read. Run db:migrate:prod to create the table.");
+        console.warn(
+          "Notifications table not found, ignoring mark all as read. Run db:migrate:prod to create the table."
+        );
         res.json({ success: true });
         return;
       }
