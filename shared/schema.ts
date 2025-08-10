@@ -649,6 +649,37 @@ export const insertEmailVerificationSchema = createInsertSchema(emailVerificatio
 export type EmailVerification = typeof emailVerifications.$inferSelect;
 export type InsertEmailVerification = z.infer<typeof insertEmailVerificationSchema>;
 
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  type: varchar("type").notNull(), // 'order_status', 'low_stock', 'payment', 'system', etc.
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  data: jsonb("data"), // Additional data for the notification
+  isRead: boolean("is_read").default(false),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+}));
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
 // Additional types for frontend components
 export interface AdminStats {
   totalUsers?: number;

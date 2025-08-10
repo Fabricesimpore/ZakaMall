@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import UnreadBadge from "@/components/UnreadBadge";
+import NotificationDropdown from "@/components/NotificationDropdown";
 
 export default function Navbar() {
   const { user, isLoading } = useAuth();
@@ -149,6 +150,8 @@ export default function Navbar() {
                 </Button>
               </Link>
             ))}
+
+            <NotificationDropdown />
 
             {user && (
               <DropdownMenu>

@@ -12,6 +12,7 @@ import {
   chatParticipants,
   messages,
   payments,
+  notifications,
   phoneVerifications,
   emailVerifications,
   sessions,
@@ -42,6 +43,8 @@ import {
   type InsertMessage,
   type Payment,
   type InsertPayment,
+  type Notification,
+  type InsertNotification,
   type PhoneVerification,
   type InsertPhoneVerification,
   type EmailVerification,
@@ -692,6 +695,19 @@ export class DatabaseStorage implements IStorage {
     console.log(
       `[INVENTORY] Updated stock for product ${id}: ${quantity} units. Reason: ${reason || "Manual adjustment"}`
     );
+
+    // Check for low stock and create notification if needed
+    if (quantity <= 5 && quantity > 0) {
+      try {
+        const vendor = await this.getVendor(product.vendorId);
+        if (vendor) {
+          await this.createLowStockNotification(vendor.userId, product.name, quantity);
+        }
+      } catch (error) {
+        console.error("Error creating low stock notification:", error);
+      }
+    }
+
     return product;
   }
 
@@ -1590,6 +1606,115 @@ export class DatabaseStorage implements IStorage {
       transactions,
       total: countResult?.count || 0,
     };
+  }
+
+  // Notification operations
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [created] = await db.insert(notifications).values(notification).returning();
+    return created;
+  }
+
+  async getUserNotifications(userId: string, unreadOnly = false): Promise<Notification[]> {
+    const conditions = [eq(notifications.userId, userId)];
+    if (unreadOnly) {
+      conditions.push(eq(notifications.isRead, false));
+    }
+    
+    return await db
+      .select()
+      .from(notifications)
+      .where(and(...conditions))
+      .orderBy(desc(notifications.createdAt));
+  }
+
+  async getUnreadNotificationCount(userId: string): Promise<number> {
+    const [result] = await db
+      .select({ count: count() })
+      .from(notifications)
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+    return result?.count || 0;
+  }
+
+  async markNotificationAsRead(notificationId: string): Promise<void> {
+    await db
+      .update(notifications)
+      .set({
+        isRead: true,
+        readAt: new Date(),
+      })
+      .where(eq(notifications.id, notificationId));
+  }
+
+  async markAllNotificationsAsRead(userId: string): Promise<void> {
+    await db
+      .update(notifications)
+      .set({
+        isRead: true,
+        readAt: new Date(),
+      })
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+  }
+
+  async deleteNotification(notificationId: string): Promise<void> {
+    await db.delete(notifications).where(eq(notifications.id, notificationId));
+  }
+
+  // Helper method to create common notification types
+  async createOrderStatusNotification(
+    userId: string, 
+    orderId: string, 
+    status: string, 
+    orderNumber: string
+  ): Promise<void> {
+    const statusMessages: Record<string, { title: string; message: string }> = {
+      confirmed: {
+        title: "Commande confirmée",
+        message: `Votre commande #${orderNumber} a été confirmée par le vendeur.`
+      },
+      preparing: {
+        title: "Commande en préparation",
+        message: `Votre commande #${orderNumber} est en cours de préparation.`
+      },
+      ready_for_pickup: {
+        title: "Commande prête",
+        message: `Votre commande #${orderNumber} est prête pour la livraison.`
+      },
+      in_transit: {
+        title: "Commande en transit",
+        message: `Votre commande #${orderNumber} est en cours de livraison.`
+      },
+      delivered: {
+        title: "Commande livrée",
+        message: `Votre commande #${orderNumber} a été livrée avec succès.`
+      },
+      cancelled: {
+        title: "Commande annulée",
+        message: `Votre commande #${orderNumber} a été annulée.`
+      }
+    };
+
+    const notification = statusMessages[status];
+    if (notification) {
+      await this.createNotification({
+        userId,
+        type: "order_status",
+        title: notification.title,
+        message: notification.message,
+        data: { orderId, status, orderNumber },
+        isRead: false,
+      });
+    }
+  }
+
+  async createLowStockNotification(vendorId: string, productName: string, stockQuantity: number): Promise<void> {
+    await this.createNotification({
+      userId: vendorId,
+      type: "low_stock",
+      title: "Stock faible",
+      message: `Le produit "${productName}" n'a plus que ${stockQuantity} unité${stockQuantity !== 1 ? 's' : ''} en stock.`,
+      data: { productName, stockQuantity },
+      isRead: false,
+    });
   }
 }
 
