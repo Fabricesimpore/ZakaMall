@@ -87,9 +87,11 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
 
   const verifyMutation = useMutation({
     mutationFn: async ({ email, code }: { email: string; code: string }) => {
+      console.log("🔍 Starting email verification for:", email);
       return await apiRequest("POST", "/api/auth/verify-email", { email, code });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("✅ Email verification successful:", data);
       toast({
         title: "Compte créé avec succès!",
         description: "Vous pouvez maintenant compléter votre profil",
@@ -98,12 +100,22 @@ export default function EmailSignup({ onSuccess }: EmailSignupProps) {
 
       // Redirect based on user role to setup pages
       const userData = form.getValues();
+      console.log("👤 User data for redirect:", userData);
+      
       if (userData.role === "vendor") {
-        window.location.href = "/vendor-setup";
+        console.log("🏪 Redirecting vendor to setup page");
+        // Add a small delay to ensure session is established
+        setTimeout(() => {
+          window.location.href = "/vendor-setup";
+        }, 1000);
       } else if (userData.role === "driver") {
-        window.location.href = "/driver-setup";
+        console.log("🚚 Redirecting driver to setup page");
+        setTimeout(() => {
+          window.location.href = "/driver-setup";
+        }, 1000);
       } else {
         // Customer role goes to home page - they can login from there
+        console.log("🛒 Redirecting customer to home page");
         window.location.href = "/";
       }
     },

@@ -78,6 +78,7 @@ const vendorSetupSchema = z
 type VendorSetupForm = z.infer<typeof vendorSetupSchema>;
 
 export default function VendorSetup() {
+  console.log("🏪 VendorSetup component mounting");
   const [step, setStep] = useState(1);
   
   // Debug step changes
@@ -89,8 +90,10 @@ export default function VendorSetup() {
   };
   setStep = debugSetStep;
   const [_isSubmitting, _setIsSubmitting] = useState(false);
-  const { user: _user } = useAuth();
+  const { user: _user, isLoading: authLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  
+  console.log("🔐 Auth state:", { user: _user, authLoading, isAuthenticated });
   
   // Monitor step changes
   useEffect(() => {
@@ -218,6 +221,34 @@ export default function VendorSetup() {
   const prevStep = () => {
     if (step > 1) setStep(step - 1);
   };
+
+  // Show loading state while auth is loading
+  if (authLoading) {
+    console.log("⏳ VendorSetup: Auth is loading, showing spinner");
+    return (
+      <div className="min-h-screen bg-zaka-light flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-zaka-green mx-auto mb-4"></div>
+          <p className="text-zaka-gray">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message if not authenticated
+  if (!isAuthenticated) {
+    console.log("❌ VendorSetup: User not authenticated");
+    return (
+      <div className="min-h-screen bg-zaka-light flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-zaka-gray mb-4">Vous devez être connecté pour accéder à cette page</p>
+          <a href="/" className="text-zaka-green hover:underline">Retour à l'accueil</a>
+        </div>
+      </div>
+    );
+  }
+
+  console.log("✅ VendorSetup: Rendering form");
 
   return (
     <div className="min-h-screen bg-zaka-light">
