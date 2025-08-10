@@ -6,6 +6,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import WhatsAppSupport from "@/components/WhatsAppSupport";
 
 interface ProductCardProps {
   product: {
@@ -168,6 +169,11 @@ export default function ProductCard({ product }: ProductCardProps) {
                 </>
               )}
             </Button>
+
+            {/* Product-specific support */}
+            {product.quantity === 0 && (
+              <WhatsAppSupport variant="compact" productId={product.id} className="mt-2 w-full" />
+            )}
           </div>
         </div>
       </CardContent>

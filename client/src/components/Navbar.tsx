@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import SearchWithSuggestions from "@/components/SearchWithSuggestions";
 import DarkModeToggle from "@/components/DarkModeToggle";
+import WhatsAppSupport from "@/components/WhatsAppSupport";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -231,6 +232,9 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+
+      {/* WhatsApp Support - Floating */}
+      <WhatsAppSupport variant="floating" />
     </nav>
   );
 }

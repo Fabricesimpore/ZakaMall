@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import type { Order } from "@shared/schema";
+import WhatsAppSupport from "@/components/WhatsAppSupport";
 
 interface OrderWithDetails extends Order {
   items: Array<{
@@ -265,6 +266,9 @@ export default function OrderTracking() {
               </p>
             </div>
           )}
+
+          {/* Order Support */}
+          <WhatsAppSupport variant="inline" orderId={order.id} className="mt-4" />
         </CardContent>
       </Card>
     );
