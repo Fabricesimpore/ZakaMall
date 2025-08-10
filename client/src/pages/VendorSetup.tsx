@@ -116,7 +116,7 @@ export default function VendorSetup() {
     console.log(`🔄 useEffect: Step is now ${step}`);
     if (step === 3) {
       console.log("🎯 Step 3 reached! Monitoring for any automatic submissions...");
-      
+
       // Add a timeout to see if anything happens automatically
       const timer = setTimeout(() => {
         console.log("⏰ 3 seconds passed on step 3, checking if form was submitted");
@@ -124,7 +124,7 @@ export default function VendorSetup() {
         console.log("Form is valid:", form.formState.isValid);
         console.log("Form submitted count:", form.formState.submitCount);
       }, 3000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [step, form.formState]);
@@ -209,7 +209,7 @@ export default function VendorSetup() {
       // Manual validation to avoid automatic form submission
       const formValues = form.getValues();
       console.log("Form values before validation:", formValues);
-      
+
       let isStepValid = true;
       let missingFields: string[] = [];
 
