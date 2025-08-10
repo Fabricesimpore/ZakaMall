@@ -26,10 +26,10 @@ export default function VendorInventory() {
   const { data: products = [], isLoading } = useQuery<ProductWithStock[]>({
     queryKey: ["/api/vendor/products"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/vendor/products");
+      const response = await apiRequest("GET", "/api/vendor/products") as unknown as any[];
       return response.map((product: any) => ({
         ...product,
-        stockLevel: getStockLevel(product.stockQuantity),
+        stockLevel: getStockLevel(product.quantity || 0),
         daysUntilOutOfStock: calculateDaysUntilOutOfStock(product),
       }));
     },
@@ -79,8 +79,8 @@ export default function VendorInventory() {
   const calculateDaysUntilOutOfStock = (product: any): number | undefined => {
     // Simple calculation based on average daily sales (mock data)
     const averageDailySales = 2; // This would come from analytics in real app
-    if (product.stockQuantity <= 0) return 0;
-    return Math.floor(product.stockQuantity / averageDailySales);
+    if (product.quantity <= 0) return 0;
+    return Math.floor(product.quantity / averageDailySales);
   };
 
   const getStockLevelColor = (level: string) => {
@@ -122,9 +122,9 @@ export default function VendorInventory() {
         case "low":
           return product.stockLevel === "low";
         case "out_of_stock":
-          return product.stockQuantity === 0;
+          return (product.quantity || 0) === 0;
         case "low_stock":
-          return product.stockQuantity <= 10;
+          return (product.quantity || 0) <= 10;
         default:
           return true;
       }
@@ -138,7 +138,7 @@ export default function VendorInventory() {
   };
 
   const StockUpdateForm = ({ product }: { product: ProductWithStock }) => {
-    const [newStock, setNewStock] = useState(product.stockQuantity.toString());
+    const [newStock, setNewStock] = useState((product.quantity || 0).toString());
 
     return (
       <div className="flex items-center gap-2">
@@ -152,7 +152,7 @@ export default function VendorInventory() {
         <Button
           size="sm"
           onClick={() => handleStockUpdate(product.id, parseInt(newStock))}
-          disabled={updatingStock === product.id || parseInt(newStock) === product.stockQuantity}
+          disabled={updatingStock === product.id || parseInt(newStock) === product.quantity}
           className="bg-zaka-green hover:bg-zaka-green"
         >
           {updatingStock === product.id ? (
@@ -204,14 +204,14 @@ export default function VendorInventory() {
                 <div key={product.id} className="flex items-center justify-between p-2 bg-white rounded">
                   <div className="flex items-center gap-2">
                     <img
-                      src={product.images?.[0] || "/placeholder-product.jpg"}
+                      src={product.images?.[0] || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='12' fill='%236b7280' text-anchor='middle' dy='.3em'%3EProduit%3C/text%3E%3C/svg%3E"}
                       alt={product.name}
                       className="w-8 h-8 object-cover rounded"
                     />
                     <span className="text-sm font-medium">{product.name}</span>
                   </div>
                   <Badge variant="outline" className="text-red-600 border-red-200">
-                    {product.stockQuantity} restant{product.stockQuantity !== 1 ? 's' : ''}
+                    {product.quantity} restant{product.quantity !== 1 ? 's' : ''}
                   </Badge>
                 </div>
               ))}
@@ -290,7 +290,7 @@ export default function VendorInventory() {
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-3">
                     <img
-                      src={product.images?.[0] || "/placeholder-product.jpg"}
+                      src={product.images?.[0] || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='12' fill='%236b7280' text-anchor='middle' dy='.3em'%3EProduit%3C/text%3E%3C/svg%3E"}
                       alt={product.name}
                       className="w-16 h-16 object-cover rounded-lg"
                     />
@@ -304,7 +304,7 @@ export default function VendorInventory() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm">Stock actuel</span>
-                      <span className="font-semibold">{product.stockQuantity} unités</span>
+                      <span className="font-semibold">{product.quantity} unités</span>
                     </div>
                     
                     {product.daysUntilOutOfStock !== undefined && product.daysUntilOutOfStock <= 7 && (

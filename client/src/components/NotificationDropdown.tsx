@@ -34,7 +34,8 @@ export default function NotificationDropdown() {
 
   // Mark as read mutation
   const markAsReadMutation = useMutation({
-    mutationFn: (notificationId: string) => apiRequest("PATCH", `/api/notifications/${notificationId}/read`),
+    mutationFn: (notificationId: string) =>
+      apiRequest("PATCH", `/api/notifications/${notificationId}/read`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });
@@ -52,7 +53,8 @@ export default function NotificationDropdown() {
 
   // Delete notification mutation
   const deleteNotificationMutation = useMutation({
-    mutationFn: (notificationId: string) => apiRequest("DELETE", `/api/notifications/${notificationId}`),
+    mutationFn: (notificationId: string) =>
+      apiRequest("DELETE", `/api/notifications/${notificationId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });
@@ -89,11 +91,12 @@ export default function NotificationDropdown() {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | Date | null) => {
+    if (!dateString) return "Date inconnue";
     const date = new Date(dateString);
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) return "À l'instant";
     if (diffInMinutes < 60) return `Il y a ${diffInMinutes}min`;
     if (diffInMinutes < 1440) return `Il y a ${Math.floor(diffInMinutes / 60)}h`;
@@ -112,7 +115,7 @@ export default function NotificationDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      
+
       <DropdownMenuContent align="end" className="w-96">
         <div className="flex items-center justify-between px-4 py-2 border-b">
           <h3 className="font-semibold">Notifications</h3>
@@ -151,11 +154,11 @@ export default function NotificationDropdown() {
                   onSelect={(e) => e.preventDefault()}
                 >
                   <div className="flex-shrink-0">
-                    <i 
+                    <i
                       className={`${getNotificationIcon(notification.type)} ${getNotificationColor(notification.type)}`}
                     />
                   </div>
-                  
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -169,7 +172,7 @@ export default function NotificationDropdown() {
                           {formatDate(notification.createdAt)}
                         </p>
                       </div>
-                      
+
                       <div className="flex items-center gap-1 ml-2">
                         {!notification.isRead && (
                           <Button

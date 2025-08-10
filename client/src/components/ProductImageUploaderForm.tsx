@@ -38,18 +38,6 @@ export default function ProductImageUploaderForm({
     });
   };
 
-  const handleUploadStart = () => {
-    setIsUploading(true);
-  };
-
-  const handleUploadError = () => {
-    setIsUploading(false);
-    toast({
-      title: "Erreur d'upload",
-      description: "Impossible d'uploader les images. Veuillez réessayer.",
-      variant: "destructive",
-    });
-  };
 
   const handleGetUploadParameters = async (): Promise<{ method: "PUT"; url: string }> => {
     try {
@@ -113,8 +101,6 @@ export default function ProductImageUploaderForm({
           maxFileSize={5242880} // 5MB
           onGetUploadParameters={handleGetUploadParameters}
           onComplete={handleUploadComplete}
-          onUploadStart={handleUploadStart}
-          onUploadError={handleUploadError}
           buttonClassName="w-full border-2 border-dashed border-gray-300 hover:border-zaka-orange p-8 rounded-lg transition-colors"
         >
           <div className="text-center">

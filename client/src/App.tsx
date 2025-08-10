@@ -10,6 +10,8 @@ import Home from "@/pages/Home";
 import CustomerDashboard from "@/pages/CustomerDashboard";
 import VendorDashboard from "@/pages/VendorDashboard";
 import VendorInventoryPage from "@/pages/VendorInventoryPage";
+import VendorOrdersPage from "@/pages/VendorOrdersPage";
+import VendorAnalyticsPage from "@/pages/VendorAnalyticsPage";
 import DriverDashboard from "@/pages/DriverDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminProfile from "@/pages/AdminProfile";
@@ -73,8 +75,8 @@ function Router() {
             {(params) => <ProductForm productId={params.id} />}
           </Route>
           <Route path="/vendor/inventory" component={VendorInventoryPage} />
-          <Route path="/vendor/orders" component={VendorDashboard} />
-          <Route path="/vendor/analytics" component={VendorDashboard} />
+          <Route path="/vendor/orders" component={VendorOrdersPage} />
+          <Route path="/vendor/analytics" component={VendorAnalyticsPage} />
           <Route path="/driver" component={DriverDashboard} />
           <Route path="/profile" component={Profile} />
           <Route path="/chat" component={Chat} />

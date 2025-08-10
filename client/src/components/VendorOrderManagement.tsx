@@ -113,7 +113,7 @@ export default function VendorOrderManagement() {
                 #{order.orderNumber}
               </CardTitle>
               <p className="text-sm text-gray-600 mt-1">
-                {formatDate(order.createdAt)}
+                {formatDate(order.createdAt?.toISOString() || new Date().toISOString())}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -159,7 +159,7 @@ export default function VendorOrderManagement() {
                 <div key={item.id} className="flex items-center justify-between p-2 border rounded">
                   <div className="flex items-center gap-2">
                     <img
-                      src={item.productSnapshot?.images?.[0] || "/placeholder-product.jpg"}
+                      src={item.productSnapshot?.images?.[0] || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='12' fill='%236b7280' text-anchor='middle' dy='.3em'%3EProduit%3C/text%3E%3C/svg%3E"}
                       alt={item.productSnapshot?.name}
                       className="w-8 h-8 object-cover rounded"
                     />
@@ -242,7 +242,7 @@ export default function VendorOrderManagement() {
                 ))}
               </div>
               
-              {availableActions.includes("cancelled") && (
+              {availableActions.includes("cancelled" as any) && (
                 <div className="mt-3">
                   <Textarea
                     placeholder="Raison de l'annulation (requis)"

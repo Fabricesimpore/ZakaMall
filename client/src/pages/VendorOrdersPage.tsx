@@ -1,10 +1,10 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
-import VendorInventory from "@/components/VendorInventory";
+import VendorOrderManagement from "@/components/VendorOrderManagement";
 import type { User, Vendor } from "@shared/schema";
 
-export default function VendorInventoryPage() {
+export default function VendorOrdersPage() {
   const { user, isLoading: authLoading } = useAuth();
 
   const { data: vendor = {} as User & { roleData?: Vendor }, isLoading: vendorLoading } = useQuery<
@@ -44,7 +44,7 @@ export default function VendorInventoryPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <VendorInventory />
+        <VendorOrderManagement />
       </div>
     </div>
   );

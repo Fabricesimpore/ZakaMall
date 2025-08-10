@@ -94,7 +94,7 @@ export default function OrderTracking() {
 
   const OrderCard = ({ order }: { order: OrderWithDetails }) => {
     const status = statusConfig[order.status as keyof typeof statusConfig];
-    const steps = getStatusSteps(order.status);
+    const steps = getStatusSteps(order.status || "pending");
 
     return (
       <Card className="mb-6">
@@ -106,7 +106,7 @@ export default function OrderTracking() {
                 Commande #{order.orderNumber}
               </CardTitle>
               <p className="text-sm text-gray-600 mt-1">
-                Passée le {formatDate(order.createdAt)}
+                Passée le {formatDate(typeof order.createdAt === 'string' ? order.createdAt : order.createdAt?.toISOString() || new Date().toISOString())}
               </p>
             </div>
             <Badge className={status.color}>
@@ -166,7 +166,7 @@ export default function OrderTracking() {
                 <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <img
-                      src={item.productSnapshot?.images?.[0] || "/placeholder-product.jpg"}
+                      src={item.productSnapshot?.images?.[0] || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='12' fill='%236b7280' text-anchor='middle' dy='.3em'%3EProduit%3C/text%3E%3C/svg%3E"}
                       alt={item.productSnapshot?.name}
                       className="w-12 h-12 object-cover rounded"
                     />
@@ -191,7 +191,7 @@ export default function OrderTracking() {
             </div>
             {order.deliveryFee !== "0.00" && (
               <p className="text-sm text-gray-600">
-                Dont frais de livraison: {formatPrice(order.deliveryFee)}
+                Dont frais de livraison: {formatPrice(order.deliveryFee || "0")}
               </p>
             )}
           </div>
@@ -246,7 +246,7 @@ export default function OrderTracking() {
             <div className="text-center p-3 bg-yellow-50 rounded-lg">
               <p className="text-sm font-medium">
                 <i className="fas fa-clock mr-2 text-yellow-600"></i>
-                Livraison estimée: {formatDate(order.estimatedDeliveryTime)}
+                Livraison estimée: {formatDate(order.estimatedDeliveryTime?.toISOString() || new Date().toISOString())}
               </p>
             </div>
           )}
