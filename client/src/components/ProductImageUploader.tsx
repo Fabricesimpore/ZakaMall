@@ -52,19 +52,32 @@ export default function ProductImageUploader({
   ) => {
     const uploadedURLs =
       result.successful
-        ?.map((file) => file.uploadURL)
+        ?.map((file) => {
+          // For XHRUpload, the JSON response is in file.response.body
+          if (file.response && file.response.body) {
+            try {
+              const responseData = typeof file.response.body === 'string' 
+                ? JSON.parse(file.response.body) 
+                : file.response.body;
+              return responseData.url;
+            } catch (error) {
+              console.error("Failed to parse upload response:", error);
+            }
+          }
+          return file.uploadURL;
+        })
         .filter((url): url is string => Boolean(url)) || [];
     const allImages = [...uploadedImages, ...uploadedURLs];
     updateProductImagesMutation.mutate(allImages);
   };
 
-  const handleGetUploadParameters = async (): Promise<{ method: "PUT"; url: string }> => {
+  const handleGetUploadParameters = async (): Promise<{ method: "POST"; url: string }> => {
     const response = (await apiRequest("POST", "/api/objects/upload")) as any as Record<
       string,
       unknown
     >;
     return {
-      method: "PUT" as const,
+      method: "POST" as const,
       url: response.uploadURL as string,
     };
   };
