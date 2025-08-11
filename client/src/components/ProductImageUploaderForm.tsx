@@ -52,7 +52,7 @@ export default function ProductImageUploaderForm({
     try {
       console.log("🔍 Getting upload parameters...");
       console.log("Current location:", window.location.href);
-      
+
       const response = (await apiRequest("POST", "/api/objects/upload")) as any as Record<
         string,
         unknown

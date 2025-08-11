@@ -15,7 +15,6 @@ import {
   notifications,
   phoneVerifications,
   emailVerifications,
-  sessions,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -53,7 +52,6 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, ilike, or, count, avg, sum, sql } from "drizzle-orm";
-import { randomUUID } from "crypto";
 
 export interface IStorage {
   // User operations
