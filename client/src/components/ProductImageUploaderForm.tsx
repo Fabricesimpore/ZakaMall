@@ -30,7 +30,7 @@ export default function ProductImageUploaderForm({
         ?.map((file) => {
           console.log("Processing uploaded file:", file);
           console.log("File uploadURL:", file.uploadURL);
-          
+
           // With getResponseData, XHRUpload sets file.uploadURL to the URL from our response
           return file.uploadURL;
         })

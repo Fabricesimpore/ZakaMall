@@ -205,7 +205,7 @@ export class SMSService {
       });
 
       if (response.ok) {
-        const result = await response.json();
+        const _result = await response.json();
         console.log(`📱 SMS sent successfully to ${phone} via Orange API`);
         return true;
       } else {

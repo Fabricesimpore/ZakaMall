@@ -69,17 +69,17 @@ export function ObjectUploader({
         getResponseData: (responseText, response) => {
           console.log("Raw response text:", responseText);
           console.log("Raw response object:", response);
-          
+
           try {
             const data = JSON.parse(responseText);
             console.log("Parsed response data:", data);
-            
+
             // Our server returns { success: true, url: "...", ... }
             // XHRUpload expects { url: "..." }
             if (data.success && data.url) {
               return { url: data.url };
             } else {
-              throw new Error(`Upload failed: ${data.error || 'Unknown error'}`);
+              throw new Error(`Upload failed: ${data.error || "Unknown error"}`);
             }
           } catch (error) {
             console.error("Failed to parse upload response:", error);

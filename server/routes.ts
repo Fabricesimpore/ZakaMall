@@ -2364,7 +2364,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get query parameters for filtering
-      const { status, dateFrom, dateTo, limit = 50, offset = 0 } = req.query;
+      const {
+        status: _status,
+        dateFrom: _dateFrom,
+        dateTo: _dateTo,
+        limit: _limit = 50,
+        offset: _offset = 0,
+      } = req.query;
 
       // For now, return mock data structure until payment system is fully implemented
       // This prevents 404 errors in the admin dashboard
