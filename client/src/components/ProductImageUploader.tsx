@@ -53,18 +53,7 @@ export default function ProductImageUploader({
     const uploadedURLs =
       result.successful
         ?.map((file) => {
-          // For XHRUpload, the JSON response is in file.response.body
-          if (file.response && file.response.body) {
-            try {
-              const responseData =
-                typeof file.response.body === "string"
-                  ? JSON.parse(file.response.body)
-                  : file.response.body;
-              return responseData.url;
-            } catch (error) {
-              console.error("Failed to parse upload response:", error);
-            }
-          }
+          // With getResponseData, XHRUpload sets file.uploadURL to the URL from our response
           return file.uploadURL;
         })
         .filter((url): url is string => Boolean(url)) || [];

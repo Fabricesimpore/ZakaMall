@@ -66,6 +66,26 @@ export function ObjectUploader({
         timeout: 120 * 1000, // 120 seconds timeout
         limit: 1, // Upload one file at a time
         retryDelays: [0, 1000, 3000, 5000], // Retry with delays
+        getResponseData: (responseText, response) => {
+          console.log("Raw response text:", responseText);
+          console.log("Raw response object:", response);
+          
+          try {
+            const data = JSON.parse(responseText);
+            console.log("Parsed response data:", data);
+            
+            // Our server returns { success: true, url: "...", ... }
+            // XHRUpload expects { url: "..." }
+            if (data.success && data.url) {
+              return { url: data.url };
+            } else {
+              throw new Error(`Upload failed: ${data.error || 'Unknown error'}`);
+            }
+          } catch (error) {
+            console.error("Failed to parse upload response:", error);
+            throw error;
+          }
+        },
       })
       .on("complete", (result) => {
         console.log("Upload complete:", result);
