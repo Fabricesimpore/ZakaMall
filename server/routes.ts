@@ -1909,10 +1909,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
     try {
       console.log("📤 Legacy upload parameters request received");
+      console.log("User session:", req.session?.user?.id);
+      console.log("Request headers:", req.headers.origin || req.headers.host);
 
       // Check if Cloudinary is configured
       if (!CloudinaryService.isConfigured()) {
         console.error("❌ Cloudinary not configured");
+        console.log("CLOUDINARY_CLOUD_NAME:", !!process.env.CLOUDINARY_CLOUD_NAME);
+        console.log("CLOUDINARY_API_KEY:", !!process.env.CLOUDINARY_API_KEY);
+        console.log("CLOUDINARY_API_SECRET:", !!process.env.CLOUDINARY_API_SECRET);
         return res.status(500).json({
           error: "Image storage not configured. Please configure Cloudinary.",
         });

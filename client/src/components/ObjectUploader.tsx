@@ -55,17 +55,18 @@ export function ObjectUploader({
     })
       .use(XHRUpload, {
         endpoint: async () => {
+          console.log("🔗 Getting upload endpoint...");
           const params = await onGetUploadParameters();
+          console.log("📍 Upload endpoint:", params.url);
+          console.log("🔧 Upload method:", params.method);
           return params.url;
         },
         method: "POST",
         formData: true,
         fieldName: "image",
         withCredentials: true,
-        headers: {},
-        timeout: 120 * 1000, // 120 seconds timeout
+        timeout: 30 * 1000, // 30 seconds timeout
         limit: 1, // Upload one file at a time
-        retryDelays: [0, 1000, 3000, 5000], // Retry with delays
         getResponseData: (responseText, response) => {
           console.log("Raw response text:", responseText);
           console.log("Raw response object:", response);
@@ -95,15 +96,18 @@ export function ObjectUploader({
       .on("error", (error) => {
         console.error("Upload error:", error);
       })
+      .on("upload", (data) => {
+        console.log("🚀 Starting upload:", data);
+      })
+      .on("upload-progress", (file, progress) => {
+        console.log("📈 Upload progress:", file?.name, progress);
+      })
       .on("upload-error", (file, error, response) => {
-        console.error(
-          "Upload failed for file:",
-          file?.name,
-          "Error:",
-          error,
-          "Response:",
-          response
-        );
+        console.error("❌ Upload failed for file:", file?.name);
+        console.error("Error details:", error);
+        console.error("Response details:", response);
+        console.error("Response status:", response?.status);
+        console.error("Response statusText:", response?.statusText);
       })
   );
 

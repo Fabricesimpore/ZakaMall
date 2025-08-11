@@ -51,12 +51,15 @@ export default function ProductImageUploaderForm({
   const handleGetUploadParameters = async (): Promise<{ method: "POST"; url: string }> => {
     try {
       console.log("🔍 Getting upload parameters...");
+      console.log("Current location:", window.location.href);
+      
       const response = (await apiRequest("POST", "/api/objects/upload")) as any as Record<
         string,
         unknown
       >;
 
       console.log("✅ Upload parameters received:", response);
+      console.log("📍 Will upload to:", response.uploadURL);
 
       return {
         method: "POST" as const, // Changed from PUT to POST for multipart/form-data uploads
