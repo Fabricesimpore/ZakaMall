@@ -7,7 +7,7 @@ import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import { setupVite } from "./vite";
 import { serveStaticFiles } from "./static-files";
-import logger, { requestLogger, errorLogger, logInfo } from "./logger";
+import { requestLogger, errorLogger, logInfo } from "./logger";
 import { validateEnvironment, getNumericEnv } from "./envValidator";
 import { runStartupMigrations } from "./startup-migrations";
 
@@ -21,8 +21,8 @@ if (process.env.NODE_ENV === "production") {
   app.use(compression());
 }
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
 // Rate limiting configuration
 const limiter = rateLimit({

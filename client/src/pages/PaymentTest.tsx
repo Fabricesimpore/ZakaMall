@@ -44,7 +44,7 @@ export default function PaymentTest() {
           variant: "destructive",
         });
       }
-    } catch (_error) {
+    } catch {
       toast({
         title: "Erreur",
         description: "Erreur lors de la création de la commande de test",

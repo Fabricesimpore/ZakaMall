@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
-import { Request } from "express";
+import type { Request } from "express";
 import multer from "multer";
 
 // Configure Cloudinary

@@ -30,26 +30,27 @@ export default function ProductImageUploaderForm({
         ?.map((file) => {
           console.log("Processing uploaded file:", file);
           console.log("File response:", file.response);
-          
+
           // For XHRUpload, the JSON response is in file.response.body
           if (file.response && file.response.body) {
             try {
-              const responseData = typeof file.response.body === 'string' 
-                ? JSON.parse(file.response.body) 
-                : file.response.body;
+              const responseData =
+                typeof file.response.body === "string"
+                  ? JSON.parse(file.response.body)
+                  : file.response.body;
               console.log("Parsed response data:", responseData);
               return responseData.url;
             } catch (error) {
               console.error("Failed to parse upload response:", error);
             }
           }
-          
+
           // Fallback to other possible locations
           if (file.response && typeof file.response === "object") {
             const responseObj = file.response as any;
             return responseObj.url || file.uploadURL;
           }
-          
+
           return file.uploadURL;
         })
         .filter((url): url is string => Boolean(url)) || [];

@@ -76,7 +76,14 @@ export function ObjectUploader({
         console.error("Upload error:", error);
       })
       .on("upload-error", (file, error, response) => {
-        console.error("Upload failed for file:", file?.name, "Error:", error, "Response:", response);
+        console.error(
+          "Upload failed for file:",
+          file?.name,
+          "Error:",
+          error,
+          "Response:",
+          response
+        );
       })
   );
 
