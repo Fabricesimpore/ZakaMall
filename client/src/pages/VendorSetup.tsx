@@ -87,7 +87,7 @@ export default function VendorSetup() {
     console.log(`📍 Step changing to ${newStep}`);
     console.trace("Step change stack trace");
     setStepState(newStep);
-    
+
     // Only allow submission when actually on step 3
     setCanSubmit(newStep === 3);
   };

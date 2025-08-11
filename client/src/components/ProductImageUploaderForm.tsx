@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { UploadResult } from "@uppy/core";
 
 interface ProductImageUploaderFormProps {
-  onImagesChange: (images: string[]) => void;
+  onImagesChange: (imageUrls: string[]) => void;
   currentImages?: string[];
   maxImages?: number;
 }
@@ -24,13 +24,13 @@ export default function ProductImageUploaderForm({
   ) => {
     console.log("📸 Upload completed, result:", result);
     setIsUploading(false);
-    
+
     const uploadedURLs =
       result.successful
         ?.map((file) => {
           console.log("Processing uploaded file:", file);
           // For Cloudinary uploads, the response might be in file.response or file.uploadURL
-          if (file.response && typeof file.response === 'object') {
+          if (file.response && typeof file.response === "object") {
             const responseObj = file.response as any;
             return responseObj.url || file.uploadURL;
           }
@@ -57,9 +57,9 @@ export default function ProductImageUploaderForm({
         string,
         unknown
       >;
-      
+
       console.log("✅ Upload parameters received:", response);
-      
+
       return {
         method: "POST" as const, // Changed from PUT to POST for multipart/form-data uploads
         url: response.uploadURL as string,

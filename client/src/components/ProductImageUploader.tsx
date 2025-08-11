@@ -10,7 +10,7 @@ import type { UploadResult } from "@uppy/core";
 interface ProductImageUploaderProps {
   productId: string;
   currentImages?: string[];
-  onImagesUpdated?: (images: string[]) => void;
+  onImagesUpdated?: (imageUrls: string[]) => void;
 }
 
 export default function ProductImageUploader({

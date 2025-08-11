@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 
 interface PasswordInputProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (newValue: string) => void;
   placeholder?: string;
   showStrength?: boolean;
   className?: string;

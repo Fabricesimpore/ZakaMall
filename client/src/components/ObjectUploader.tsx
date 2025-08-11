@@ -12,10 +12,10 @@ interface ObjectUploaderProps {
   maxNumberOfFiles?: number;
   maxFileSize?: number;
   onGetUploadParameters: () => Promise<{
-    method: "PUT";
+    method: "PUT" | "POST";
     url: string;
   }>;
-  onComplete?: (_result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => void;
+  onComplete?: (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => void;
   buttonClassName?: string;
   children: ReactNode;
 }
