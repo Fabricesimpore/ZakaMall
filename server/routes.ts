@@ -1863,7 +1863,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Image upload endpoint using Cloudinary
-  app.post("/api/upload/image", isAuthenticated, upload.single('image'), async (req: any, res) => {
+  app.post("/api/upload/image", isAuthenticated, upload.single("image"), async (req: any, res) => {
     try {
       console.log("📤 Image upload request received");
 
@@ -1874,8 +1874,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if Cloudinary is configured
       if (!CloudinaryService.isConfigured()) {
         console.error("❌ Cloudinary not configured");
-        return res.status(500).json({ 
-          error: "Image storage not configured. Please set CLOUDINARY environment variables." 
+        return res.status(500).json({
+          error: "Image storage not configured. Please set CLOUDINARY environment variables.",
         });
       }
 
@@ -1883,8 +1883,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Upload to Cloudinary
       const result = await CloudinaryService.uploadImage(req.file.buffer, {
-        folder: 'zakamall/products',
-        public_id: `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        folder: "zakamall/products",
+        public_id: `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       });
 
       console.log("✅ Image uploaded successfully to Cloudinary:", result.secure_url);
@@ -1894,14 +1894,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         url: result.secure_url,
         publicId: result.public_id,
         width: result.width,
-        height: result.height
+        height: result.height,
       });
-
     } catch (error: any) {
       console.error("Image upload error:", error);
-      res.status(500).json({ 
-        error: "Failed to upload image", 
-        details: error.message 
+      res.status(500).json({
+        error: "Failed to upload image",
+        details: error.message,
       });
     }
   });
@@ -1910,28 +1909,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
     try {
       console.log("📤 Legacy upload parameters request received");
-      
+
       // Check if Cloudinary is configured
       if (!CloudinaryService.isConfigured()) {
         console.error("❌ Cloudinary not configured");
-        return res.status(500).json({ 
-          error: "Image storage not configured. Please configure Cloudinary." 
+        return res.status(500).json({
+          error: "Image storage not configured. Please configure Cloudinary.",
         });
       }
 
       // Return our image upload endpoint URL with proper Uppy-compatible format
-      const uploadUrl = `${req.protocol}://${req.get('host')}/api/upload/image`;
-      
+      const uploadUrl = `${req.protocol}://${req.get("host")}/api/upload/image`;
+
       console.log("📸 Generated Cloudinary upload URL:", uploadUrl);
-      
+
       // Return format that Uppy expects
-      res.json({ 
+      res.json({
         uploadURL: uploadUrl,
         method: "POST",
         fields: {},
-        headers: {}
+        headers: {},
       });
-
     } catch (error) {
       console.error("Error getting upload URL:", error);
       res.status(500).json({ error: "Failed to get upload URL" });

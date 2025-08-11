@@ -1,6 +1,6 @@
-import { v2 as cloudinary } from 'cloudinary';
-import { Request } from 'express';
-import multer from 'multer';
+import { v2 as cloudinary } from "cloudinary";
+import { Request } from "express";
+import multer from "multer";
 
 // Configure Cloudinary
 cloudinary.config({
@@ -11,18 +11,18 @@ cloudinary.config({
 
 // Configure multer for memory storage
 const storage = multer.memoryStorage();
-export const upload = multer({ 
+export const upload = multer({
   storage,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-    if (file.mimetype.startsWith('image/')) {
+    if (file.mimetype.startsWith("image/")) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed'));
+      cb(new Error("Only image files are allowed"));
     }
-  }
+  },
 });
 
 export interface CloudinaryUploadResult {
@@ -58,19 +58,18 @@ export class CloudinaryService {
   ): Promise<CloudinaryUploadResult> {
     return new Promise((resolve, reject) => {
       const uploadOptions = {
-        folder: options.folder || 'zakamall/products',
+        folder: options.folder || "zakamall/products",
         public_id: options.public_id,
         transformation: options.transformation || [
-          { width: 800, height: 800, crop: 'limit', quality: 'auto', format: 'auto' }
+          { width: 800, height: 800, crop: "limit", quality: "auto", format: "auto" },
         ],
-        ...options
+        ...options,
       };
 
-      cloudinary.uploader.upload_stream(
-        uploadOptions,
-        (error, result) => {
+      cloudinary.uploader
+        .upload_stream(uploadOptions, (error, result) => {
           if (error) {
-            console.error('Cloudinary upload error:', error);
+            console.error("Cloudinary upload error:", error);
             reject(error);
           } else if (result) {
             resolve({
@@ -81,10 +80,10 @@ export class CloudinaryService {
               format: result.format,
             });
           } else {
-            reject(new Error('Upload failed - no result returned'));
+            reject(new Error("Upload failed - no result returned"));
           }
-        }
-      ).end(buffer);
+        })
+        .end(buffer);
     });
   }
 
@@ -95,7 +94,7 @@ export class CloudinaryService {
     try {
       await cloudinary.uploader.destroy(publicId);
     } catch (error) {
-      console.error('Cloudinary delete error:', error);
+      console.error("Cloudinary delete error:", error);
       throw error;
     }
   }
@@ -104,7 +103,7 @@ export class CloudinaryService {
    * Get optimized image URL with transformations
    */
   static getOptimizedUrl(
-    publicId: string, 
+    publicId: string,
     options: {
       width?: number;
       height?: number;
@@ -115,9 +114,9 @@ export class CloudinaryService {
     return cloudinary.url(publicId, {
       width: options.width || 400,
       height: options.height || 400,
-      crop: options.crop || 'fill',
-      quality: options.quality || 'auto',
-      format: 'auto'
+      crop: options.crop || "fill",
+      quality: options.quality || "auto",
+      format: "auto",
     });
   }
 }
