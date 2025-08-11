@@ -29,10 +29,11 @@ export default function ProductImageUploaderForm({
       result.successful
         ?.map((file) => {
           console.log("Processing uploaded file:", file);
-          // For Cloudinary uploads, the response might be in file.response or file.uploadURL
+          // For XHRUpload, the response is in file.response.body
           if (file.response && typeof file.response === "object") {
             const responseObj = file.response as any;
-            return responseObj.url || file.uploadURL;
+            // Try different possible response formats
+            return responseObj.body?.url || responseObj.url || file.uploadURL;
           }
           return file.uploadURL;
         })
