@@ -10,7 +10,6 @@ import type { UploadResult } from "@uppy/core";
 interface ProductImageUploaderProps {
   productId: string;
   currentImages?: string[];
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onImagesUpdated?: (imageUrls: string[]) => void;
 }
 

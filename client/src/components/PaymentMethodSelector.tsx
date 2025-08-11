@@ -45,9 +45,7 @@ type PaymentFormData = z.infer<typeof paymentFormSchema>;
 interface PaymentMethodSelectorProps {
   orderId: string;
   totalAmount: number;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onPaymentSuccess: (paymentId: string, transactionId: string) => void;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onPaymentError: (errorMessage: string) => void;
 }
 

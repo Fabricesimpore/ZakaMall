@@ -52,10 +52,15 @@ export default [
       "prettier/prettier": "warn", // Changed from error to warning
       "@typescript-eslint/no-unused-vars": [
         "warn",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          args: "none",
+          ignoreRestSiblings: true,
+        },
       ], // More lenient
       "@typescript-eslint/no-explicit-any": "off", // Disabled for development
-      "no-unused-vars": "warn", // Changed from error to warning
+      "no-unused-vars": "off", // Disabled in favor of @typescript-eslint/no-unused-vars
       "no-undef": "warn", // Changed from error to warning
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",

@@ -15,7 +15,6 @@ interface ObjectUploaderProps {
     method: "PUT" | "POST";
     url: string;
   }>;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onComplete?: (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => void;
   buttonClassName?: string;
   children: ReactNode;
