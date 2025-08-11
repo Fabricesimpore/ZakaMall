@@ -1866,8 +1866,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/upload/image", isAuthenticated, upload.single("image"), async (req: any, res) => {
     try {
       console.log("📤 Image upload request received");
+      console.log("Session user:", req.session?.user?.id);
+      console.log("File received:", req.file ? `${req.file.originalname} (${req.file.size} bytes)` : "No file");
 
       if (!req.file) {
+        console.error("❌ No file in request");
         return res.status(400).json({ error: "No image file provided" });
       }
 
@@ -1879,7 +1882,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log(`📸 Uploading image: ${req.file.originalname} (${req.file.size} bytes)`);
+      console.log(`📸 Uploading image to Cloudinary: ${req.file.originalname}`);
 
       // Upload to Cloudinary
       const result = await CloudinaryService.uploadImage(req.file.buffer, {

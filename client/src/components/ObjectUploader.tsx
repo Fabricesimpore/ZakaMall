@@ -61,10 +61,22 @@ export function ObjectUploader({
         method: "POST",
         formData: true,
         fieldName: "image",
+        withCredentials: true,
+        headers: {},
+        timeout: 120 * 1000, // 120 seconds timeout
+        limit: 1, // Upload one file at a time
+        retryDelays: [0, 1000, 3000, 5000], // Retry with delays
       })
       .on("complete", (result) => {
+        console.log("Upload complete:", result);
         onComplete?.(result);
         setShowModal(false);
+      })
+      .on("error", (error) => {
+        console.error("Upload error:", error);
+      })
+      .on("upload-error", (file, error, response) => {
+        console.error("Upload failed for file:", file?.name, "Error:", error, "Response:", response);
       })
   );
 
