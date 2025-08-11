@@ -2,13 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import {
-  toMinorUnit,
-  toMajorUnit,
-  formatMoney,
-  isValidMoneyAmount,
-  calculateCommission,
-} from "./utils/money";
+import { toMajorUnit } from "./utils/money";
 import { orderNotificationService } from "./notifications/orderNotifications";
 import {
   setupAuth,
@@ -1867,7 +1861,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("📤 Image upload request received");
       console.log("Session user:", req.session?.user?.id);
-      console.log("File received:", req.file ? `${req.file.originalname} (${req.file.size} bytes)` : "No file");
+      console.log(
+        "File received:",
+        req.file ? `${req.file.originalname} (${req.file.size} bytes)` : "No file"
+      );
 
       if (!req.file) {
         console.error("❌ No file in request");

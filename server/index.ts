@@ -25,7 +25,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
 // Rate limiting configuration
-const limiter = rateLimit({
+const _limiter = rateLimit({
   windowMs: getNumericEnv("RATE_LIMIT_WINDOW_MS", 900000), // 15 minutes default
   max: getNumericEnv("RATE_LIMIT_MAX_REQUESTS", 100), // limit each IP to 100 requests per windowMs
   message: {
@@ -52,7 +52,7 @@ const limiter = rateLimit({
 // }
 
 // More lenient rate limiting for authentication endpoints
-const authLimiter = rateLimit({
+const _authLimiter = rateLimit({
   windowMs: 900000, // 15 minutes
   max: process.env.NODE_ENV === "development" ? 1000 : 10, // Much higher limit in development
   message: {

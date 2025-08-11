@@ -4,7 +4,7 @@
  */
 
 import { emailService } from "../emailService";
-import type { Order, User, Product } from "@shared/schema";
+import type { Order, User } from "@shared/schema";
 import { formatMoney } from "../utils/money";
 
 export interface OrderNotificationData {
