@@ -1913,16 +1913,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if Cloudinary is configured
       if (!CloudinaryService.isConfigured()) {
+        console.error("❌ Cloudinary not configured");
         return res.status(500).json({ 
           error: "Image storage not configured. Please configure Cloudinary." 
         });
       }
 
-      // Return our image upload endpoint URL
+      // Return our image upload endpoint URL with proper Uppy-compatible format
       const uploadUrl = `${req.protocol}://${req.get('host')}/api/upload/image`;
       
       console.log("📸 Generated Cloudinary upload URL:", uploadUrl);
-      res.json({ uploadURL: uploadUrl });
+      
+      // Return format that Uppy expects
+      res.json({ 
+        uploadURL: uploadUrl,
+        method: "POST",
+        fields: {},
+        headers: {}
+      });
 
     } catch (error) {
       console.error("Error getting upload URL:", error);
