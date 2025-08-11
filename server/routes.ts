@@ -1862,22 +1862,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get upload URL for product images
-  // Simple file upload endpoint that stores files in public directory
+  // Mock upload endpoint for development when object storage is not configured
   app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
     try {
-      console.log("📤 Upload request received");
+      console.log("📤 Upload parameters request received");
       
       // Check if object storage is properly configured
       const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
       if (!bucketId) {
-        console.log("🔧 Object storage not configured, using placeholder images");
+        console.log("🔧 Object storage not configured, using mock upload endpoint");
         
-        // Generate a unique placeholder URL
-        const timestamp = Date.now();
-        const mockImageUrl = `https://picsum.photos/400/300?random=${timestamp}`;
+        // Return our own mock upload endpoint
+        const mockUploadUrl = `${req.protocol}://${req.get('host')}/api/objects/mock-upload`;
         
-        console.log("📸 Generated placeholder image URL:", mockImageUrl);
-        res.json({ uploadURL: mockImageUrl });
+        console.log("📸 Generated mock upload URL:", mockUploadUrl);
+        res.json({ uploadURL: mockUploadUrl });
         return;
       }
 
@@ -1888,12 +1887,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ uploadURL });
     } catch (error) {
       console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Failed to get upload URL" });
+    }
+  });
+
+  // Mock upload endpoint that accepts the file and returns a placeholder URL
+  app.put("/api/objects/mock-upload", async (req, res) => {
+    try {
+      console.log("📸 Mock file upload received");
       
-      // Fallback to placeholder if real storage fails
+      // Generate a unique placeholder image URL
       const timestamp = Date.now();
-      const fallbackUrl = `https://picsum.photos/400/300?random=${timestamp}`;
-      console.log("🔄 Falling back to placeholder image:", fallbackUrl);
-      res.json({ uploadURL: fallbackUrl });
+      const placeholderUrl = `https://picsum.photos/400/300?random=${timestamp}`;
+      
+      console.log("✅ Mock upload successful, returning placeholder:", placeholderUrl);
+      
+      // Simulate successful upload response
+      res.status(200).send(placeholderUrl);
+    } catch (error) {
+      console.error("Mock upload error:", error);
+      res.status(500).json({ error: "Mock upload failed" });
     }
   });
 
