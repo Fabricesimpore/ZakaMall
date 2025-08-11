@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { UploadResult } from "@uppy/core";
 
 interface ProductImageUploaderFormProps {
-  onImagesChange: (imageUrls: string[]) => void;
+  onImagesChange: (_imageUrls: string[]) => void;
   currentImages?: string[];
   maxImages?: number;
 }
