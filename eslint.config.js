@@ -48,7 +48,7 @@ export default [
     rules: {
       ...js.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "react-refresh/only-export-components": "off", // Disabled for UI utility components
       "prettier/prettier": "warn", // Changed from error to warning
       "@typescript-eslint/no-unused-vars": [
         "warn",

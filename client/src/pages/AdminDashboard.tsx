@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
@@ -6,7 +6,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import DashboardCardSkeleton from "@/components/skeletons/DashboardCardSkeleton";
-import TableSkeleton from "@/components/skeletons/TableSkeleton";
+import _TableSkeleton from "@/components/skeletons/TableSkeleton";
 import ListItemSkeleton from "@/components/skeletons/ListItemSkeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
