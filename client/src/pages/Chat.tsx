@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -83,6 +83,7 @@ export default function Chat() {
     if (selectedRoom?.id) {
       markAsReadMutation.mutate(selectedRoom.id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRoom?.id]);
 
   // Redirect to home if not authenticated

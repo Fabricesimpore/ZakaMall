@@ -15,7 +15,7 @@ export default function Landing() {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
-  const handleLogin = () => {
+  const _handleLogin = () => {
     setIsLoginOpen(true);
   };
 

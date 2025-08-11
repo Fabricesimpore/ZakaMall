@@ -1,7 +1,7 @@
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import connectPg from "connect-pg-simple";
-import { storage } from "./storage";
+import { storage as _storage } from "./storage";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
@@ -49,18 +49,18 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 };
 
 // Login schemas
-const emailLoginSchema = z.object({
+const _emailLoginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
 });
 
-const phoneLoginSchema = z.object({
+const _phoneLoginSchema = z.object({
   phone: z.string().regex(/^\+?[1-9]\d{1,14}$/),
   password: z.string().min(6),
 });
 
 // Register schema
-const registerSchema = z.object({
+const _registerSchema = z.object({
   email: z.string().email().optional(),
   phone: z
     .string()
