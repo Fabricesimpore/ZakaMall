@@ -22,11 +22,23 @@ export default function ProductImageUploaderForm({
   const handleUploadComplete = (
     result: UploadResult<Record<string, unknown>, Record<string, unknown>>
   ) => {
+    console.log("📸 Upload completed, result:", result);
     setIsUploading(false);
+    
     const uploadedURLs =
       result.successful
-        ?.map((file) => file.uploadURL)
+        ?.map((file) => {
+          console.log("Processing uploaded file:", file);
+          // For Cloudinary uploads, the response might be in file.response or file.uploadURL
+          if (file.response && typeof file.response === 'object') {
+            const responseObj = file.response as any;
+            return responseObj.url || file.uploadURL;
+          }
+          return file.uploadURL;
+        })
         .filter((url): url is string => Boolean(url)) || [];
+
+    console.log("✅ Extracted image URLs:", uploadedURLs);
 
     const allImages = [...uploadedImages, ...uploadedURLs];
     setUploadedImages(allImages);
@@ -38,17 +50,22 @@ export default function ProductImageUploaderForm({
     });
   };
 
-  const handleGetUploadParameters = async (): Promise<{ method: "PUT"; url: string }> => {
+  const handleGetUploadParameters = async (): Promise<{ method: "POST"; url: string }> => {
     try {
+      console.log("🔍 Getting upload parameters...");
       const response = (await apiRequest("POST", "/api/objects/upload")) as any as Record<
         string,
         unknown
       >;
+      
+      console.log("✅ Upload parameters received:", response);
+      
       return {
-        method: "PUT" as const,
+        method: "POST" as const, // Changed from PUT to POST for multipart/form-data uploads
         url: response.uploadURL as string,
       };
     } catch (error) {
+      console.error("❌ Failed to get upload parameters:", error);
       toast({
         title: "Erreur",
         description: "Impossible d'obtenir l'URL d'upload",

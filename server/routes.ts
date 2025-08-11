@@ -18,6 +18,7 @@ import {
   createUserSession,
 } from "./auth";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import CloudinaryService, { upload } from "./cloudinaryStorage";
 import { ObjectPermission } from "./objectAcl";
 import { PaymentServiceFactory } from "./paymentService";
 import {
@@ -1861,52 +1862,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get upload URL for product images
-  // Mock upload endpoint for development when object storage is not configured
-  app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
+  // Image upload endpoint using Cloudinary
+  app.post("/api/upload/image", isAuthenticated, upload.single('image'), async (req: any, res) => {
     try {
-      console.log("📤 Upload parameters request received");
-      
-      // Check if object storage is properly configured
-      const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
-      if (!bucketId) {
-        console.log("🔧 Object storage not configured, using mock upload endpoint");
-        
-        // Return our own mock upload endpoint
-        const mockUploadUrl = `${req.protocol}://${req.get('host')}/api/objects/mock-upload`;
-        
-        console.log("📸 Generated mock upload URL:", mockUploadUrl);
-        res.json({ uploadURL: mockUploadUrl });
-        return;
+      console.log("📤 Image upload request received");
+
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
       }
 
-      // If object storage is configured, try to use it
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      console.log("✅ Real object storage upload URL generated");
-      res.json({ uploadURL });
-    } catch (error) {
-      console.error("Error getting upload URL:", error);
-      res.status(500).json({ error: "Failed to get upload URL" });
+      // Check if Cloudinary is configured
+      if (!CloudinaryService.isConfigured()) {
+        console.error("❌ Cloudinary not configured");
+        return res.status(500).json({ 
+          error: "Image storage not configured. Please set CLOUDINARY environment variables." 
+        });
+      }
+
+      console.log(`📸 Uploading image: ${req.file.originalname} (${req.file.size} bytes)`);
+
+      // Upload to Cloudinary
+      const result = await CloudinaryService.uploadImage(req.file.buffer, {
+        folder: 'zakamall/products',
+        public_id: `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      });
+
+      console.log("✅ Image uploaded successfully to Cloudinary:", result.secure_url);
+
+      res.json({
+        success: true,
+        url: result.secure_url,
+        publicId: result.public_id,
+        width: result.width,
+        height: result.height
+      });
+
+    } catch (error: any) {
+      console.error("Image upload error:", error);
+      res.status(500).json({ 
+        error: "Failed to upload image", 
+        details: error.message 
+      });
     }
   });
 
-  // Mock upload endpoint that accepts the file and returns a placeholder URL
-  app.put("/api/objects/mock-upload", async (req, res) => {
+  // Legacy endpoint for compatibility with existing uploader component
+  app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
     try {
-      console.log("📸 Mock file upload received");
+      console.log("📤 Legacy upload parameters request received");
       
-      // Generate a unique placeholder image URL
-      const timestamp = Date.now();
-      const placeholderUrl = `https://picsum.photos/400/300?random=${timestamp}`;
+      // Check if Cloudinary is configured
+      if (!CloudinaryService.isConfigured()) {
+        return res.status(500).json({ 
+          error: "Image storage not configured. Please configure Cloudinary." 
+        });
+      }
+
+      // Return our image upload endpoint URL
+      const uploadUrl = `${req.protocol}://${req.get('host')}/api/upload/image`;
       
-      console.log("✅ Mock upload successful, returning placeholder:", placeholderUrl);
-      
-      // Simulate successful upload response
-      res.status(200).send(placeholderUrl);
+      console.log("📸 Generated Cloudinary upload URL:", uploadUrl);
+      res.json({ uploadURL: uploadUrl });
+
     } catch (error) {
-      console.error("Mock upload error:", error);
-      res.status(500).json({ error: "Mock upload failed" });
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Failed to get upload URL" });
     }
   });
 
