@@ -111,6 +111,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
   const saveProductMutation = useMutation({
     mutationFn: async (data: ProductFormData) => {
+      console.log("🛍️ Creating product with data:", data);
       const productData = {
         ...data,
         price: Number(data.price),
@@ -118,16 +119,24 @@ export default function ProductForm({ productId }: ProductFormProps) {
         quantity: Number(data.quantity),
         weight: data.weight ? Number(data.weight) : null,
       };
+      console.log("📦 Processed product data:", productData);
 
       if (isEdit) {
+        console.log("✏️ Updating existing product:", productId);
         return await apiRequest("PUT", `/api/vendor/products/${productId}`, productData);
       } else {
-        return await apiRequest("POST", "/api/vendor/products", productData);
+        console.log("🆕 Creating new product");
+        const result = await apiRequest("POST", "/api/vendor/products", productData);
+        console.log("✅ Product creation result:", result);
+        return result;
       }
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      console.log("🎉 Product save successful, result:", result);
+      console.log("🔄 Invalidating queries...");
       queryClient.invalidateQueries({ queryKey: ["/api/vendor/products"] });
       queryClient.invalidateQueries({ queryKey: ["/api/vendor/stats"] });
+      console.log("✅ Queries invalidated, showing toast and redirecting");
       toast({
         title: isEdit ? "Produit mis à jour" : "Produit créé",
         description: isEdit
