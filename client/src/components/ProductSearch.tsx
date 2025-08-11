@@ -23,10 +23,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 interface ProductSearchProps {
   searchTerm: string;
-  onSearchChange: (_term: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onSearchChange: (term: string) => void;
   categories: any[];
   selectedCategory: string;
-  onCategoryChange: (_category: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onCategoryChange: (category: string) => void;
   filters: {
     minPrice: number;
     maxPrice: number;
@@ -34,7 +36,8 @@ interface ProductSearchProps {
     sortBy: string;
     sortOrder: string;
   };
-  onFiltersChange: (_filters: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onFiltersChange: (filters: any) => void;
 }
 
 export default function ProductSearch({

@@ -5,7 +5,8 @@ import { useToast } from "@/hooks/use-toast";
 import type { UploadResult } from "@uppy/core";
 
 interface ProductImageUploaderFormProps {
-  onImagesChange: (_imageUrls: string[]) => void;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onImagesChange: (imageUrls: string[]) => void;
   currentImages?: string[];
   maxImages?: number;
 }

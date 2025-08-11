@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 
 interface PasswordInputProps {
   value: string;
-  onChange: (_newValue: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onChange: (newValue: string) => void;
   placeholder?: string;
   showStrength?: boolean;
   className?: string;
