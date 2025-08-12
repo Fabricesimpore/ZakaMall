@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useCartPersistence } from "@/hooks/useCartPersistence";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { CartItemWithProduct } from "@shared/schema";
@@ -17,10 +18,16 @@ interface CartProps {
 export default function Cart({ onClose }: CartProps) {
   const [showCheckout, setShowCheckout] = useState(false);
   const { toast } = useToast();
+  const { restoreCart, saveCartToLocal, isRestoring } = useCartPersistence();
 
   const { data: cartItems = [] as CartItemWithProduct[], isLoading } = useQuery({
     queryKey: ["/api/cart"],
   });
+
+  // Restore cart from localStorage on component mount
+  useEffect(() => {
+    restoreCart();
+  }, [restoreCart]);
 
   const updateCartMutation = useMutation({
     mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
@@ -153,7 +160,7 @@ export default function Cart({ onClose }: CartProps) {
       </CardHeader>
 
       <CardContent className="flex flex-col flex-1 overflow-hidden p-4">
-        {isLoading ? (
+        {isLoading || isRestoring ? (
           <div className="space-y-4 flex-1">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="animate-pulse border-b pb-4">

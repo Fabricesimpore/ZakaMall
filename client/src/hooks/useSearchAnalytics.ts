@@ -70,7 +70,7 @@ export function useSearchAnalytics() {
     );
 
     return Object.entries(searchCounts)
-      .sort(([, a], [, b]) => b - a)
+      .sort(([, a], [, b]) => (b as number) - (a as number))
       .slice(0, 10)
       .map(([query, count]) => ({ query, count }));
   }, []);
