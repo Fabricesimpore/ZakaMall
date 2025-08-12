@@ -50,7 +50,7 @@ export default function CustomerDashboard() {
       return response.json();
     },
   });
-  
+
   const products = productsResponse?.items || [];
 
   const { data: cartItems = [] } = useQuery<any[]>({
