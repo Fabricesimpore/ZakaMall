@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect, useCallback } from "react";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
@@ -30,12 +30,15 @@ export default function CustomerDashboard() {
   });
 
   const {
-    data: productsResponse,
+    data: productsData,
     isLoading: productsLoading,
     error: productsError,
-  } = useQuery<any>({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ["/api/products", searchTerm, selectedCategory, filters],
-    queryFn: async () => {
+    queryFn: async ({ pageParam = 1 }) => {
       const params = new URLSearchParams();
       if (searchTerm) params.append("search", searchTerm);
       if (selectedCategory) params.append("categoryId", selectedCategory);
@@ -44,14 +47,20 @@ export default function CustomerDashboard() {
       if (filters.inStock) params.append("inStock", "true");
       params.append("sortBy", filters.sortBy);
       params.append("sortOrder", filters.sortOrder);
+      params.append("page", pageParam.toString());
+      params.append("pageSize", "20");
       const response = await fetch(`/api/products?${params}`);
       if (!response.ok)
         throw new Error(`Erreur ${response.status}: Impossible de charger les produits`);
       return response.json();
     },
+    getNextPageParam: (lastPage) => {
+      return lastPage.hasMore ? lastPage.page + 1 : undefined;
+    },
+    initialPageParam: 1,
   });
 
-  const products = productsResponse?.items || [];
+  const products = productsData?.pages.flatMap((page) => page.items) || [];
 
   const { data: cartItems = [] } = useQuery<any[]>({
     queryKey: ["/api/cart"],
@@ -164,11 +173,34 @@ export default function CustomerDashboard() {
                 ))}
               </div>
             ) : products && products.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {products.map((product: any) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {products.map((product: any) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+                {hasNextPage && (
+                  <div className="flex justify-center mt-8">
+                    <Button
+                      onClick={() => fetchNextPage()}
+                      disabled={isFetchingNextPage}
+                      className="bg-zaka-orange hover:bg-zaka-orange"
+                    >
+                      {isFetchingNextPage ? (
+                        <>
+                          <i className="fas fa-spinner fa-spin mr-2"></i>
+                          Chargement...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-plus mr-2"></i>
+                          Voir plus de produits
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-center py-12">
                 <i className="fas fa-search text-6xl text-gray-300 mb-4"></i>

@@ -74,6 +74,13 @@ export default function ProductCard({ product }: ProductCardProps) {
       if (imageUrl.startsWith("/objects/")) {
         return imageUrl; // Will be served by our object storage route
       }
+      // If it's a Cloudinary URL, add optimization parameters
+      if (imageUrl.includes('cloudinary.com')) {
+        // Add responsive image transformations for better performance
+        const baseUrl = imageUrl.split('/upload/')[0] + '/upload/';
+        const imagePath = imageUrl.split('/upload/')[1];
+        return `${baseUrl}c_fill,w_400,h_300,q_auto,f_auto/${imagePath}`;
+      }
       return imageUrl;
     }
     return null;
@@ -88,6 +95,8 @@ export default function ProductCard({ product }: ProductCardProps) {
               src={getFirstImage()!}
               alt={product.name}
               className="w-full h-48 object-cover rounded-t-lg"
+              loading="lazy"
+              decoding="async"
             />
           ) : (
             <div className="w-full h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
