@@ -69,6 +69,11 @@ export class CloudinaryService {
       transformation?: any;
     } = {}
   ): Promise<CloudinaryUploadResult> {
+    // Check if Cloudinary is configured before attempting upload
+    if (!this.isConfigured()) {
+      throw new Error("Cloudinary is not properly configured. Please check your environment variables.");
+    }
+
     return new Promise((resolve, reject) => {
       const uploadOptions: any = {
         folder: options.folder || "zakamall/products",
@@ -82,12 +87,23 @@ export class CloudinaryService {
         uploadOptions.public_id = options.public_id;
       }
 
+      console.log("🔧 Upload options:", uploadOptions);
+
       cloudinary.uploader
         .upload_stream(uploadOptions, (error, result) => {
           if (error) {
-            console.error("Cloudinary upload error:", error);
+            console.error("❌ Cloudinary upload error:", error);
+            console.error("Error message:", error.message);
+            console.error("Error http_code:", error.http_code);
             reject(error);
           } else if (result) {
+            console.log("✅ Cloudinary upload successful:", {
+              public_id: result.public_id,
+              secure_url: result.secure_url,
+              width: result.width,
+              height: result.height,
+              format: result.format,
+            });
             resolve({
               public_id: result.public_id,
               secure_url: result.secure_url,
