@@ -521,11 +521,28 @@ export const insertCategorySchema = createInsertSchema(categories).omit({
   createdAt: true,
 });
 
-export const insertProductSchema = createInsertSchema(products).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+export const insertProductSchema = createInsertSchema(products)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    // Transform number inputs to strings for decimal fields
+    price: z.union([z.string(), z.number()]).transform((val) => String(val)),
+    compareAtPrice: z
+      .union([z.string(), z.number()])
+      .transform((val) => String(val))
+      .optional(),
+    cost: z
+      .union([z.string(), z.number()])
+      .transform((val) => String(val))
+      .optional(),
+    weight: z
+      .union([z.string(), z.number()])
+      .transform((val) => String(val))
+      .optional(),
+  });
 
 export const insertOrderSchema = createInsertSchema(orders).omit({
   id: true,
