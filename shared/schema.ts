@@ -531,17 +531,20 @@ export const insertProductSchema = createInsertSchema(products)
     // Transform number inputs to strings for decimal fields
     price: z.union([z.string(), z.number()]).transform((val) => String(val)),
     compareAtPrice: z
-      .union([z.string(), z.number()])
-      .transform((val) => String(val))
-      .optional(),
+      .union([z.string(), z.number(), z.null()])
+      .transform((val) => val === null ? null : String(val))
+      .optional()
+      .nullable(),
     cost: z
-      .union([z.string(), z.number()])
-      .transform((val) => String(val))
-      .optional(),
+      .union([z.string(), z.number(), z.null()])
+      .transform((val) => val === null ? null : String(val))
+      .optional()
+      .nullable(),
     weight: z
-      .union([z.string(), z.number()])
-      .transform((val) => String(val))
-      .optional(),
+      .union([z.string(), z.number(), z.null()])
+      .transform((val) => val === null ? null : String(val))
+      .optional()
+      .nullable(),
   });
 
 export const insertOrderSchema = createInsertSchema(orders).omit({
