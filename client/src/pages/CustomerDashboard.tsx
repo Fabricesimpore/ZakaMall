@@ -30,10 +30,10 @@ export default function CustomerDashboard() {
   });
 
   const {
-    data: products = [],
+    data: productsResponse,
     isLoading: productsLoading,
     error: productsError,
-  } = useQuery<any[]>({
+  } = useQuery<any>({
     queryKey: ["/api/products", searchTerm, selectedCategory, filters],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -50,6 +50,8 @@ export default function CustomerDashboard() {
       return response.json();
     },
   });
+  
+  const products = productsResponse?.items || [];
 
   const { data: cartItems = [] } = useQuery<any[]>({
     queryKey: ["/api/cart"],
