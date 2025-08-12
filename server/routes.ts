@@ -828,7 +828,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log("✅ Vendor found:", vendor.id);
-      
+
       const productDataWithVendor = { ...req.body, vendorId: vendor.id };
       console.log("Product data with vendor ID:", JSON.stringify(productDataWithVendor, null, 2));
 
@@ -849,11 +849,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Validation issues:", error.issues);
       }
       console.error("Full error:", error);
-      
-      res.status(500).json({ 
+
+      res.status(500).json({
         message: "Failed to create product",
         error: error.message,
-        ...(error.issues && { validationErrors: error.issues })
+        ...(error.issues && { validationErrors: error.issues }),
       });
     }
   });
