@@ -41,13 +41,16 @@ export class CloudinaryService {
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
     const apiKey = process.env.CLOUDINARY_API_KEY;
     const apiSecret = process.env.CLOUDINARY_API_SECRET;
-    
+
     const isConfigured = !!(cloudName && apiKey && apiSecret);
 
     console.log("🔍 Cloudinary Configuration Check:");
     console.log("CLOUDINARY_CLOUD_NAME:", cloudName ? `✅ "${cloudName}"` : "❌ Missing");
     console.log("CLOUDINARY_API_KEY:", apiKey ? `✅ "${apiKey.substring(0, 8)}..."` : "❌ Missing");
-    console.log("CLOUDINARY_API_SECRET:", apiSecret ? `✅ Set (${apiSecret.length} chars)` : "❌ Missing");
+    console.log(
+      "CLOUDINARY_API_SECRET:",
+      apiSecret ? `✅ Set (${apiSecret.length} chars)` : "❌ Missing"
+    );
 
     if (!isConfigured) {
       console.error("❌ Cloudinary configuration incomplete - image uploads will fail");
