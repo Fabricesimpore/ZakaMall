@@ -532,17 +532,17 @@ export const insertProductSchema = createInsertSchema(products)
     price: z.union([z.string(), z.number()]).transform((val) => String(val)),
     compareAtPrice: z
       .union([z.string(), z.number(), z.null()])
-      .transform((val) => val === null ? null : String(val))
+      .transform((val) => (val === null ? null : String(val)))
       .optional()
       .nullable(),
     cost: z
       .union([z.string(), z.number(), z.null()])
-      .transform((val) => val === null ? null : String(val))
+      .transform((val) => (val === null ? null : String(val)))
       .optional()
       .nullable(),
     weight: z
       .union([z.string(), z.number(), z.null()])
-      .transform((val) => val === null ? null : String(val))
+      .transform((val) => (val === null ? null : String(val)))
       .optional()
       .nullable(),
   });
