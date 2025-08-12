@@ -1881,10 +1881,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`📸 Uploading image to Cloudinary: ${req.file.originalname}`);
 
-      // Upload to Cloudinary
+      // Upload to Cloudinary with minimal options to avoid signature issues
       const result = await CloudinaryService.uploadImage(req.file.buffer, {
         folder: "zakamall/products",
-        public_id: `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       });
 
       console.log("✅ Image uploaded successfully to Cloudinary:", result.secure_url);

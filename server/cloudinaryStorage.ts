@@ -38,11 +38,24 @@ export class CloudinaryService {
    * Check if Cloudinary is properly configured
    */
   static isConfigured(): boolean {
-    return !!(
+    const isConfigured = !!(
       process.env.CLOUDINARY_CLOUD_NAME &&
       process.env.CLOUDINARY_API_KEY &&
       process.env.CLOUDINARY_API_SECRET
     );
+    
+    if (!isConfigured) {
+      console.error("❌ Cloudinary configuration missing:");
+      console.error("CLOUDINARY_CLOUD_NAME:", !!process.env.CLOUDINARY_CLOUD_NAME);
+      console.error("CLOUDINARY_API_KEY:", !!process.env.CLOUDINARY_API_KEY);
+      console.error("CLOUDINARY_API_SECRET:", !!process.env.CLOUDINARY_API_SECRET);
+    } else {
+      console.log("✅ Cloudinary is properly configured");
+      console.log("Cloud name:", process.env.CLOUDINARY_CLOUD_NAME);
+      console.log("API key:", process.env.CLOUDINARY_API_KEY?.substring(0, 8) + "...");
+    }
+    
+    return isConfigured;
   }
 
   /**
@@ -57,14 +70,17 @@ export class CloudinaryService {
     } = {}
   ): Promise<CloudinaryUploadResult> {
     return new Promise((resolve, reject) => {
-      const uploadOptions = {
+      const uploadOptions: any = {
         folder: options.folder || "zakamall/products",
-        public_id: options.public_id,
-        transformation: options.transformation || [
-          { width: 800, height: 800, crop: "limit", quality: "auto", format: "auto" },
-        ],
-        ...options,
+        resource_type: "image",
+        quality: "auto",
+        format: "auto",
       };
+
+      // Only add public_id if provided
+      if (options.public_id) {
+        uploadOptions.public_id = options.public_id;
+      }
 
       cloudinary.uploader
         .upload_stream(uploadOptions, (error, result) => {
