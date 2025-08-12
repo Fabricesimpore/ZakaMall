@@ -574,6 +574,7 @@ export class DatabaseStorage implements IStorage {
     inStock?: boolean;
     tags?: string[];
     includeInactive?: boolean;
+    minRating?: number;
   }): Promise<{ items: Product[]; total: number; hasMore: boolean }> {
     const conditions = [];
 
@@ -621,6 +622,11 @@ export class DatabaseStorage implements IStorage {
       );
     } else if (filters?.inStock === false) {
       conditions.push(and(eq(products.trackQuantity, true), sql`${products.quantity} <= 0`)!);
+    }
+
+    // Rating filtering
+    if (filters?.minRating !== undefined && filters.minRating > 0) {
+      conditions.push(sql`${products.rating}::numeric >= ${filters.minRating}`);
     }
 
     const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);

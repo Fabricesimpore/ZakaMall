@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
@@ -41,18 +42,21 @@ export default function SearchWithSuggestions({
     }
   }, []);
 
+  // Debounce search term to avoid excessive API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
   // Fetch search suggestions
   const { data: suggestions = [], isLoading } = useQuery<SearchSuggestion[]>({
-    queryKey: ["/api/search/suggestions", searchTerm],
+    queryKey: ["/api/search/suggestions", debouncedSearchTerm],
     queryFn: async () => {
-      if (!searchTerm.trim()) return [];
-      const response = await apiRequest(
-        "GET",
-        `/api/search/suggestions?q=${encodeURIComponent(searchTerm)}`
+      if (!debouncedSearchTerm.trim()) return [];
+      const response = await fetch(
+        `/api/search/suggestions?q=${encodeURIComponent(debouncedSearchTerm)}`
       );
+      if (!response.ok) throw new Error("Failed to fetch suggestions");
       return response.json();
     },
-    enabled: searchTerm.length > 1 && isFocused,
+    enabled: debouncedSearchTerm.length > 1 && isFocused,
     staleTime: 30000, // Cache for 30 seconds
   });
 

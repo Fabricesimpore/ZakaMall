@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -25,6 +26,21 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { toast } = useToast();
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
+  const { addToRecentlyViewed } = useRecentlyViewed();
+
+  // Track product view
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      addToRecentlyViewed({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        images: product.images,
+      });
+    }, 2000); // Track after 2 seconds of viewing
+
+    return () => clearTimeout(timer);
+  }, [product.id, product.name, product.price, product.images, addToRecentlyViewed]);
 
   const addToCartMutation = useMutation({
     mutationFn: async () => {

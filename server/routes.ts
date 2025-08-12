@@ -874,6 +874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxPrice,
         inStock,
         tags,
+        minRating,
       } = req.query;
 
       // Support both offset and page-based pagination
@@ -895,6 +896,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Parse boolean filters
       const parsedInStock = inStock === "true" ? true : inStock === "false" ? false : undefined;
 
+      // Parse rating filter
+      const parsedMinRating = minRating ? parseFloat(minRating as string) : undefined;
+
       // Parse tags array
       const parsedTags = tags
         ? typeof tags === "string"
@@ -914,6 +918,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxPrice: parsedMaxPrice,
         inStock: parsedInStock,
         tags: parsedTags,
+        minRating: parsedMinRating,
       });
 
       // Return paginated response with metadata
@@ -1273,7 +1278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { q } = req.query;
 
       if (!q || typeof q !== "string" || q.length < 2) {
-        return res.json({ suggestions: [] });
+        return res.json([]);
       }
 
       // Search for product names and categories that match the query
@@ -1291,19 +1296,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...productSuggestions.items.map((product: any) => ({
           type: "product",
           id: product.id,
-          text: product.name,
+          name: product.name,
           category: product.categoryId,
           price: product.price,
+          images: product.images,
         })),
         ...matchingCategories.map((category: any) => ({
           type: "category",
           id: category.id,
-          text: category.name,
+          name: category.name,
           description: category.description,
         })),
       ].slice(0, 8);
 
-      res.json({ suggestions });
+      res.json(suggestions);
     } catch (error) {
       console.error("Error fetching search suggestions:", error);
       res.status(500).json({ message: "Failed to fetch suggestions" });

@@ -1,15 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useSearchAnalytics } from "@/hooks/useSearchAnalytics";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
 import ProductSearch from "@/components/ProductSearch";
 import Cart from "@/components/Cart";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export default function CustomerDashboard() {
   const { isLoading: authLoading } = useAuth();
+  const { trackSearch } = useSearchAnalytics();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [showCart, setShowCart] = useState(false);
@@ -19,6 +22,8 @@ export default function CustomerDashboard() {
     inStock: false,
     sortBy: "createdAt",
     sortOrder: "desc",
+    minRating: 0,
+    availability: "all",
   });
 
   const {
@@ -45,6 +50,7 @@ export default function CustomerDashboard() {
       if (filters.minPrice > 0) params.append("minPrice", filters.minPrice.toString());
       if (filters.maxPrice < 1000000) params.append("maxPrice", filters.maxPrice.toString());
       if (filters.inStock) params.append("inStock", "true");
+      if (filters.minRating > 0) params.append("minRating", filters.minRating.toString());
       params.append("sortBy", filters.sortBy);
       params.append("sortOrder", filters.sortOrder);
       params.append("page", pageParam.toString());
@@ -61,6 +67,25 @@ export default function CustomerDashboard() {
   });
 
   const products = productsData?.pages.flatMap((page) => page.items) || [];
+
+  // Track search analytics
+  useEffect(() => {
+    if (searchTerm.trim().length > 2) {
+      const timer = setTimeout(() => {
+        trackSearch({
+          query: searchTerm,
+          timestamp: Date.now(),
+          resultsCount: productsData?.pages[0]?.total || 0,
+          filters: {
+            category: selectedCategory,
+            ...filters,
+          },
+        });
+      }, 1000); // Track after 1 second of no typing
+
+      return () => clearTimeout(timer);
+    }
+  }, [searchTerm, selectedCategory, filters, productsData, trackSearch]);
 
   const { data: cartItems = [] } = useQuery<any[]>({
     queryKey: ["/api/cart"],
@@ -106,6 +131,9 @@ export default function CustomerDashboard() {
           filters={filters}
           onFiltersChange={setFilters}
         />
+
+        {/* Recently Viewed Products */}
+        <RecentlyViewed />
 
         {/* Categories */}
         {categoriesError ? (

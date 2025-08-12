@@ -33,6 +33,8 @@ interface ProductSearchProps {
     inStock: boolean;
     sortBy: string;
     sortOrder: string;
+    minRating: number;
+    availability: string;
   };
   onFiltersChange: (filters: any) => void;
 }
@@ -64,6 +66,8 @@ export default function ProductSearch({
       inStock: false,
       sortBy: "createdAt",
       sortOrder: "desc",
+      minRating: 0,
+      availability: "all",
     };
     setLocalFilters(defaultFilters);
     setPriceRange([0, 1000000]);
@@ -192,6 +196,74 @@ export default function ProductSearch({
                     <label htmlFor="inStock" className="text-sm">
                       Seulement les produits en stock
                     </label>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Rating Filter */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center">
+                    <i className="fas fa-star mr-2 text-yellow-500"></i>
+                    Évaluation minimale
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {[5, 4, 3, 2, 1].map((rating) => (
+                      <div key={rating} className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id={`rating-${rating}`}
+                          name="minRating"
+                          value={rating}
+                          checked={localFilters.minRating === rating}
+                          onChange={() => setLocalFilters({ ...localFilters, minRating: rating })}
+                          className="sr-only"
+                        />
+                        <label
+                          htmlFor={`rating-${rating}`}
+                          className={`flex items-center space-x-2 cursor-pointer p-2 rounded-md transition-colors ${
+                            localFilters.minRating === rating
+                              ? "bg-yellow-50 border border-yellow-200"
+                              : "hover:bg-gray-50"
+                          }`}
+                        >
+                          <div className="flex">
+                            {[...Array(5)].map((_, i) => (
+                              <i
+                                key={i}
+                                className={`fas fa-star text-sm ${
+                                  i < rating ? "text-yellow-400" : "text-gray-300"
+                                }`}
+                              ></i>
+                            ))}
+                          </div>
+                          <span className="text-sm">et plus</span>
+                        </label>
+                      </div>
+                    ))}
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="rating-all"
+                        name="minRating"
+                        value={0}
+                        checked={localFilters.minRating === 0}
+                        onChange={() => setLocalFilters({ ...localFilters, minRating: 0 })}
+                        className="sr-only"
+                      />
+                      <label
+                        htmlFor="rating-all"
+                        className={`cursor-pointer p-2 rounded-md transition-colors text-sm ${
+                          localFilters.minRating === 0
+                            ? "bg-gray-100 border border-gray-300"
+                            : "hover:bg-gray-50"
+                        }`}
+                      >
+                        Toutes les évaluations
+                      </label>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
