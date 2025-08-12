@@ -815,20 +815,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Product routes
   app.post("/api/products", isAuthenticated, async (req: any, res) => {
     try {
+      console.log("🆕 Product creation request received");
+      console.log("Request body:", JSON.stringify(req.body, null, 2));
+      console.log("User ID:", req.user.claims.sub);
+
       const userId = req.user.claims.sub;
       const vendor = await storage.getVendorByUserId(userId);
 
       if (!vendor) {
+        console.error("❌ User is not a vendor:", userId);
         return res.status(403).json({ message: "Only vendors can create products" });
       }
 
-      const productData = insertProductSchema.parse({ ...req.body, vendorId: vendor.id });
+      console.log("✅ Vendor found:", vendor.id);
+      
+      const productDataWithVendor = { ...req.body, vendorId: vendor.id };
+      console.log("Product data with vendor ID:", JSON.stringify(productDataWithVendor, null, 2));
+
+      console.log("🔍 Validating product data against schema...");
+      const productData = insertProductSchema.parse(productDataWithVendor);
+      console.log("✅ Product data validation successful");
+
+      console.log("💾 Creating product in database...");
       const product = await storage.createProduct(productData);
+      console.log("✅ Product created successfully:", product.id);
 
       res.json(product);
     } catch (error) {
-      console.error("Error creating product:", error);
-      res.status(500).json({ message: "Failed to create product" });
+      console.error("❌ Error creating product:");
+      console.error("Error type:", error.constructor.name);
+      console.error("Error message:", error.message);
+      if (error.issues) {
+        console.error("Validation issues:", error.issues);
+      }
+      console.error("Full error:", error);
+      
+      res.status(500).json({ 
+        message: "Failed to create product",
+        error: error.message,
+        ...(error.issues && { validationErrors: error.issues })
+      });
     }
   });
 
