@@ -4,9 +4,11 @@ import ProductCardSkeleton from "@/components/skeletons/ProductCardSkeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Products() {
-  const { data: products = [], isLoading } = useQuery({
+  const { data: response, isLoading } = useQuery({
     queryKey: ["/api/products"],
   });
+  
+  const products = response?.items || [];
 
   return (
     <div className="min-h-screen bg-gray-50">

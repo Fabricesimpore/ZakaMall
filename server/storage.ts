@@ -573,8 +573,14 @@ export class DatabaseStorage implements IStorage {
     maxPrice?: number;
     inStock?: boolean;
     tags?: string[];
+    includeInactive?: boolean;
   }): Promise<{ items: Product[]; total: number; hasMore: boolean }> {
-    const conditions = [eq(products.isActive, true)];
+    const conditions = [];
+    
+    // Only filter by isActive for marketplace queries (not vendor queries)
+    if (!filters?.includeInactive) {
+      conditions.push(eq(products.isActive, true));
+    }
 
     if (filters?.vendorId) {
       conditions.push(eq(products.vendorId, filters.vendorId));
