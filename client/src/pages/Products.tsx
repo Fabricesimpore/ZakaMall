@@ -7,7 +7,7 @@ export default function Products() {
   const { data: response, isLoading } = useQuery({
     queryKey: ["/api/products"],
   });
-  
+
   const products = response?.items || [];
 
   return (

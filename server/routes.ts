@@ -1993,9 +1993,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Only vendors can access products" });
       }
 
-      const result = await storage.getProducts({ 
+      const result = await storage.getProducts({
         vendorId: vendor.id,
-        includeInactive: true 
+        includeInactive: true,
       });
       res.json(result.items);
     } catch (error) {
