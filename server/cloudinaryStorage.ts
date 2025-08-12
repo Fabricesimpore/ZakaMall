@@ -38,21 +38,21 @@ export class CloudinaryService {
    * Check if Cloudinary is properly configured
    */
   static isConfigured(): boolean {
-    const isConfigured = !!(
-      process.env.CLOUDINARY_CLOUD_NAME &&
-      process.env.CLOUDINARY_API_KEY &&
-      process.env.CLOUDINARY_API_SECRET
-    );
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+    
+    const isConfigured = !!(cloudName && apiKey && apiSecret);
+
+    console.log("🔍 Cloudinary Configuration Check:");
+    console.log("CLOUDINARY_CLOUD_NAME:", cloudName ? `✅ "${cloudName}"` : "❌ Missing");
+    console.log("CLOUDINARY_API_KEY:", apiKey ? `✅ "${apiKey.substring(0, 8)}..."` : "❌ Missing");
+    console.log("CLOUDINARY_API_SECRET:", apiSecret ? `✅ Set (${apiSecret.length} chars)` : "❌ Missing");
 
     if (!isConfigured) {
-      console.error("❌ Cloudinary configuration missing:");
-      console.error("CLOUDINARY_CLOUD_NAME:", !!process.env.CLOUDINARY_CLOUD_NAME);
-      console.error("CLOUDINARY_API_KEY:", !!process.env.CLOUDINARY_API_KEY);
-      console.error("CLOUDINARY_API_SECRET:", !!process.env.CLOUDINARY_API_SECRET);
+      console.error("❌ Cloudinary configuration incomplete - image uploads will fail");
     } else {
       console.log("✅ Cloudinary is properly configured");
-      console.log("Cloud name:", process.env.CLOUDINARY_CLOUD_NAME);
-      console.log("API key:", process.env.CLOUDINARY_API_KEY?.substring(0, 8) + "...");
     }
 
     return isConfigured;
@@ -81,7 +81,6 @@ export class CloudinaryService {
         folder: options.folder || "zakamall/products",
         resource_type: "image",
         quality: "auto",
-        format: "auto",
       };
 
       // Only add public_id if provided

@@ -145,6 +145,15 @@ export function validateEnvironment(): void {
   );
   console.log(`   Orange Money: ${hasOrangeMoney ? "✅ Configured" : "⚠️  Mock mode"}`);
   console.log(`   Moov Money: ${hasMoovMoney ? "✅ Configured" : "⚠️  Mock mode"}`);
+  
+  // Cloudinary configuration check
+  const hasCloudinary = !!(
+    process.env.CLOUDINARY_CLOUD_NAME &&
+    process.env.CLOUDINARY_API_KEY &&
+    process.env.CLOUDINARY_API_SECRET
+  );
+  console.log(`   Cloudinary: ${hasCloudinary ? "✅ Configured" : "⚠️  Not configured"}`);
+  
   console.log(`   Port: ${process.env.PORT || "5000"}`);
   console.log("=".repeat(60) + "\n");
 }
