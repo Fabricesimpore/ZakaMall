@@ -75,10 +75,10 @@ export default function ProductCard({ product }: ProductCardProps) {
         return imageUrl; // Will be served by our object storage route
       }
       // If it's a Cloudinary URL, add optimization parameters
-      if (imageUrl.includes('cloudinary.com')) {
+      if (imageUrl.includes("cloudinary.com")) {
         // Add responsive image transformations for better performance
-        const baseUrl = imageUrl.split('/upload/')[0] + '/upload/';
-        const imagePath = imageUrl.split('/upload/')[1];
+        const baseUrl = imageUrl.split("/upload/")[0] + "/upload/";
+        const imagePath = imageUrl.split("/upload/")[1];
         return `${baseUrl}c_fill,w_400,h_300,q_auto,f_auto/${imagePath}`;
       }
       return imageUrl;

@@ -233,7 +233,7 @@ export default function CustomerDashboard() {
           )}
         </Button>
       </div>
-      
+
       {/* Mobile Cart Modal */}
       {showCart && (
         <div className="fixed inset-0 z-50 md:hidden bg-black bg-opacity-50">
