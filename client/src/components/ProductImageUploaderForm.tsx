@@ -1,9 +1,7 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import type { UploadResult } from "@uppy/core";
 
 interface ProductImageUploaderFormProps {

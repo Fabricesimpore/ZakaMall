@@ -43,7 +43,7 @@ export class CloudinaryService {
       process.env.CLOUDINARY_API_KEY &&
       process.env.CLOUDINARY_API_SECRET
     );
-    
+
     if (!isConfigured) {
       console.error("❌ Cloudinary configuration missing:");
       console.error("CLOUDINARY_CLOUD_NAME:", !!process.env.CLOUDINARY_CLOUD_NAME);
@@ -54,7 +54,7 @@ export class CloudinaryService {
       console.log("Cloud name:", process.env.CLOUDINARY_CLOUD_NAME);
       console.log("API key:", process.env.CLOUDINARY_API_KEY?.substring(0, 8) + "...");
     }
-    
+
     return isConfigured;
   }
 
@@ -71,7 +71,9 @@ export class CloudinaryService {
   ): Promise<CloudinaryUploadResult> {
     // Check if Cloudinary is configured before attempting upload
     if (!this.isConfigured()) {
-      throw new Error("Cloudinary is not properly configured. Please check your environment variables.");
+      throw new Error(
+        "Cloudinary is not properly configured. Please check your environment variables."
+      );
     }
 
     return new Promise((resolve, reject) => {
