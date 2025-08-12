@@ -138,8 +138,8 @@ export default function Cart({ onClose }: CartProps) {
   }
 
   return (
-    <Card className="w-full h-full">
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="w-full h-full flex flex-col">
+      <CardHeader className="flex flex-row items-center justify-between flex-shrink-0">
         <CardTitle className="flex items-center">
           <i className="fas fa-shopping-cart mr-2"></i>
           Votre panier
@@ -152,7 +152,7 @@ export default function Cart({ onClose }: CartProps) {
         </Button>
       </CardHeader>
 
-      <CardContent className="flex flex-col h-full">
+      <CardContent className="flex flex-col flex-1 overflow-hidden p-4">
         {isLoading ? (
           <div className="space-y-4 flex-1">
             {[...Array(3)].map((_, i) => (
@@ -178,7 +178,7 @@ export default function Cart({ onClose }: CartProps) {
           </div>
         ) : (
           <>
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 overflow-y-auto space-y-4 mb-4">
               {Array.isArray(cartItems) &&
                 cartItems.map((item: Record<string, unknown>) => (
                   <div
@@ -261,8 +261,7 @@ export default function Cart({ onClose }: CartProps) {
                 ))}
             </div>
 
-            <div className="mt-4">
-              <Separator className="mb-4" />
+            <div className="flex-shrink-0 border-t pt-4 bg-white">
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>Sous-total:</span>
@@ -272,7 +271,7 @@ export default function Cart({ onClose }: CartProps) {
                   <span>Frais de livraison:</span>
                   <span>{calculateDeliveryFee().toLocaleString()} CFA</span>
                 </div>
-                <Separator />
+                <div className="border-t my-2"></div>
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total:</span>
                   <span className="text-zaka-orange">

@@ -180,7 +180,7 @@ export default function CustomerDashboard() {
 
           {/* Cart Sidebar */}
           {showCart && (
-            <div className="w-80">
+            <div className="w-80 h-[calc(100vh-12rem)] sticky top-20">
               <Cart onClose={() => setShowCart(false)} />
             </div>
           )}
@@ -201,6 +201,15 @@ export default function CustomerDashboard() {
           )}
         </Button>
       </div>
+      
+      {/* Mobile Cart Modal */}
+      {showCart && (
+        <div className="fixed inset-0 z-50 md:hidden bg-black bg-opacity-50">
+          <div className="fixed inset-x-0 bottom-0 h-[85vh] bg-white rounded-t-xl">
+            <Cart onClose={() => setShowCart(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
