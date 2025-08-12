@@ -28,12 +28,12 @@ export function useSearchAnalytics() {
       // Also store locally for offline analytics
       const localAnalytics = getLocalAnalytics();
       localAnalytics.searches.push(event);
-      
+
       // Keep only last 100 searches locally
       if (localAnalytics.searches.length > 100) {
         localAnalytics.searches = localAnalytics.searches.slice(-100);
       }
-      
+
       localStorage.setItem("zakamall_analytics", JSON.stringify(localAnalytics));
     } catch (error) {
       console.warn("Failed to track search analytics:", error);
@@ -61,10 +61,13 @@ export function useSearchAnalytics() {
 
   const getPopularSearches = useCallback(() => {
     const analytics = getLocalAnalytics();
-    const searchCounts = analytics.searches.reduce((acc, search) => {
-      acc[search.query] = (acc[search.query] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const searchCounts = analytics.searches.reduce(
+      (acc, search) => {
+        acc[search.query] = (acc[search.query] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     return Object.entries(searchCounts)
       .sort(([, a], [, b]) => b - a)
@@ -97,7 +100,7 @@ function getLocalAnalytics() {
       // Fall through to default
     }
   }
-  
+
   return {
     searches: [],
     productViews: [],

@@ -41,7 +41,7 @@ export default function RecentlyViewed() {
               >
                 <i className="fas fa-times"></i>
               </button>
-              
+
               <div className="aspect-square bg-gray-100 rounded mb-2 overflow-hidden">
                 {product.images && product.images[0] ? (
                   <img
@@ -56,7 +56,7 @@ export default function RecentlyViewed() {
                   </div>
                 )}
               </div>
-              
+
               <div className="text-xs">
                 <h4 className="font-medium line-clamp-2 mb-1" title={product.name}>
                   {product.name}

@@ -44,10 +44,10 @@ export function useRecentlyViewed() {
       const filtered = prev.filter((item) => item.id !== product.id);
       // Add new item at the beginning
       const updated = [newItem, ...filtered].slice(0, MAX_RECENT_ITEMS);
-      
+
       // Save to localStorage
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      
+
       return updated;
     });
   };
