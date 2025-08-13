@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -107,7 +107,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleCardClick = (e: React.MouseEvent) => {
     // Don't open modal if clicking on interactive elements
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('[role="button"]')) {
+    if (target.closest("button") || target.closest('[role="button"]')) {
       return;
     }
     setShowDetailModal(true);
@@ -132,96 +132,98 @@ export default function ProductCard({ product }: ProductCardProps) {
               </div>
             )}
 
-          {product.quantity <= 5 && product.quantity > 0 && (
-            <Badge className="absolute top-2 right-2 bg-orange-500 text-white">Stock faible</Badge>
-          )}
+            {product.quantity <= 5 && product.quantity > 0 && (
+              <Badge className="absolute top-2 right-2 bg-orange-500 text-white">
+                Stock faible
+              </Badge>
+            )}
 
-          {product.quantity === 0 && (
-            <Badge className="absolute top-2 right-2 bg-red-500 text-white">Rupture</Badge>
-          )}
-        </div>
-
-        <div className="p-4">
-          <h3 className="font-semibold text-zaka-dark mb-2 line-clamp-2">{product.name}</h3>
-          <p className="text-sm text-zaka-gray mb-3 line-clamp-2">{product.description}</p>
-
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-lg font-bold text-zaka-orange">
-              {formatPrice(product.price)} CFA
-            </span>
-            <div className="flex items-center">
-              <i className="fas fa-star text-yellow-400 mr-1"></i>
-              <span className="text-sm text-zaka-gray">
-                {parseFloat(product.rating || "0").toFixed(1)}
-              </span>
-            </div>
-          </div>
-
-          {/* Stock info and Quick Actions */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-zaka-gray">Stock: {product.quantity}</span>
-              {product.quantity > 0 && (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
-                    disabled={quantity <= 1}
-                  >
-                    <i className="fas fa-minus text-xs"></i>
-                  </button>
-                  <span className="text-sm font-medium w-8 text-center">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(Math.min(product.quantity, quantity + 1))}
-                    className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
-                    disabled={quantity >= product.quantity}
-                  >
-                    <i className="fas fa-plus text-xs"></i>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <Button
-              className={`w-full transition-all ${
-                isAdded ? "bg-green-500 hover:bg-green-600" : "bg-zaka-blue hover:bg-zaka-blue"
-              } text-white text-sm px-4 py-2`}
-              onClick={() => addToCartMutation.mutate()}
-              disabled={product.quantity === 0 || addToCartMutation.isPending}
-            >
-              {addToCartMutation.isPending ? (
-                <>
-                  <i className="fas fa-spinner fa-spin mr-2"></i>
-                  Ajout...
-                </>
-              ) : isAdded ? (
-                <>
-                  <i className="fas fa-check mr-2"></i>
-                  Ajouté!
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-cart-plus mr-2"></i>
-                  {product.quantity === 0 ? "Rupture" : `Ajouter (${quantity})`}
-                </>
-              )}
-            </Button>
-
-            {/* Product-specific support */}
             {product.quantity === 0 && (
-              <WhatsAppSupport variant="compact" productId={product.id} className="mt-2 w-full" />
+              <Badge className="absolute top-2 right-2 bg-red-500 text-white">Rupture</Badge>
             )}
           </div>
-        </div>
-      </CardContent>
-    </Card>
 
-    {/* Product Detail Modal */}
-    <ProductDetailModal
-      productId={showDetailModal ? product.id : null}
-      isOpen={showDetailModal}
-      onClose={() => setShowDetailModal(false)}
-    />
+          <div className="p-4">
+            <h3 className="font-semibold text-zaka-dark mb-2 line-clamp-2">{product.name}</h3>
+            <p className="text-sm text-zaka-gray mb-3 line-clamp-2">{product.description}</p>
+
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-lg font-bold text-zaka-orange">
+                {formatPrice(product.price)} CFA
+              </span>
+              <div className="flex items-center">
+                <i className="fas fa-star text-yellow-400 mr-1"></i>
+                <span className="text-sm text-zaka-gray">
+                  {parseFloat(product.rating || "0").toFixed(1)}
+                </span>
+              </div>
+            </div>
+
+            {/* Stock info and Quick Actions */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-zaka-gray">Stock: {product.quantity}</span>
+                {product.quantity > 0 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                      disabled={quantity <= 1}
+                    >
+                      <i className="fas fa-minus text-xs"></i>
+                    </button>
+                    <span className="text-sm font-medium w-8 text-center">{quantity}</span>
+                    <button
+                      onClick={() => setQuantity(Math.min(product.quantity, quantity + 1))}
+                      className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                      disabled={quantity >= product.quantity}
+                    >
+                      <i className="fas fa-plus text-xs"></i>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <Button
+                className={`w-full transition-all ${
+                  isAdded ? "bg-green-500 hover:bg-green-600" : "bg-zaka-blue hover:bg-zaka-blue"
+                } text-white text-sm px-4 py-2`}
+                onClick={() => addToCartMutation.mutate()}
+                disabled={product.quantity === 0 || addToCartMutation.isPending}
+              >
+                {addToCartMutation.isPending ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    Ajout...
+                  </>
+                ) : isAdded ? (
+                  <>
+                    <i className="fas fa-check mr-2"></i>
+                    Ajouté!
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-cart-plus mr-2"></i>
+                    {product.quantity === 0 ? "Rupture" : `Ajouter (${quantity})`}
+                  </>
+                )}
+              </Button>
+
+              {/* Product-specific support */}
+              {product.quantity === 0 && (
+                <WhatsAppSupport variant="compact" productId={product.id} className="mt-2 w-full" />
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        productId={showDetailModal ? product.id : null}
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+      />
     </>
   );
 }
