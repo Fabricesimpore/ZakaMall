@@ -130,10 +130,7 @@ export default function VendorProducts() {
 
       {/* Bulk Operations */}
       {filteredProducts.length > 0 && (
-        <BulkProductOperations 
-          products={filteredProducts} 
-          categories={categories}
-        />
+        <BulkProductOperations products={filteredProducts} categories={categories} />
       )}
 
       {filteredProducts.length === 0 ? (

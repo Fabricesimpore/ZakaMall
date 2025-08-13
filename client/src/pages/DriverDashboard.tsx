@@ -334,7 +334,7 @@ export default function DriverDashboard() {
                         customerName: delivery.customerName || "Client",
                         phone: delivery.customerPhone || "",
                         estimatedTime: 15,
-                        distance: 5.2
+                        distance: 5.2,
                       }}
                       onNavigate={() => {
                         toast({
