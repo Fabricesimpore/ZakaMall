@@ -1,41 +1,25 @@
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BarChart3, TrendingUp, Package, DollarSign, Eye, Users } from "lucide-react";
 
+interface VendorAnalytics {
+  totalSales: number;
+  totalOrders: number;
+  totalProducts: number;
+  totalCustomers: number;
+  monthlyRevenue: Array<{ month: string; revenue: number }>;
+  topProducts: Array<{ name: string; sales: number; revenue: number }>;
+  recentOrders: Array<{ id: string; customerName: string; amount: number; status: string }>;
+}
+
 export default function VendorAnalytics() {
-  // Mock data for analytics - in real app this would come from API
-  const { data: analytics, isLoading } = useQuery({
+  const { data: analytics, isLoading, error } = useQuery<VendorAnalytics>({
     queryKey: ["/api/vendor/analytics"],
     queryFn: async () => {
-      // Mock analytics data
-      return {
-        totalSales: 125000,
-        totalOrders: 342,
-        totalProducts: 28,
-        totalCustomers: 189,
-        monthlyRevenue: [
-          { month: "Jan", revenue: 12000 },
-          { month: "Fév", revenue: 15000 },
-          { month: "Mar", revenue: 18000 },
-          { month: "Avr", revenue: 22000 },
-          { month: "Mai", revenue: 25000 },
-          { month: "Jui", revenue: 28000 },
-        ],
-        topProducts: [
-          { name: "Smartphone Samsung", sales: 45, revenue: 67500 },
-          { name: "Écouteurs Bluetooth", sales: 32, revenue: 12800 },
-          { name: "Chargeur rapide", sales: 28, revenue: 8400 },
-          { name: "Coque de protection", sales: 24, revenue: 4800 },
-          { name: "Support téléphone", sales: 18, revenue: 2700 },
-        ],
-        recentOrders: [
-          { id: "1", customer: "Marie Dupont", amount: 1500, status: "delivered" },
-          { id: "2", customer: "Pierre Martin", amount: 800, status: "in_transit" },
-          { id: "3", customer: "Sophie Laurent", amount: 2200, status: "preparing" },
-          { id: "4", customer: "Jean Dubois", amount: 950, status: "confirmed" },
-        ],
-      };
+      const response = await apiRequest("GET", "/api/vendor/analytics");
+      return await response.json();
     },
   });
 
@@ -44,6 +28,30 @@ export default function VendorAnalytics() {
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-zaka-orange mx-auto"></div>
         <p className="mt-4 text-gray-600">Chargement des analytics...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <div className="text-red-500 mb-4">
+          <i className="fas fa-exclamation-circle text-4xl"></i>
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
+        <p className="text-gray-600">Impossible de charger les analytics. Veuillez réessayer.</p>
+      </div>
+    );
+  }
+
+  if (!analytics) {
+    return (
+      <div className="text-center py-8">
+        <div className="text-gray-400 mb-4">
+          <i className="fas fa-chart-bar text-4xl"></i>
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Aucune donnée disponible</h3>
+        <p className="text-gray-600">Commencez à vendre pour voir vos analytics.</p>
       </div>
     );
   }
@@ -169,7 +177,7 @@ export default function VendorAnalytics() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {analytics?.topProducts?.map((product: any, index: number) => (
+              {analytics?.topProducts?.map((product, index) => (
                 <div
                   key={index}
                   className="flex items-center justify-between p-3 border rounded-lg"
@@ -199,13 +207,13 @@ export default function VendorAnalytics() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {analytics?.recentOrders?.map((order: any) => (
+              {analytics?.recentOrders?.map((order) => (
                 <div
                   key={order.id}
                   className="flex items-center justify-between p-3 border rounded-lg"
                 >
                   <div className="flex-1">
-                    <h4 className="font-medium text-sm">{order.customer}</h4>
+                    <h4 className="font-medium text-sm">{order.customerName}</h4>
                     <p className="text-xs text-gray-600">Commande #{order.id}</p>
                   </div>
                   <div className="flex items-center gap-2">
