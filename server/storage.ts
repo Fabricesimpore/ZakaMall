@@ -54,7 +54,21 @@ import {
   type OrderTracking,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc, and, ilike, or, count, countDistinct, avg, sum, sql, gte, lte } from "drizzle-orm";
+import {
+  eq,
+  desc,
+  asc,
+  and,
+  ilike,
+  or,
+  count,
+  countDistinct,
+  avg,
+  sum,
+  sql,
+  gte,
+  lte,
+} from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -91,7 +105,10 @@ export interface IStorage {
   getVendor(id: string): Promise<Vendor | undefined>;
   getVendorByUserId(userId: string): Promise<Vendor | undefined>;
   getVendors(status?: "pending" | "approved" | "rejected" | "suspended"): Promise<Vendor[]>;
-  updateVendorStatus(id: string, status: "pending" | "approved" | "rejected" | "suspended"): Promise<Vendor>;
+  updateVendorStatus(
+    id: string,
+    status: "pending" | "approved" | "rejected" | "suspended"
+  ): Promise<Vendor>;
 
   // Driver operations
   createDriver(driver: InsertDriver): Promise<Driver>;
@@ -144,7 +161,12 @@ export interface IStorage {
   createOrder(order: InsertOrder, items: InsertOrderItem[]): Promise<Order>;
   getOrder(id: string): Promise<Order | undefined>;
   getOrderItemsByOrderId(orderId: string): Promise<OrderItem[]>;
-  getOrders(filters?: { customerId?: string; vendorId?: string; driverId?: string; status?: string }): Promise<Order[]>;
+  getOrders(filters?: {
+    customerId?: string;
+    vendorId?: string;
+    driverId?: string;
+    status?: string;
+  }): Promise<Order[]>;
   getOrdersWithDetails(userId: string): Promise<any[]>;
   updateOrderStatus(id: string, status: string): Promise<Order>;
   assignOrderToDriver(orderId: string, driverId: string): Promise<Order>;
@@ -167,7 +189,12 @@ export interface IStorage {
     totalCustomers: number;
     monthlyRevenue: Array<{ month: string; revenue: number }>;
     topProducts: Array<{ name: string; sales: number; revenue: number }>;
-    recentOrders: Array<{ id: string; customerName: string; amount: number; status: string }>;
+    recentOrders: Array<{
+      id: string;
+      customerName: string;
+      amount: number;
+      status: string;
+    }>;
   }>;
   getDriverStats(driverId: string): Promise<{
     dailyEarnings: number;
@@ -200,7 +227,11 @@ export interface IStorage {
     _status: "pending" | "completed" | "failed" | "refunded",
     _failureReason?: string
   ): Promise<Payment>;
-  updatePaymentTransaction(_id: string, _transactionId: string, _operatorReference?: string): Promise<Payment>;
+  updatePaymentTransaction(
+    _id: string,
+    _transactionId: string,
+    _operatorReference?: string
+  ): Promise<Payment>;
   markMessagesAsRead(_userId: string, _chatRoomId: string): Promise<void>;
   incrementUnreadCount(_chatRoomId: string, _excludeUserId: string): Promise<void>;
   getTotalUnreadCount(_userId: string): Promise<number>;
@@ -222,7 +253,13 @@ export interface IStorage {
 // Temporary in-memory storage for pending users (use Redis in production)
 const pendingUsers = new Map<
   string,
-  { phone: string; operator: string; code: string; timestamp: number; userData: unknown }
+  {
+    phone: string;
+    operator: string;
+    code: string;
+    timestamp: number;
+    userData: unknown;
+  }
 >();
 
 export class DatabaseStorage implements IStorage {
@@ -262,9 +299,16 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUserRole(userId: string, role: "customer" | "vendor" | "driver" | "admin"): Promise<User> {
+  async updateUserRole(
+    userId: string,
+    role: "customer" | "vendor" | "driver" | "admin"
+  ): Promise<User> {
     // Update user role
-    const [user] = await db.update(users).set({ role, updatedAt: new Date() }).where(eq(users.id, userId)).returning();
+    const [user] = await db
+      .update(users)
+      .set({ role, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
 
     // If promoting to vendor, create vendor record if it doesn't exist
     if (role === "vendor") {
@@ -371,12 +415,19 @@ export class DatabaseStorage implements IStorage {
 
   async getVendors(status?: "pending" | "approved" | "rejected" | "suspended"): Promise<Vendor[]> {
     if (status) {
-      return await db.select().from(vendors).where(eq(vendors.status, status)).orderBy(desc(vendors.createdAt));
+      return await db
+        .select()
+        .from(vendors)
+        .where(eq(vendors.status, status))
+        .orderBy(desc(vendors.createdAt));
     }
     return await db.select().from(vendors).orderBy(desc(vendors.createdAt));
   }
 
-  async updateVendorStatus(id: string, status: "pending" | "approved" | "rejected" | "suspended"): Promise<Vendor> {
+  async updateVendorStatus(
+    id: string,
+    status: "pending" | "approved" | "rejected" | "suspended"
+  ): Promise<Vendor> {
     // First update the vendor status
     const [vendor] = await db
       .update(vendors)
@@ -386,12 +437,18 @@ export class DatabaseStorage implements IStorage {
 
     // If approving vendor, also update user role to "vendor"
     if (status === "approved" && vendor) {
-      await db.update(users).set({ role: "vendor", updatedAt: new Date() }).where(eq(users.id, vendor.userId));
+      await db
+        .update(users)
+        .set({ role: "vendor", updatedAt: new Date() })
+        .where(eq(users.id, vendor.userId));
     }
 
     // If rejecting/suspending vendor, change user role back to "customer"
     if ((status === "rejected" || status === "suspended") && vendor) {
-      await db.update(users).set({ role: "customer", updatedAt: new Date() }).where(eq(users.id, vendor.userId));
+      await db
+        .update(users)
+        .set({ role: "customer", updatedAt: new Date() })
+        .where(eq(users.id, vendor.userId));
     }
 
     return vendor;
@@ -494,12 +551,18 @@ export class DatabaseStorage implements IStorage {
 
     // If approving driver, also update user role to "driver"
     if (status === "approved" && driver) {
-      await db.update(users).set({ role: "driver", updatedAt: new Date() }).where(eq(users.id, driver.userId));
+      await db
+        .update(users)
+        .set({ role: "driver", updatedAt: new Date() })
+        .where(eq(users.id, driver.userId));
     }
 
     // If rejecting/suspending driver, change user role back to "customer"
     if ((status === "rejected" || status === "suspended") && driver) {
-      await db.update(users).set({ role: "customer", updatedAt: new Date() }).where(eq(users.id, driver.userId));
+      await db
+        .update(users)
+        .set({ role: "customer", updatedAt: new Date() })
+        .where(eq(users.id, driver.userId));
     }
 
     return driver;
@@ -512,7 +575,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCategories(): Promise<Category[]> {
-    return await db.select().from(categories).where(eq(categories.isActive, true)).orderBy(categories.sortOrder);
+    return await db
+      .select()
+      .from(categories)
+      .where(eq(categories.isActive, true))
+      .orderBy(categories.sortOrder);
   }
 
   async getCategory(id: string): Promise<Category | undefined> {
@@ -649,7 +716,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getVendorProducts(vendorId: string): Promise<Product[]> {
-    return await db.select().from(products).where(eq(products.vendorId, vendorId)).orderBy(desc(products.createdAt));
+    return await db
+      .select()
+      .from(products)
+      .where(eq(products.vendorId, vendorId))
+      .orderBy(desc(products.createdAt));
   }
 
   async updateProduct(id: string, updates: Partial<InsertProduct>): Promise<Product> {
@@ -726,7 +797,11 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(products)
       .where(
-        and(eq(products.trackQuantity, true), sql`${products.quantity} <= ${threshold}`, eq(products.isActive, true))
+        and(
+          eq(products.trackQuantity, true),
+          sql`${products.quantity} <= ${threshold}`,
+          eq(products.isActive, true)
+        )
       )
       .orderBy(asc(products.quantity));
   }
@@ -755,7 +830,13 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(products)
-      .where(and(eq(products.trackQuantity, true), sql`${products.quantity} <= 0`, eq(products.isActive, true)))
+      .where(
+        and(
+          eq(products.trackQuantity, true),
+          sql`${products.quantity} <= 0`,
+          eq(products.isActive, true)
+        )
+      )
       .orderBy(products.name);
   }
 
@@ -781,7 +862,13 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(products)
-      .where(and(eq(products.vendorId, vendorId), eq(products.isActive, true), sql`${products.quantity} <= 5`))
+      .where(
+        and(
+          eq(products.vendorId, vendorId),
+          eq(products.isActive, true),
+          sql`${products.quantity} <= 5`
+        )
+      )
       .orderBy(products.quantity);
   }
 
@@ -826,7 +913,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCartItem(id: string, quantity: number): Promise<CartItem> {
-    const [item] = await db.update(cart).set({ quantity, updatedAt: new Date() }).where(eq(cart.id, id)).returning();
+    const [item] = await db
+      .update(cart)
+      .set({ quantity, updatedAt: new Date() })
+      .where(eq(cart.id, id))
+      .returning();
     return item;
   }
 
@@ -866,7 +957,11 @@ export class DatabaseStorage implements IStorage {
             );
           }
 
-          return { productId: item.productId, requestedQuantity: item.quantity || 1, product };
+          return {
+            productId: item.productId,
+            requestedQuantity: item.quantity || 1,
+            product,
+          };
         })
       );
 
@@ -923,7 +1018,10 @@ export class DatabaseStorage implements IStorage {
       const [order] = await tx.insert(orders).values(orderWithCommission).returning();
 
       // Insert order items
-      const orderItemsWithOrderId = items.map((item) => ({ ...item, orderId: order.id }));
+      const orderItemsWithOrderId = items.map((item) => ({
+        ...item,
+        orderId: order.id,
+      }));
       await tx.insert(orderItems).values(orderItemsWithOrderId);
 
       // Reserve/decrement inventory for items that track quantity
@@ -958,7 +1056,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Commission analytics methods
-  async getVendorCommissionSummary(vendorId: string, dateRange?: { startDate?: Date; endDate?: Date }) {
+  async getVendorCommissionSummary(
+    vendorId: string,
+    dateRange?: { startDate?: Date; endDate?: Date }
+  ) {
     const conditions = [eq(orders.vendorId, vendorId)];
 
     if (dateRange?.startDate) {
@@ -1026,7 +1127,10 @@ export class DatabaseStorage implements IStorage {
     );
   }
 
-  async getTopVendorsByRevenue(limit: number = 10, dateRange?: { startDate?: Date; endDate?: Date }) {
+  async getTopVendorsByRevenue(
+    limit: number = 10,
+    dateRange?: { startDate?: Date; endDate?: Date }
+  ) {
     const conditions = [];
 
     if (dateRange?.startDate) {
@@ -1206,7 +1310,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProductReviews(productId: string): Promise<Review[]> {
-    return await db.select().from(reviews).where(eq(reviews.productId, productId)).orderBy(desc(reviews.createdAt));
+    return await db
+      .select()
+      .from(reviews)
+      .where(eq(reviews.productId, productId))
+      .orderBy(desc(reviews.createdAt));
   }
 
   // Analytics
@@ -1229,7 +1337,10 @@ export class DatabaseStorage implements IStorage {
       .from(orders)
       .where(and(eq(orders.vendorId, vendorId), gte(orders.createdAt, monthStart)));
 
-    const [productsResult] = await db.select({ count: count() }).from(products).where(eq(products.vendorId, vendorId));
+    const [productsResult] = await db
+      .select({ count: count() })
+      .from(products)
+      .where(eq(products.vendorId, vendorId));
 
     const [ratingResult] = await db
       .select({ avg: avg(reviews.rating) })
@@ -1252,7 +1363,12 @@ export class DatabaseStorage implements IStorage {
     totalCustomers: number;
     monthlyRevenue: Array<{ month: string; revenue: number }>;
     topProducts: Array<{ name: string; sales: number; revenue: number }>;
-    recentOrders: Array<{ id: string; customerName: string; amount: number; status: string }>;
+    recentOrders: Array<{
+      id: string;
+      customerName: string;
+      amount: number;
+      status: string;
+    }>;
   }> {
     const now = new Date();
     const _sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
@@ -1264,10 +1380,16 @@ export class DatabaseStorage implements IStorage {
       .where(eq(orders.vendorId, vendorId));
 
     // Total orders
-    const [ordersResult] = await db.select({ count: count() }).from(orders).where(eq(orders.vendorId, vendorId));
+    const [ordersResult] = await db
+      .select({ count: count() })
+      .from(orders)
+      .where(eq(orders.vendorId, vendorId));
 
     // Total products
-    const [productsResult] = await db.select({ count: count() }).from(products).where(eq(products.vendorId, vendorId));
+    const [productsResult] = await db
+      .select({ count: count() })
+      .from(products)
+      .where(eq(products.vendorId, vendorId));
 
     // Unique customers
     const [customersResult] = await db
@@ -1284,9 +1406,28 @@ export class DatabaseStorage implements IStorage {
       const [monthResult] = await db
         .select({ total: sum(orders.totalAmount) })
         .from(orders)
-        .where(and(eq(orders.vendorId, vendorId), gte(orders.createdAt, monthStart), lte(orders.createdAt, monthEnd)));
+        .where(
+          and(
+            eq(orders.vendorId, vendorId),
+            gte(orders.createdAt, monthStart),
+            lte(orders.createdAt, monthEnd)
+          )
+        );
 
-      const monthNames = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jui", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"];
+      const monthNames = [
+        "Jan",
+        "Fév",
+        "Mar",
+        "Avr",
+        "Mai",
+        "Jui",
+        "Jul",
+        "Aoû",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Déc",
+      ];
       monthlyRevenue.push({
         month: monthNames[monthStart.getMonth()],
         revenue: Number(monthResult?.total || 0),
@@ -1383,9 +1524,15 @@ export class DatabaseStorage implements IStorage {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [vendorsResult] = await db.select({ count: count() }).from(vendors).where(eq(vendors.status, "approved"));
+    const [vendorsResult] = await db
+      .select({ count: count() })
+      .from(vendors)
+      .where(eq(vendors.status, "approved"));
 
-    const [ordersResult] = await db.select({ count: count() }).from(orders).where(eq(orders.createdAt, today));
+    const [ordersResult] = await db
+      .select({ count: count() })
+      .from(orders)
+      .where(eq(orders.createdAt, today));
 
     const [revenueResult] = await db.select({ total: sum(orders.totalAmount) }).from(orders);
 
@@ -1425,7 +1572,10 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(chatParticipants, eq(chatRooms.id, chatParticipants.chatRoomId))
       .where(and(eq(chatParticipants.userId, userId), eq(chatRooms.isActive, true)))
       .orderBy(desc(chatRooms.lastMessageAt));
-    return rooms.map((room) => ({ ...room, unreadCount: room.unreadCount || 0 }));
+    return rooms.map((room) => ({
+      ...room,
+      unreadCount: room.unreadCount || 0,
+    }));
   }
 
   async addChatParticipant(participantData: InsertChatParticipant): Promise<ChatParticipant> {
@@ -1489,14 +1639,21 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(users)
       .where(
-        or(ilike(users.firstName, `%${query}%`), ilike(users.lastName, `%${query}%`), ilike(users.email, `%${query}%`))
+        or(
+          ilike(users.firstName, `%${query}%`),
+          ilike(users.lastName, `%${query}%`),
+          ilike(users.email, `%${query}%`)
+        )
       )
       .limit(20);
     return searchUsers;
   }
 
   async getChatRoomParticipants(chatRoomId: string): Promise<ChatParticipant[]> {
-    const participants = await db.select().from(chatParticipants).where(eq(chatParticipants.chatRoomId, chatRoomId));
+    const participants = await db
+      .select()
+      .from(chatParticipants)
+      .where(eq(chatParticipants.chatRoomId, chatRoomId));
     return participants;
   }
 
@@ -1514,7 +1671,12 @@ export class DatabaseStorage implements IStorage {
     const participants = await db
       .select()
       .from(chatParticipants)
-      .where(and(eq(chatParticipants.chatRoomId, chatRoomId), sql`${chatParticipants.userId} != ${excludeUserId}`));
+      .where(
+        and(
+          eq(chatParticipants.chatRoomId, chatRoomId),
+          sql`${chatParticipants.userId} != ${excludeUserId}`
+        )
+      );
 
     for (const participant of participants) {
       await db
@@ -1545,7 +1707,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOrderPayments(orderId: string): Promise<Payment[]> {
-    return await db.select().from(payments).where(eq(payments.orderId, orderId)).orderBy(desc(payments.createdAt));
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.orderId, orderId))
+      .orderBy(desc(payments.createdAt));
   }
 
   async updatePaymentStatus(
@@ -1563,11 +1729,19 @@ export class DatabaseStorage implements IStorage {
       updateData.failureReason = failureReason;
     }
 
-    const [payment] = await db.update(payments).set(updateData).where(eq(payments.id, id)).returning();
+    const [payment] = await db
+      .update(payments)
+      .set(updateData)
+      .where(eq(payments.id, id))
+      .returning();
     return payment;
   }
 
-  async updatePaymentTransaction(id: string, transactionId: string, operatorReference?: string): Promise<Payment> {
+  async updatePaymentTransaction(
+    id: string,
+    transactionId: string,
+    operatorReference?: string
+  ): Promise<Payment> {
     const updateData: Partial<Payment> = {
       transactionId,
       updatedAt: new Date(),
@@ -1577,12 +1751,18 @@ export class DatabaseStorage implements IStorage {
       updateData.operatorReference = operatorReference;
     }
 
-    const [payment] = await db.update(payments).set(updateData).where(eq(payments.id, id)).returning();
+    const [payment] = await db
+      .update(payments)
+      .set(updateData)
+      .where(eq(payments.id, id))
+      .returning();
     return payment;
   }
 
   // Phone verification operations
-  async createPhoneVerification(verificationData: InsertPhoneVerification): Promise<PhoneVerification> {
+  async createPhoneVerification(
+    verificationData: InsertPhoneVerification
+  ): Promise<PhoneVerification> {
     const [verification] = await db.insert(phoneVerifications).values(verificationData).returning();
     return verification;
   }
@@ -1614,7 +1794,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Email verification operations
-  async createEmailVerification(verificationData: InsertEmailVerification): Promise<EmailVerification> {
+  async createEmailVerification(
+    verificationData: InsertEmailVerification
+  ): Promise<EmailVerification> {
     const [verification] = await db.insert(emailVerifications).values(verificationData).returning();
     return verification;
   }
@@ -1727,7 +1909,9 @@ export class DatabaseStorage implements IStorage {
     const conditions = [];
 
     if (filters.status) {
-      conditions.push(eq(payments.status, filters.status as "pending" | "completed" | "failed" | "refunded"));
+      conditions.push(
+        eq(payments.status, filters.status as "pending" | "completed" | "failed" | "refunded")
+      );
     }
 
     if (filters.dateFrom) {
@@ -1857,7 +2041,11 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createLowStockNotification(vendorId: string, productName: string, stockQuantity: number): Promise<void> {
+  async createLowStockNotification(
+    vendorId: string,
+    productName: string,
+    stockQuantity: number
+  ): Promise<void> {
     await this.createNotification({
       userId: vendorId,
       type: "low_stock",
@@ -1914,7 +2102,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteVendorNotification(notificationId: string, userId: string): Promise<void> {
-    await db.delete(notifications).where(and(eq(notifications.id, notificationId), eq(notifications.userId, userId)));
+    await db
+      .delete(notifications)
+      .where(and(eq(notifications.id, notificationId), eq(notifications.userId, userId)));
   }
 
   async getVendorNotificationSettings(userId: string): Promise<VendorNotificationSettings | null> {
@@ -1949,7 +2139,10 @@ export class DatabaseStorage implements IStorage {
         soundEnabled: true,
       };
 
-      const [created] = await db.insert(vendorNotificationSettings).values(defaultSettings).returning();
+      const [created] = await db
+        .insert(vendorNotificationSettings)
+        .values(defaultSettings)
+        .returning();
 
       return created;
     }
@@ -1957,7 +2150,10 @@ export class DatabaseStorage implements IStorage {
     return settings;
   }
 
-  async updateVendorNotificationSettings(userId: string, settings: Partial<VendorNotificationSettings>): Promise<void> {
+  async updateVendorNotificationSettings(
+    userId: string,
+    settings: Partial<VendorNotificationSettings>
+  ): Promise<void> {
     await db
       .update(vendorNotificationSettings)
       .set({
@@ -2048,7 +2244,10 @@ export class DatabaseStorage implements IStorage {
       const activeVendors = activeVendorCount?.count || 0;
 
       // Get order status counts
-      const [pendingOrderCount] = await db.select({ count: count() }).from(orders).where(eq(orders.status, "pending"));
+      const [pendingOrderCount] = await db
+        .select({ count: count() })
+        .from(orders)
+        .where(eq(orders.status, "pending"));
       const pendingOrders = pendingOrderCount?.count || 0;
 
       const [completedOrderCount] = await db
@@ -2088,7 +2287,9 @@ export class DatabaseStorage implements IStorage {
         .orderBy(sql`DATE_TRUNC('month', ${orders.createdAt})`);
 
       const monthlyRevenue = monthlyRevenueData.map((row) => ({
-        month: new Date(row.month).toLocaleDateString("fr-FR", { month: "short" }),
+        month: new Date(row.month).toLocaleDateString("fr-FR", {
+          month: "short",
+        }),
         revenue: parseFloat(row.revenue || "0"),
         orders: row.orders || 0,
       }));

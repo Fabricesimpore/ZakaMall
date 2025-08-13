@@ -2148,7 +2148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   error: "Product not found or access denied",
                 });
               }
-            } catch (_error) {
+            } catch {
               results.push({ productId, success: false, error: "Update failed" });
             }
           }
@@ -2171,7 +2171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   error: "Product not found or access denied",
                 });
               }
-            } catch (_error) {
+            } catch {
               results.push({ productId, success: false, error: "Update failed" });
             }
           }
@@ -2194,7 +2194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   error: "Product not found or access denied",
                 });
               }
-            } catch (_error) {
+            } catch {
               results.push({ productId, success: false, error: "Update failed" });
             }
           }
@@ -2217,7 +2217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   error: "Product not found or access denied",
                 });
               }
-            } catch (_error) {
+            } catch {
               results.push({ productId, success: false, error: "Update failed" });
             }
           }
