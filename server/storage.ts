@@ -942,10 +942,10 @@ export class DatabaseStorage implements IStorage {
       const deliveryFee = parseFloat(orderData.deliveryFee || "0");
       const taxAmount = parseFloat(orderData.taxAmount || "0");
       const totalAmount = parseFloat(orderData.totalAmount);
-      
+
       // Generate order number for logging
       const orderNumber = `ZK-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
-      
+
       // Commission is calculated on subtotal (product value) only, not on delivery fee or tax
       const commissionRate = parseFloat(vendor.commissionRate || "5.00");
       const commissionAmount = (subtotal * commissionRate) / 100;
@@ -960,7 +960,7 @@ export class DatabaseStorage implements IStorage {
         platformRevenue,
         deliveryFee,
         taxAmount,
-        totalAmount
+        totalAmount,
       });
 
       // If we get here, all items have sufficient stock
@@ -974,10 +974,7 @@ export class DatabaseStorage implements IStorage {
         platformRevenue: platformRevenue.toFixed(2),
       };
 
-      const [order] = await tx
-        .insert(orders)
-        .values(orderWithCommission)
-        .returning();
+      const [order] = await tx.insert(orders).values(orderWithCommission).returning();
 
       // Insert order items
       const orderItemsWithOrderId = items.map((item) => ({ ...item, orderId: order.id }));
@@ -1015,9 +1012,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Commission analytics methods
-  async getVendorCommissionSummary(vendorId: string, dateRange?: { startDate?: Date; endDate?: Date }) {
+  async getVendorCommissionSummary(
+    vendorId: string,
+    dateRange?: { startDate?: Date; endDate?: Date }
+  ) {
     const conditions = [eq(orders.vendorId, vendorId)];
-    
+
     if (dateRange?.startDate) {
       conditions.push(gte(orders.createdAt, dateRange.startDate));
     }
@@ -1037,19 +1037,21 @@ export class DatabaseStorage implements IStorage {
       .from(orders)
       .where(and(...conditions));
 
-    return result[0] || {
-      totalOrders: 0,
-      totalRevenue: 0,
-      totalCommission: 0,
-      totalEarnings: 0,
-      avgCommissionRate: 0,
-      totalDeliveryFees: 0,
-    };
+    return (
+      result[0] || {
+        totalOrders: 0,
+        totalRevenue: 0,
+        totalCommission: 0,
+        totalEarnings: 0,
+        avgCommissionRate: 0,
+        totalDeliveryFees: 0,
+      }
+    );
   }
 
   async getPlatformCommissionSummary(dateRange?: { startDate?: Date; endDate?: Date }) {
     const conditions = [];
-    
+
     if (dateRange?.startDate) {
       conditions.push(gte(orders.createdAt, dateRange.startDate));
     }
@@ -1069,19 +1071,24 @@ export class DatabaseStorage implements IStorage {
       .from(orders)
       .where(conditions.length > 0 ? and(...conditions) : undefined);
 
-    return result[0] || {
-      totalOrders: 0,
-      totalGMV: 0,
-      totalCommissionRevenue: 0,
-      totalVendorEarnings: 0,
-      avgCommissionRate: 0,
-      totalDeliveryRevenue: 0,
-    };
+    return (
+      result[0] || {
+        totalOrders: 0,
+        totalGMV: 0,
+        totalCommissionRevenue: 0,
+        totalVendorEarnings: 0,
+        avgCommissionRate: 0,
+        totalDeliveryRevenue: 0,
+      }
+    );
   }
 
-  async getTopVendorsByRevenue(limit: number = 10, dateRange?: { startDate?: Date; endDate?: Date }) {
+  async getTopVendorsByRevenue(
+    limit: number = 10,
+    dateRange?: { startDate?: Date; endDate?: Date }
+  ) {
     const conditions = [];
-    
+
     if (dateRange?.startDate) {
       conditions.push(gte(orders.createdAt, dateRange.startDate));
     }

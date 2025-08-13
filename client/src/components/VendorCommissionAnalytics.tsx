@@ -31,7 +31,11 @@ export default function VendorCommissionAnalytics({ vendorId }: VendorCommission
   if (dateRange.startDate) queryParams.append("startDate", dateRange.startDate);
   if (dateRange.endDate) queryParams.append("endDate", dateRange.endDate);
 
-  const { data: commissionData, isLoading, refetch } = useQuery<CommissionData>({
+  const {
+    data: commissionData,
+    isLoading,
+    refetch,
+  } = useQuery<CommissionData>({
     queryKey: [`/api/analytics/vendor/${vendorId}/commission`, queryParams.toString()],
     queryFn: async () => {
       const url = `/api/analytics/vendor/${vendorId}/commission?${queryParams.toString()}`;
@@ -74,26 +78,30 @@ export default function VendorCommissionAnalytics({ vendorId }: VendorCommission
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h2 className="text-2xl font-bold text-gray-900">Commission Analytics</h2>
-        
+
         {/* Date Range Filter */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <Label htmlFor="startDate" className="text-sm">From:</Label>
+            <Label htmlFor="startDate" className="text-sm">
+              From:
+            </Label>
             <Input
               id="startDate"
               type="date"
               value={dateRange.startDate}
-              onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+              onChange={(e) => setDateRange((prev) => ({ ...prev, startDate: e.target.value }))}
               className="w-auto"
             />
           </div>
           <div className="flex items-center gap-2">
-            <Label htmlFor="endDate" className="text-sm">To:</Label>
+            <Label htmlFor="endDate" className="text-sm">
+              To:
+            </Label>
             <Input
               id="endDate"
               type="date"
               value={dateRange.endDate}
-              onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+              onChange={(e) => setDateRange((prev) => ({ ...prev, endDate: e.target.value }))}
               className="w-auto"
             />
           </div>
@@ -130,9 +138,7 @@ export default function VendorCommissionAnalytics({ vendorId }: VendorCommission
             <div className="text-2xl font-bold text-blue-600">
               {formatCurrency(commissionData?.totalEarnings || 0)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              After commission deduction
-            </p>
+            <p className="text-xs text-muted-foreground">After commission deduction</p>
           </CardContent>
         </Card>
 
@@ -174,9 +180,7 @@ export default function VendorCommissionAnalytics({ vendorId }: VendorCommission
             <div className="text-2xl font-bold text-purple-600">
               {formatCurrency(commissionData?.totalDeliveryFees || 0)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Collected delivery fees
-            </p>
+            <p className="text-xs text-muted-foreground">Collected delivery fees</p>
           </CardContent>
         </Card>
 
@@ -191,9 +195,7 @@ export default function VendorCommissionAnalytics({ vendorId }: VendorCommission
             <div className="text-2xl font-bold text-gray-600">
               {commissionData?.totalOrders || 0}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Total completed orders
-            </p>
+            <p className="text-xs text-muted-foreground">Total completed orders</p>
           </CardContent>
         </Card>
       </div>
@@ -207,19 +209,29 @@ export default function VendorCommissionAnalytics({ vendorId }: VendorCommission
           <div className="space-y-4">
             <div className="flex justify-between items-center py-2 border-b">
               <span className="font-medium">Gross Revenue:</span>
-              <span className="text-lg font-bold">{formatCurrency(commissionData?.totalRevenue || 0)}</span>
+              <span className="text-lg font-bold">
+                {formatCurrency(commissionData?.totalRevenue || 0)}
+              </span>
             </div>
             <div className="flex justify-between items-center py-2 border-b text-red-600">
-              <span>Platform Commission ({formatPercentage(commissionData?.avgCommissionRate || 0)}):</span>
-              <span className="font-bold">-{formatCurrency(commissionData?.totalCommission || 0)}</span>
+              <span>
+                Platform Commission ({formatPercentage(commissionData?.avgCommissionRate || 0)}):
+              </span>
+              <span className="font-bold">
+                -{formatCurrency(commissionData?.totalCommission || 0)}
+              </span>
             </div>
             <div className="flex justify-between items-center py-2 border-b text-green-600">
               <span className="font-medium">Your Net Earnings:</span>
-              <span className="text-xl font-bold">{formatCurrency(commissionData?.totalEarnings || 0)}</span>
+              <span className="text-xl font-bold">
+                {formatCurrency(commissionData?.totalEarnings || 0)}
+              </span>
             </div>
             <div className="flex justify-between items-center py-2 text-purple-600">
               <span>Delivery Fees (you keep 100%):</span>
-              <span className="font-bold">+{formatCurrency(commissionData?.totalDeliveryFees || 0)}</span>
+              <span className="font-bold">
+                +{formatCurrency(commissionData?.totalDeliveryFees || 0)}
+              </span>
             </div>
           </div>
         </CardContent>

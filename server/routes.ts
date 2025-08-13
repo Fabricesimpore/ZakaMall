@@ -184,7 +184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Calculate commission for test order (use default 5% rate)
       const subtotal = parseFloat(amount.toString());
-      const commissionRate = 5.00; // Default 5% commission for test orders
+      const commissionRate = 5.0; // Default 5% commission for test orders
       const commissionAmount = (subtotal * commissionRate) / 100;
       const vendorEarnings = subtotal - commissionAmount;
       const platformRevenue = commissionAmount;
@@ -972,14 +972,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get vendor information for the product
       const vendor = await storage.getVendor(product.vendorId);
-      
+
       // Include basic vendor info in the response
       const productWithVendor = {
         ...product,
-        vendor: vendor ? {
-          businessName: vendor.businessName,
-          businessPhone: vendor.businessPhone,
-        } : null,
+        vendor: vendor
+          ? {
+              businessName: vendor.businessName,
+              businessPhone: vendor.businessPhone,
+            }
+          : null,
       };
 
       res.json(productWithVendor);
@@ -1488,13 +1490,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const userId = req.user.claims.sub;
-      
+
       // Check if user is the vendor owner or admin
       const vendor = await storage.getVendor(id);
       const user = await storage.getUser(userId);
-      
+
       if (!vendor || (vendor.userId !== userId && user?.role !== "admin")) {
-        return res.status(403).json({ message: "Unauthorized to view this vendor's commission data" });
+        return res
+          .status(403)
+          .json({ message: "Unauthorized to view this vendor's commission data" });
       }
 
       // Parse date range from query params

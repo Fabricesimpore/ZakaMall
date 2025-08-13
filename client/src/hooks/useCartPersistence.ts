@@ -83,10 +83,10 @@ export function useCartPersistence() {
     try {
       const clearedTimestamp = localStorage.getItem(CART_CLEARED_KEY);
       if (!clearedTimestamp) return false;
-      
+
       const timeSinceCleared = Date.now() - parseInt(clearedTimestamp);
       const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
-      
+
       if (timeSinceCleared < fiveMinutes) {
         return true; // Cart was cleared recently, don't restore
       } else {

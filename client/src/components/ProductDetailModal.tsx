@@ -6,12 +6,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import WhatsAppSupport from "@/components/WhatsAppSupport";
 
 interface ProductDetailModalProps {
@@ -35,7 +30,11 @@ interface ProductDetails {
   };
 }
 
-export default function ProductDetailModal({ productId, isOpen, onClose }: ProductDetailModalProps) {
+export default function ProductDetailModal({
+  productId,
+  isOpen,
+  onClose,
+}: ProductDetailModalProps) {
   const { toast } = useToast();
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
@@ -115,7 +114,7 @@ export default function ProductDetailModal({ productId, isOpen, onClose }: Produ
     return imageUrl;
   };
 
-  const images = product?.images?.filter(img => img) || [];
+  const images = product?.images?.filter((img) => img) || [];
   const currentImage = images[currentImageIndex];
 
   return (
@@ -136,9 +135,7 @@ export default function ProductDetailModal({ productId, isOpen, onClose }: Produ
         ) : product ? (
           <>
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold text-zaka-dark">
-                {product.name}
-              </DialogTitle>
+              <DialogTitle className="text-xl font-bold text-zaka-dark">{product.name}</DialogTitle>
             </DialogHeader>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -164,9 +161,7 @@ export default function ProductDetailModal({ productId, isOpen, onClose }: Produ
                     </Badge>
                   )}
                   {product.quantity === 0 && (
-                    <Badge className="absolute top-4 right-4 bg-red-500 text-white">
-                      Rupture
-                    </Badge>
+                    <Badge className="absolute top-4 right-4 bg-red-500 text-white">Rupture</Badge>
                   )}
 
                   {/* Image navigation */}
@@ -176,9 +171,11 @@ export default function ProductDetailModal({ productId, isOpen, onClose }: Produ
                         variant="ghost"
                         size="icon"
                         className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
-                        onClick={() => setCurrentImageIndex((prev) => 
-                          prev === 0 ? images.length - 1 : prev - 1
-                        )}
+                        onClick={() =>
+                          setCurrentImageIndex((prev) =>
+                            prev === 0 ? images.length - 1 : prev - 1
+                          )
+                        }
                       >
                         <i className="fas fa-chevron-left"></i>
                       </Button>
@@ -186,9 +183,11 @@ export default function ProductDetailModal({ productId, isOpen, onClose }: Produ
                         variant="ghost"
                         size="icon"
                         className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
-                        onClick={() => setCurrentImageIndex((prev) => 
-                          prev === images.length - 1 ? 0 : prev + 1
-                        )}
+                        onClick={() =>
+                          setCurrentImageIndex((prev) =>
+                            prev === images.length - 1 ? 0 : prev + 1
+                          )
+                        }
                       >
                         <i className="fas fa-chevron-right"></i>
                       </Button>
@@ -279,9 +278,7 @@ export default function ProductDetailModal({ productId, isOpen, onClose }: Produ
                         >
                           <i className="fas fa-minus text-sm"></i>
                         </Button>
-                        <span className="text-lg font-medium w-12 text-center">
-                          {quantity}
-                        </span>
+                        <span className="text-lg font-medium w-12 text-center">{quantity}</span>
                         <Button
                           variant="outline"
                           size="icon"
@@ -297,7 +294,9 @@ export default function ProductDetailModal({ productId, isOpen, onClose }: Produ
                   {/* Add to Cart Button */}
                   <Button
                     className={`w-full py-3 text-lg transition-all ${
-                      isAdded ? "bg-green-500 hover:bg-green-600" : "bg-zaka-blue hover:bg-zaka-blue"
+                      isAdded
+                        ? "bg-green-500 hover:bg-green-600"
+                        : "bg-zaka-blue hover:bg-zaka-blue"
                     } text-white`}
                     onClick={() => addToCartMutation.mutate()}
                     disabled={product.quantity === 0 || addToCartMutation.isPending}
@@ -315,18 +314,16 @@ export default function ProductDetailModal({ productId, isOpen, onClose }: Produ
                     ) : (
                       <>
                         <i className="fas fa-cart-plus mr-2"></i>
-                        {product.quantity === 0 ? "Produit en rupture" : `Ajouter ${quantity} au panier`}
+                        {product.quantity === 0
+                          ? "Produit en rupture"
+                          : `Ajouter ${quantity} au panier`}
                       </>
                     )}
                   </Button>
 
                   {/* WhatsApp Support for out of stock */}
                   {product.quantity === 0 && (
-                    <WhatsAppSupport 
-                      variant="compact" 
-                      productId={product.id} 
-                      className="w-full" 
-                    />
+                    <WhatsAppSupport variant="compact" productId={product.id} className="w-full" />
                   )}
                 </div>
               </div>
