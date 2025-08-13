@@ -28,26 +28,26 @@ interface EnhancedReview {
 }
 
 interface EnhancedReviewCardProps {
-  review: EnhancedReview;
-  productId: string;
-  isVendor?: boolean;
-  vendorId?: string;
+  review: EnhancedReview,
+  productId: string,
+  isVendor?: boolean,
+  vendorId?: string,
 }
 
-export default function EnhancedReviewCard({ 
-  review, 
-  productId, 
-  isVendor = false, 
-  vendorId 
+export default function EnhancedReviewCard({
+  review,
+  productId,
+  isVendor = false,
+  vendorId,
 }: EnhancedReviewCardProps) {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showResponse, setShowResponse] = useState(false);
   const [responseText, setResponseText] = useState("");
 
   const voteOnReviewMutation = useMutation({
-    mutationFn: async ({ voteType }: { voteType: 'helpful' | 'not_helpful' }) => {
+    mutationFn: async ({ voteType }: { voteType: "helpful" | "not_helpful" }) => {
       const response = await apiRequest("POST", `/api/reviews/${review.id}/vote`, { voteType });
       return response.json();
     },
@@ -90,7 +90,7 @@ export default function EnhancedReviewCard({
     },
   });
 
-  const handleVote = (voteType: 'helpful' | 'not_helpful') => {
+  const handleVote = (voteType: "helpful" | "not_helpful") => {
     if (!isAuthenticated) {
       toast({
         title: "Connexion requise",
@@ -118,9 +118,19 @@ export default function EnhancedReviewCard({
   const getReviewerLevelBadge = (level: string) => {
     switch (level) {
       case "trusted":
-        return <Badge variant="secondary" className="text-xs"><Shield className="w-3 h-3 mr-1" />Reviewer de confiance</Badge>;
+        return (
+          <Badge variant="secondary" className="text-xs">
+            <Shield className="w-3 h-3 mr-1" />
+            Reviewer de confiance
+          </Badge>
+        );
       case "vine":
-        return <Badge className="bg-purple-100 text-purple-800 text-xs"><Star className="w-3 h-3 mr-1" />Vine Customer</Badge>;
+        return (
+          <Badge className="bg-purple-100 text-purple-800 text-xs">
+            <Star className="w-3 h-3 mr-1" />
+            Vine Customer
+          </Badge>
+        );
       default:
         return null;
     }
