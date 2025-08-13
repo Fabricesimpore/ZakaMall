@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WhatsAppSupport from "@/components/WhatsAppSupport";
+import EnhancedReviewsList from "@/components/EnhancedReviewsList";
 
 interface ProductDetailModalProps {
   productId: string | null;
@@ -138,7 +140,14 @@ export default function ProductDetailModal({
               <DialogTitle className="text-xl font-bold text-zaka-dark">{product.name}</DialogTitle>
             </DialogHeader>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Tabs defaultValue="details" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="details">Détails du produit</TabsTrigger>
+                <TabsTrigger value="reviews">Avis clients</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="details" className="mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Image Gallery */}
               <div className="space-y-4">
                 <div className="relative">
@@ -328,6 +337,16 @@ export default function ProductDetailModal({
                 </div>
               </div>
             </div>
+              </TabsContent>
+              
+              <TabsContent value="reviews" className="mt-6">
+                <EnhancedReviewsList 
+                  productId={product.id} 
+                  vendorId={product.vendorId}
+                  vendorName={product.vendor?.businessName}
+                />
+              </TabsContent>
+            </Tabs>
           </>
         ) : (
           <div className="text-center py-8">

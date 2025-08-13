@@ -8,6 +8,8 @@ import {
   orderItems,
   cart,
   reviews,
+  reviewVotes,
+  reviewResponses,
   chatRooms,
   chatParticipants,
   messages,
@@ -34,6 +36,10 @@ import {
   type InsertCartItem,
   type Review,
   type InsertReview,
+  type ReviewVote,
+  type InsertReviewVote,
+  type ReviewResponse,
+  type InsertReviewResponse,
   type ChatRoom,
   type InsertChatRoom,
   type ChatParticipant,
@@ -174,6 +180,11 @@ export interface IStorage {
   // Review operations
   createReview(review: InsertReview): Promise<Review>;
   getProductReviews(productId: string): Promise<Review[]>;
+  voteOnReview(reviewId: string, userId: string, voteType: 'helpful' | 'not_helpful'): Promise<void>;
+  getReviewVotes(reviewId: string): Promise<ReviewVote[]>;
+  addVendorResponse(reviewId: string, vendorId: string, response: string): Promise<ReviewResponse>;
+  getReviewResponses(reviewId: string): Promise<ReviewResponse[]>;
+  getEnhancedReviews(productId: string): Promise<any[]>;
 
   // Analytics
   getVendorStats(vendorId: string): Promise<{
@@ -1313,6 +1324,97 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(reviews)
+      .where(eq(reviews.productId, productId))
+      .orderBy(desc(reviews.createdAt));
+  }
+
+  async voteOnReview(reviewId: string, userId: string, voteType: 'helpful' | 'not_helpful'): Promise<void> {
+    // First check if user already voted on this review
+    const existingVote = await db
+      .select()
+      .from(reviewVotes)
+      .where(and(eq(reviewVotes.reviewId, reviewId), eq(reviewVotes.userId, userId)))
+      .limit(1);
+
+    if (existingVote.length > 0) {
+      // Update existing vote
+      await db
+        .update(reviewVotes)
+        .set({ voteType })
+        .where(and(eq(reviewVotes.reviewId, reviewId), eq(reviewVotes.userId, userId)));
+    } else {
+      // Create new vote
+      await db.insert(reviewVotes).values({
+        reviewId,
+        userId,
+        voteType,
+      });
+    }
+
+    // Update helpfulVotes and totalVotes in reviews table
+    const votes = await db
+      .select()
+      .from(reviewVotes)
+      .where(eq(reviewVotes.reviewId, reviewId));
+
+    const helpfulVotes = votes.filter(v => v.voteType === 'helpful').length;
+    const totalVotes = votes.length;
+
+    await db
+      .update(reviews)
+      .set({ helpfulVotes, totalVotes })
+      .where(eq(reviews.id, reviewId));
+  }
+
+  async getReviewVotes(reviewId: string): Promise<ReviewVote[]> {
+    return await db
+      .select()
+      .from(reviewVotes)
+      .where(eq(reviewVotes.reviewId, reviewId));
+  }
+
+  async addVendorResponse(reviewId: string, vendorId: string, response: string): Promise<ReviewResponse> {
+    const [vendorResponse] = await db
+      .insert(reviewResponses)
+      .values({
+        reviewId,
+        vendorId,
+        response,
+        isOfficial: true,
+      })
+      .returning();
+    return vendorResponse;
+  }
+
+  async getReviewResponses(reviewId: string): Promise<ReviewResponse[]> {
+    return await db
+      .select()
+      .from(reviewResponses)
+      .where(eq(reviewResponses.reviewId, reviewId))
+      .orderBy(desc(reviewResponses.createdAt));
+  }
+
+  async getEnhancedReviews(productId: string): Promise<any[]> {
+    return await db
+      .select({
+        id: reviews.id,
+        userId: reviews.userId,
+        rating: reviews.rating,
+        title: reviews.title,
+        comment: reviews.comment,
+        images: reviews.images,
+        isVerified: reviews.isVerified,
+        helpfulVotes: reviews.helpfulVotes,
+        totalVotes: reviews.totalVotes,
+        isRecommended: reviews.isRecommended,
+        purchaseVerified: reviews.purchaseVerified,
+        reviewerLevel: reviews.reviewerLevel,
+        createdAt: reviews.createdAt,
+        userName: users.firstName,
+        userLastName: users.lastName,
+      })
+      .from(reviews)
+      .leftJoin(users, eq(reviews.userId, users.id))
       .where(eq(reviews.productId, productId))
       .orderBy(desc(reviews.createdAt));
   }

@@ -267,6 +267,43 @@ export const reviews = pgTable("reviews", {
   comment: text("comment"),
   images: text("images").array(),
   isVerified: boolean("is_verified").default(false),
+  helpfulVotes: integer("helpful_votes").default(0),
+  totalVotes: integer("total_votes").default(0),
+  isRecommended: boolean("is_recommended").default(null),
+  purchaseVerified: boolean("purchase_verified").default(false),
+  reviewerLevel: varchar("reviewer_level").default("basic"), // basic, trusted, vine
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Review votes table for tracking who voted on reviews
+export const reviewVotes = pgTable("review_votes", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  reviewId: varchar("review_id")
+    .references(() => reviews.id)
+    .notNull(),
+  userId: varchar("user_id")
+    .references(() => users.id)
+    .notNull(),
+  voteType: varchar("vote_type").notNull(), // helpful, not_helpful
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Vendor responses to reviews
+export const reviewResponses = pgTable("review_responses", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  reviewId: varchar("review_id")
+    .references(() => reviews.id)
+    .notNull(),
+  vendorId: varchar("vendor_id")
+    .references(() => vendors.id)
+    .notNull(),
+  response: text("response").notNull(),
+  isOfficial: boolean("is_official").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -437,7 +474,7 @@ export const cartRelations = relations(cart, ({ one }) => ({
   }),
 }));
 
-export const reviewsRelations = relations(reviews, ({ one }) => ({
+export const reviewsRelations = relations(reviews, ({ one, many }) => ({
   user: one(users, {
     fields: [reviews.userId],
     references: [users.id],
@@ -453,6 +490,30 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
   order: one(orders, {
     fields: [reviews.orderId],
     references: [orders.id],
+  }),
+  votes: many(reviewVotes),
+  responses: many(reviewResponses),
+}));
+
+export const reviewVotesRelations = relations(reviewVotes, ({ one }) => ({
+  review: one(reviews, {
+    fields: [reviewVotes.reviewId],
+    references: [reviews.id],
+  }),
+  user: one(users, {
+    fields: [reviewVotes.userId],
+    references: [users.id],
+  }),
+}));
+
+export const reviewResponsesRelations = relations(reviewResponses, ({ one }) => ({
+  review: one(reviews, {
+    fields: [reviewResponses.reviewId],
+    references: [reviews.id],
+  }),
+  vendor: one(vendors, {
+    fields: [reviewResponses.vendorId],
+    references: [vendors.id],
   }),
 }));
 
@@ -601,6 +662,17 @@ export const insertPaymentSchema = createInsertSchema(payments).omit({
   updatedAt: true,
 });
 
+export const insertReviewVoteSchema = createInsertSchema(reviewVotes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertReviewResponseSchema = createInsertSchema(reviewResponses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
@@ -641,6 +713,12 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 
 export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+
+export type ReviewVote = typeof reviewVotes.$inferSelect;
+export type InsertReviewVote = z.infer<typeof insertReviewVoteSchema>;
+
+export type ReviewResponse = typeof reviewResponses.$inferSelect;
+export type InsertReviewResponse = z.infer<typeof insertReviewResponseSchema>;
 
 // Phone verification table
 export const phoneVerifications = pgTable("phone_verifications", {

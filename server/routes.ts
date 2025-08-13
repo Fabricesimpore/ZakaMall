@@ -1275,11 +1275,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/products/:id/reviews", async (req, res) => {
     try {
       const { id } = req.params;
-      const reviews = await storage.getProductReviews(id);
-      res.json(reviews);
+      const enhanced = req.query.enhanced === "true";
+      
+      if (enhanced) {
+        const reviews = await storage.getEnhancedReviews(id);
+        res.json(reviews);
+      } else {
+        const reviews = await storage.getProductReviews(id);
+        res.json(reviews);
+      }
     } catch (error) {
       console.error("Error fetching product reviews:", error);
       res.status(500).json({ message: "Failed to fetch product reviews" });
+    }
+  });
+
+  // Enhanced review routes
+  app.post("/api/reviews/:id/vote", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id: reviewId } = req.params;
+      const { voteType } = req.body;
+
+      if (!['helpful', 'not_helpful'].includes(voteType)) {
+        return res.status(400).json({ message: "Invalid vote type" });
+      }
+
+      await storage.voteOnReview(reviewId, userId, voteType);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error voting on review:", error);
+      res.status(500).json({ message: "Failed to vote on review" });
+    }
+  });
+
+  app.post("/api/reviews/:id/response", isVendor, async (req: any, res) => {
+    try {
+      const { id: reviewId } = req.params;
+      const { response } = req.body;
+      
+      // Get vendor ID from user
+      const vendorData = await storage.getVendorByUserId(req.user.claims.sub);
+      if (!vendorData) {
+        return res.status(403).json({ message: "Vendor access required" });
+      }
+
+      const vendorResponse = await storage.addVendorResponse(reviewId, vendorData.id, response);
+      res.json(vendorResponse);
+    } catch (error) {
+      console.error("Error adding vendor response:", error);
+      res.status(500).json({ message: "Failed to add vendor response" });
+    }
+  });
+
+  app.get("/api/reviews/:id/responses", async (req, res) => {
+    try {
+      const { id: reviewId } = req.params;
+      const responses = await storage.getReviewResponses(reviewId);
+      res.json(responses);
+    } catch (error) {
+      console.error("Error fetching review responses:", error);
+      res.status(500).json({ message: "Failed to fetch review responses" });
     }
   });
 
