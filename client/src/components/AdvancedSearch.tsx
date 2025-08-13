@@ -1,11 +1,17 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearch, useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
@@ -56,10 +62,10 @@ const SORT_OPTIONS = [
 export default function AdvancedSearch() {
   const search = useSearch();
   const [, setLocation] = useLocation();
-  
+
   // Parse search params manually
   const searchParams = new URLSearchParams(search);
-  
+
   const [filters, setFilters] = useState<SearchFilters>({
     query: searchParams.get("q") || "",
     categoryId: searchParams.get("categoryId") || "",
@@ -93,20 +99,24 @@ export default function AdvancedSearch() {
   );
 
   // Search results query
-  const { data: searchResult, isLoading, error } = useQuery<SearchResult>({
+  const {
+    data: searchResult,
+    isLoading,
+    error,
+  } = useQuery<SearchResult>({
     queryKey: ["/api/search", filters],
     queryFn: async () => {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== "" && value !== false) {
           if (Array.isArray(value)) {
-            value.forEach(v => params.append(key, v));
+            value.forEach((v) => params.append(key, v));
           } else {
             params.set(key, value.toString());
           }
         }
       });
-      
+
       const response = await apiRequest("GET", `/api/search?${params.toString()}`);
       return response.json();
     },
@@ -148,9 +158,10 @@ export default function AdvancedSearch() {
     });
   };
 
-  const activeFiltersCount = Object.values(filters).filter(value => 
-    value !== undefined && value !== "" && value !== false && value !== "relevance"
-  ).length - 3; // Exclude query, limit, offset
+  const activeFiltersCount =
+    Object.values(filters).filter(
+      (value) => value !== undefined && value !== "" && value !== false && value !== "relevance"
+    ).length - 3; // Exclude query, limit, offset
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -166,7 +177,7 @@ export default function AdvancedSearch() {
               className="pl-10"
             />
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -181,8 +192,11 @@ export default function AdvancedSearch() {
                 </Badge>
               )}
             </Button>
-            
-            <Select value={filters.sortBy} onValueChange={(value) => updateFilters({ sortBy: value })}>
+
+            <Select
+              value={filters.sortBy}
+              onValueChange={(value) => updateFilters({ sortBy: value })}
+            >
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>
@@ -202,7 +216,8 @@ export default function AdvancedSearch() {
           <div className="mt-4 text-sm text-gray-600">
             {searchResult.total > 0 ? (
               <>
-                {searchResult.total} résultat{searchResult.total > 1 ? "s" : ""} trouvé{searchResult.total > 1 ? "s" : ""}
+                {searchResult.total} résultat{searchResult.total > 1 ? "s" : ""} trouvé
+                {searchResult.total > 1 ? "s" : ""}
                 {filters.query && ` pour "${filters.query}"`}
               </>
             ) : (
@@ -255,7 +270,7 @@ export default function AdvancedSearch() {
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent className="space-y-6">
                 {/* Quick Filters */}
                 <div>
@@ -265,31 +280,37 @@ export default function AdvancedSearch() {
                       <Checkbox
                         id="inStock"
                         checked={filters.inStock}
-                        onCheckedChange={(checked) => updateFilters({ inStock: checked as boolean })}
+                        onCheckedChange={(checked) =>
+                          updateFilters({ inStock: checked as boolean })
+                        }
                       />
                       <label htmlFor="inStock" className="text-sm flex items-center gap-2">
                         <ShoppingBag className="w-4 h-4" />
                         En stock uniquement
                       </label>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="isFeatured"
                         checked={filters.isFeatured}
-                        onCheckedChange={(checked) => updateFilters({ isFeatured: checked as boolean })}
+                        onCheckedChange={(checked) =>
+                          updateFilters({ isFeatured: checked as boolean })
+                        }
                       />
                       <label htmlFor="isFeatured" className="text-sm flex items-center gap-2">
                         <Award className="w-4 h-4" />
                         Produits mis en avant
                       </label>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="hasImages"
                         checked={filters.hasImages}
-                        onCheckedChange={(checked) => updateFilters({ hasImages: checked as boolean })}
+                        onCheckedChange={(checked) =>
+                          updateFilters({ hasImages: checked as boolean })
+                        }
                       />
                       <label htmlFor="hasImages" className="text-sm flex items-center gap-2">
                         <Image className="w-4 h-4" />
@@ -331,11 +352,14 @@ export default function AdvancedSearch() {
                         <Checkbox
                           id={`rating-${rating}`}
                           checked={filters.rating === rating}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             updateFilters({ rating: checked ? rating : undefined })
                           }
                         />
-                        <label htmlFor={`rating-${rating}`} className="text-sm flex items-center gap-1">
+                        <label
+                          htmlFor={`rating-${rating}`}
+                          className="text-sm flex items-center gap-1"
+                        >
                           <div className="flex">
                             {[...Array(5)].map((_, i) => (
                               <Star
@@ -365,11 +389,14 @@ export default function AdvancedSearch() {
                             <Checkbox
                               id={`category-${category.id}`}
                               checked={filters.categoryId === category.id}
-                              onCheckedChange={(checked) => 
+                              onCheckedChange={(checked) =>
                                 updateFilters({ categoryId: checked ? category.id : undefined })
                               }
                             />
-                            <label htmlFor={`category-${category.id}`} className="text-sm flex-1 flex justify-between">
+                            <label
+                              htmlFor={`category-${category.id}`}
+                              className="text-sm flex-1 flex justify-between"
+                            >
                               <span>{category.name}</span>
                               <span className="text-gray-500">({category.count})</span>
                             </label>
@@ -392,11 +419,14 @@ export default function AdvancedSearch() {
                             <Checkbox
                               id={`vendor-${vendor.id}`}
                               checked={filters.vendorId === vendor.id}
-                              onCheckedChange={(checked) => 
+                              onCheckedChange={(checked) =>
                                 updateFilters({ vendorId: checked ? vendor.id : undefined })
                               }
                             />
-                            <label htmlFor={`vendor-${vendor.id}`} className="text-sm flex-1 flex justify-between">
+                            <label
+                              htmlFor={`vendor-${vendor.id}`}
+                              className="text-sm flex-1 flex justify-between"
+                            >
                               <span className="truncate">{vendor.name}</span>
                               <span className="text-gray-500">({vendor.count})</span>
                             </label>
@@ -436,7 +466,7 @@ export default function AdvancedSearch() {
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
-              
+
               {/* Load More Button */}
               {searchResult.products.length < searchResult.total && (
                 <div className="text-center mt-8">

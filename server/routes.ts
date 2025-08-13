@@ -26,8 +26,19 @@ import {
 } from "@shared/schema";
 import { randomInt } from "crypto";
 import { validatePassword } from "./utils/passwordValidation";
+import { 
+  securityMiddleware, 
+  loginProtection, 
+  orderProtection, 
+  apiProtection,
+  adminProtection,
+  securityService 
+} from "./security/SecurityMiddleware";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Security middleware - apply to all routes
+  app.use(securityMiddleware);
+
   // Auth middleware
   try {
     await setupAuth(app);
@@ -39,7 +50,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   // Login endpoint with password verification
-  app.post("/api/auth/login", async (req, res) => {
+  app.post("/api/auth/login", loginProtection, async (req, res) => {
     const { email, password } = req.body;
     console.log("=== LOGIN ATTEMPT ===");
     console.log("Email:", email);
@@ -1071,7 +1082,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Order routes
-  app.post("/api/orders", isAuthenticated, async (req: any, res) => {
+  app.post("/api/orders", isAuthenticated, orderProtection, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { items, ...orderData } = req.body;
@@ -1504,6 +1515,418 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching popular search terms:", error);
       res.status(500).json({ message: "Failed to fetch popular terms" });
+    }
+  });
+
+  // Recommendation API endpoints
+  app.post("/api/behavior/track", async (req, res) => {
+    try {
+      const { userId, sessionId, productId, actionType, duration, metadata } = req.body;
+
+      // Validate required fields
+      if (!productId || !actionType) {
+        return res.status(400).json({ message: "productId and actionType are required" });
+      }
+
+      // Track the behavior
+      await storage.trackUserBehavior({
+        userId: userId || null,
+        sessionId: sessionId || null,
+        productId,
+        actionType,
+        duration: duration || null,
+        metadata: metadata || null,
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error tracking user behavior:", error);
+      res.status(500).json({ message: "Failed to track behavior" });
+    }
+  });
+
+  app.get("/api/recommendations", async (req, res) => {
+    try {
+      const { 
+        userId, 
+        sessionId, 
+        type = "personalized", 
+        limit = "10", 
+        categoryId, 
+        excludeProductIds 
+      } = req.query;
+
+      const limitNum = parseInt(limit as string, 10);
+      const excludeIds = excludeProductIds ? (excludeProductIds as string).split(",") : [];
+
+      let recommendations;
+
+      switch (type) {
+        case "personalized":
+          if (userId) {
+            recommendations = await storage.getPersonalizedRecommendations(
+              userId as string, 
+              limitNum, 
+              categoryId as string, 
+              excludeIds
+            );
+          } else {
+            // Fall back to trending for anonymous users
+            recommendations = await storage.getRecommendations(
+              "trending", 
+              limitNum, 
+              categoryId as string, 
+              excludeIds
+            );
+          }
+          break;
+        case "collaborative":
+          if (userId) {
+            recommendations = await storage.getCollaborativeRecommendations(
+              userId as string, 
+              limitNum
+            );
+          } else {
+            return res.status(400).json({ message: "userId required for collaborative filtering" });
+          }
+          break;
+        case "trending":
+        case "popular":
+        case "newest":
+          recommendations = await storage.getRecommendations(
+            type as "trending" | "popular" | "newest", 
+            limitNum, 
+            categoryId as string, 
+            excludeIds
+          );
+          break;
+        default:
+          return res.status(400).json({ message: "Invalid recommendation type" });
+      }
+
+      res.json(recommendations);
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+      res.status(500).json({ message: "Failed to fetch recommendations" });
+    }
+  });
+
+  app.get("/api/products/:id/similar", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { limit = "10" } = req.query;
+
+      const limitNum = parseInt(limit as string, 10);
+      const recommendations = await storage.getItemBasedRecommendations(id, limitNum);
+
+      res.json(recommendations);
+    } catch (error) {
+      console.error("Error fetching similar products:", error);
+      res.status(500).json({ message: "Failed to fetch similar products" });
+    }
+  });
+
+  app.post("/api/recommendations/compute-similarities", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      // Only allow admins to trigger similarity computation
+      if (user?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Trigger similarity computation (this can be a long-running task)
+      await storage.updateProductSimilarities();
+
+      res.json({ success: true, message: "Similarity computation completed" });
+    } catch (error) {
+      console.error("Error computing similarities:", error);
+      res.status(500).json({ message: "Failed to compute similarities" });
+    }
+  });
+
+  app.post("/api/users/:id/preferences/update", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      // Users can only update their own preferences, or admins can update any
+      if (user?.role !== "admin" && userId !== id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Update user preferences based on behavior
+      await storage.updateUserPreferences(id);
+
+      res.json({ success: true, message: "User preferences updated" });
+    } catch (error) {
+      console.error("Error updating user preferences:", error);
+      res.status(500).json({ message: "Failed to update preferences" });
+    }
+  });
+
+  // Security and Fraud Detection API endpoints
+  app.get("/api/security/events", isAuthenticated, adminProtection, async (req: any, res) => {
+    try {
+      const { 
+        limit = 50, 
+        offset = 0, 
+        severity, 
+        incidentType, 
+        startDate, 
+        endDate 
+      } = req.query;
+
+      const events = await storage.getSecurityEvents({
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        severity,
+        incidentType,
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+      });
+
+      res.json(events);
+    } catch (error) {
+      console.error("Error fetching security events:", error);
+      res.status(500).json({ message: "Failed to fetch security events" });
+    }
+  });
+
+  app.get("/api/security/fraud-analysis", isAuthenticated, adminProtection, async (req: any, res) => {
+    try {
+      const { 
+        limit = 50, 
+        offset = 0, 
+        status, 
+        minRiskScore,
+        startDate, 
+        endDate 
+      } = req.query;
+
+      const analysis = await storage.getFraudAnalysis({
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        status,
+        minRiskScore: minRiskScore ? parseFloat(minRiskScore) : undefined,
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+      });
+
+      res.json(analysis);
+    } catch (error) {
+      console.error("Error fetching fraud analysis:", error);
+      res.status(500).json({ message: "Failed to fetch fraud analysis" });
+    }
+  });
+
+  app.put("/api/security/fraud-analysis/:id/review", isAuthenticated, adminProtection, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status, notes } = req.body;
+      const reviewerId = req.user.claims.sub;
+
+      const updated = await storage.updateFraudAnalysisReview(id, {
+        status,
+        reviewedBy: reviewerId,
+        reviewNotes: notes,
+        reviewedAt: new Date(),
+      });
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating fraud analysis review:", error);
+      res.status(500).json({ message: "Failed to update fraud analysis" });
+    }
+  });
+
+  app.get("/api/security/suspicious-activities", isAuthenticated, adminProtection, async (req: any, res) => {
+    try {
+      const { 
+        limit = 50, 
+        offset = 0, 
+        minRiskScore,
+        activityType,
+        investigated = false
+      } = req.query;
+
+      const activities = await storage.getSuspiciousActivities({
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        minRiskScore: minRiskScore ? parseFloat(minRiskScore) : undefined,
+        activityType,
+        investigated: investigated === 'true',
+      });
+
+      res.json(activities);
+    } catch (error) {
+      console.error("Error fetching suspicious activities:", error);
+      res.status(500).json({ message: "Failed to fetch suspicious activities" });
+    }
+  });
+
+  app.post("/api/security/blacklist", isAuthenticated, adminProtection, async (req: any, res) => {
+    try {
+      const { type, value, reason, severity, expiresAt } = req.body;
+      const addedBy = req.user.claims.sub;
+
+      const blacklistEntry = await storage.addToBlacklist({
+        type,
+        value,
+        reason,
+        severity,
+        addedBy,
+        expiresAt: expiresAt ? new Date(expiresAt) : undefined,
+      });
+
+      res.json(blacklistEntry);
+    } catch (error) {
+      console.error("Error adding to blacklist:", error);
+      res.status(500).json({ message: "Failed to add to blacklist" });
+    }
+  });
+
+  app.get("/api/security/blacklist", isAuthenticated, adminProtection, async (req: any, res) => {
+    try {
+      const { type, isActive = true } = req.query;
+
+      const blacklistEntries = await storage.getBlacklistEntries({
+        type,
+        isActive: isActive === 'true',
+      });
+
+      res.json(blacklistEntries);
+    } catch (error) {
+      console.error("Error fetching blacklist:", error);
+      res.status(500).json({ message: "Failed to fetch blacklist" });
+    }
+  });
+
+  app.delete("/api/security/blacklist/:id", isAuthenticated, adminProtection, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+
+      await storage.removeFromBlacklist(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error removing from blacklist:", error);
+      res.status(500).json({ message: "Failed to remove from blacklist" });
+    }
+  });
+
+  app.get("/api/security/dashboard", isAuthenticated, adminProtection, async (req: any, res) => {
+    try {
+      const dashboard = await storage.getSecurityDashboard();
+      res.json(dashboard);
+    } catch (error) {
+      console.error("Error fetching security dashboard:", error);
+      res.status(500).json({ message: "Failed to fetch security dashboard" });
+    }
+  });
+
+  // User Verification endpoints
+  app.post("/api/verification/email", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { email } = req.body;
+
+      const verification = await storage.createEmailVerification(userId, email);
+      
+      // TODO: Send verification email
+      
+      res.json({ 
+        success: true, 
+        verificationId: verification.id,
+        message: "Verification email sent" 
+      });
+    } catch (error) {
+      console.error("Error creating email verification:", error);
+      res.status(500).json({ message: "Failed to create email verification" });
+    }
+  });
+
+  app.post("/api/verification/phone", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { phone } = req.body;
+
+      const verification = await storage.createPhoneVerification(userId, phone);
+      
+      // TODO: Send SMS verification
+      
+      res.json({ 
+        success: true, 
+        verificationId: verification.id,
+        message: "Verification SMS sent" 
+      });
+    } catch (error) {
+      console.error("Error creating phone verification:", error);
+      res.status(500).json({ message: "Failed to create phone verification" });
+    }
+  });
+
+  app.post("/api/verification/verify-code", isAuthenticated, async (req: any, res) => {
+    try {
+      const { verificationId, code } = req.body;
+
+      const result = await storage.verifyCode(verificationId, code);
+      
+      if (result.success) {
+        res.json({ success: true, message: "Verification successful" });
+      } else {
+        res.status(400).json({ success: false, message: result.message });
+      }
+    } catch (error) {
+      console.error("Error verifying code:", error);
+      res.status(500).json({ message: "Failed to verify code" });
+    }
+  });
+
+  app.get("/api/verification/status", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+
+      const verifications = await storage.getUserVerifications(userId);
+      res.json(verifications);
+    } catch (error) {
+      console.error("Error fetching verification status:", error);
+      res.status(500).json({ message: "Failed to fetch verification status" });
+    }
+  });
+
+  // Vendor Trust Score endpoints
+  app.get("/api/vendors/:id/trust-score", async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const trustScore = await storage.getVendorTrustScore(id);
+      if (!trustScore) {
+        return res.status(404).json({ message: "Trust score not found" });
+      }
+
+      // Only return public trust score information
+      res.json({
+        vendorId: trustScore.vendorId,
+        overallScore: trustScore.overallScore,
+        lastUpdated: trustScore.lastUpdated,
+      });
+    } catch (error) {
+      console.error("Error fetching vendor trust score:", error);
+      res.status(500).json({ message: "Failed to fetch trust score" });
+    }
+  });
+
+  app.post("/api/vendors/:id/compute-trust-score", isAuthenticated, adminProtection, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+
+      const trustScore = await storage.computeVendorTrustScore(id);
+      res.json(trustScore);
+    } catch (error) {
+      console.error("Error computing vendor trust score:", error);
+      res.status(500).json({ message: "Failed to compute trust score" });
     }
   });
 

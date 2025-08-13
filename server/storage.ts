@@ -18,6 +18,16 @@ import {
   phoneVerifications,
   emailVerifications,
   searchLogs,
+  userBehavior,
+  productSimilarities,
+  userPreferences,
+  securityEvents,
+  rateLimitViolations,
+  fraudAnalysis,
+  userVerifications,
+  vendorTrustScores,
+  suspiciousActivities,
+  blacklist,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -63,6 +73,15 @@ import {
   type InsertSearchLog,
   type SearchFilters,
   type SearchResult,
+  type UserBehavior,
+  type InsertUserBehavior,
+  type ProductSimilarity,
+  type InsertProductSimilarity,
+  type UserPreference,
+  type InsertUserPreference,
+  type RecommendationRequest,
+  type RecommendationResult,
+  type RecommendationsResponse,
 } from "@shared/schema";
 import { db } from "./db";
 import {
@@ -197,6 +216,16 @@ export interface IStorage {
   getSearchSuggestions(query: string, limit?: number): Promise<string[]>;
   getPopularSearchTerms(limit?: number): Promise<{ term: string; count: number }[]>;
   getSearchFacets(filters: SearchFilters): Promise<SearchResult['facets']>;
+
+  // Recommendation System operations
+  trackUserBehavior(behavior: InsertUserBehavior): Promise<UserBehavior>;
+  getRecommendations(request: RecommendationRequest): Promise<RecommendationsResponse>;
+  updateProductSimilarities(productId: string): Promise<void>;
+  updateUserPreferences(userId: string): Promise<void>;
+  getTrendingProducts(limit?: number): Promise<Product[]>;
+  getSimilarProducts(productId: string, limit?: number): Promise<Product[]>;
+  getPersonalizedRecommendations(userId: string, limit?: number): Promise<RecommendationsResponse>;
+  getCollaborativeRecommendations(userId: string, limit?: number): Promise<RecommendationsResponse>;
 
   // Analytics
   getVendorStats(vendorId: string): Promise<{
@@ -1155,6 +1184,623 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
 
     return popularTerms;
+  }
+
+  // Recommendation System Implementation
+  async trackUserBehavior(behavior: InsertUserBehavior): Promise<UserBehavior> {
+    const [behaviorRecord] = await db.insert(userBehavior).values(behavior).returning();
+    
+    // Trigger preference update in background (fire and forget)
+    if (behavior.userId) {
+      this.updateUserPreferences(behavior.userId).catch(console.error);
+    }
+    
+    return behaviorRecord;
+  }
+
+  async getRecommendations(request: RecommendationRequest): Promise<RecommendationsResponse> {
+    const { type, userId, productId, limit = 10 } = request;
+    
+    switch (type) {
+      case "personalized":
+        return userId ? await this.getPersonalizedRecommendations(userId, limit) : 
+          await this.getTrendingRecommendations(limit);
+      
+      case "similar":
+        return productId ? await this.getItemBasedRecommendations(productId, limit) :
+          await this.getTrendingRecommendations(limit);
+      
+      case "trending":
+        return await this.getTrendingRecommendations(limit);
+      
+      case "user_based":
+        return userId ? await this.getCollaborativeRecommendations(userId, limit) :
+          await this.getTrendingRecommendations(limit);
+      
+      case "item_based":
+        return productId ? await this.getItemBasedRecommendations(productId, limit) :
+          await this.getTrendingRecommendations(limit);
+      
+      default:
+        return await this.getTrendingRecommendations(limit);
+    }
+  }
+
+  async getPersonalizedRecommendations(userId: string, limit: number = 10): Promise<RecommendationsResponse> {
+    // Get user preferences
+    const userPrefs = await db
+      .select()
+      .from(userPreferences)
+      .where(eq(userPreferences.userId, userId))
+      .orderBy(desc(userPreferences.preferenceScore));
+
+    // Get user's recent behavior to exclude already viewed items
+    const recentBehavior = await db
+      .select({ productId: userBehavior.productId })
+      .from(userBehavior)
+      .where(eq(userBehavior.userId, userId))
+      .orderBy(desc(userBehavior.createdAt))
+      .limit(50);
+
+    const viewedProductIds = recentBehavior.map(b => b.productId);
+
+    // Build recommendations based on preferences
+    let recommendedProducts: any[] = [];
+
+    if (userPrefs.length > 0) {
+      // Category-based recommendations
+      const categoryPrefs = userPrefs.filter(p => p.preferenceType === "category" && p.categoryId);
+      if (categoryPrefs.length > 0) {
+        const categoryRecommendations = await db
+          .select({
+            id: products.id,
+            name: products.name,
+            description: products.description,
+            price: products.price,
+            images: products.images,
+            rating: products.rating,
+            reviewCount: products.reviewCount,
+            vendorId: products.vendorId,
+            categoryId: products.categoryId,
+            vendorName: vendors.businessName,
+            categoryName: categories.name,
+          })
+          .from(products)
+          .leftJoin(vendors, eq(products.vendorId, vendors.id))
+          .leftJoin(categories, eq(products.categoryId, categories.id))
+          .where(
+            and(
+              eq(products.isActive, true),
+              eq(products.categoryId, categoryPrefs[0].categoryId!),
+              viewedProductIds.length > 0 ? sql`${products.id} NOT IN (${sql.join(viewedProductIds.map(id => sql`${id}`), sql`, `)})` : sql`1=1`
+            )
+          )
+          .orderBy(desc(products.rating), desc(products.reviewCount))
+          .limit(Math.ceil(limit * 0.6));
+
+        recommendedProducts.push(...categoryRecommendations.map(p => ({
+          ...p,
+          score: 0.8,
+          reason: `Based on your interest in ${p.categoryName}`,
+          type: "category_preference"
+        })));
+      }
+
+      // Vendor-based recommendations
+      const vendorPrefs = userPrefs.filter(p => p.preferenceType === "vendor" && p.vendorId);
+      if (vendorPrefs.length > 0 && recommendedProducts.length < limit) {
+        const vendorRecommendations = await db
+          .select({
+            id: products.id,
+            name: products.name,
+            description: products.description,
+            price: products.price,
+            images: products.images,
+            rating: products.rating,
+            reviewCount: products.reviewCount,
+            vendorId: products.vendorId,
+            categoryId: products.categoryId,
+            vendorName: vendors.businessName,
+            categoryName: categories.name,
+          })
+          .from(products)
+          .leftJoin(vendors, eq(products.vendorId, vendors.id))
+          .leftJoin(categories, eq(products.categoryId, categories.id))
+          .where(
+            and(
+              eq(products.isActive, true),
+              eq(products.vendorId, vendorPrefs[0].vendorId!),
+              viewedProductIds.length > 0 ? sql`${products.id} NOT IN (${sql.join(viewedProductIds.map(id => sql`${id}`), sql`, `)})` : sql`1=1`,
+              recommendedProducts.length > 0 ? sql`${products.id} NOT IN (${sql.join(recommendedProducts.map(p => sql`${p.id}`), sql`, `)})` : sql`1=1`
+            )
+          )
+          .orderBy(desc(products.rating))
+          .limit(Math.ceil(limit * 0.4));
+
+        recommendedProducts.push(...vendorRecommendations.map(p => ({
+          ...p,
+          score: 0.7,
+          reason: `More from ${p.vendorName}`,
+          type: "vendor_preference"
+        })));
+      }
+    }
+
+    // Fill remaining slots with trending products
+    if (recommendedProducts.length < limit) {
+      const trendingProducts = await this.getTrendingProducts(limit - recommendedProducts.length);
+      const existingIds = recommendedProducts.map(p => p.id);
+      
+      const filteredTrending = trendingProducts
+        .filter(p => !existingIds.includes(p.id) && !viewedProductIds.includes(p.id))
+        .slice(0, limit - recommendedProducts.length);
+
+      recommendedProducts.push(...filteredTrending.map(p => ({
+        ...p,
+        vendorName: null,
+        categoryName: null,
+        score: 0.5,
+        reason: "Trending now",
+        type: "trending"
+      })));
+    }
+
+    return {
+      recommendations: recommendedProducts.slice(0, limit).map(p => ({
+        productId: p.id,
+        score: p.score,
+        reason: p.reason,
+        type: p.type,
+        product: p
+      })),
+      metadata: {
+        algorithm: "personalized",
+        totalProducts: recommendedProducts.length,
+        userProfile: userPrefs.length > 0 ? {
+          preferences: userPrefs.length,
+          topCategory: userPrefs.find(p => p.preferenceType === "category")?.categoryId,
+          topVendor: userPrefs.find(p => p.preferenceType === "vendor")?.vendorId,
+        } : null
+      }
+    };
+  }
+
+  async getCollaborativeRecommendations(userId: string, limit: number = 10): Promise<RecommendationsResponse> {
+    // Find users with similar behavior patterns
+    const userInteractions = await db
+      .select({ productId: userBehavior.productId })
+      .from(userBehavior)
+      .where(
+        and(
+          eq(userBehavior.userId, userId),
+          sql`${userBehavior.actionType} IN ('purchase', 'add_to_cart')`
+        )
+      );
+
+    if (userInteractions.length === 0) {
+      return await this.getTrendingRecommendations(limit);
+    }
+
+    const userProductIds = userInteractions.map(i => i.productId);
+
+    // Find similar users who also interacted with the same products
+    const similarUsers = await db
+      .select({
+        userId: userBehavior.userId,
+        commonProducts: count(),
+      })
+      .from(userBehavior)
+      .where(
+        and(
+          sql`${userBehavior.userId} != ${userId}`,
+          sql`${userBehavior.productId} IN (${sql.join(userProductIds.map(id => sql`${id}`), sql`, `)})`,
+          sql`${userBehavior.actionType} IN ('purchase', 'add_to_cart')`
+        )
+      )
+      .groupBy(userBehavior.userId)
+      .having(sql`count(*) >= 2`)
+      .orderBy(desc(count()))
+      .limit(10);
+
+    if (similarUsers.length === 0) {
+      return await this.getTrendingRecommendations(limit);
+    }
+
+    const similarUserIds = similarUsers.map(u => u.userId).filter(Boolean);
+
+    // Get products that similar users liked but current user hasn't interacted with
+    const recommendations = await db
+      .select({
+        id: products.id,
+        name: products.name,
+        description: products.description,
+        price: products.price,
+        images: products.images,
+        rating: products.rating,
+        reviewCount: products.reviewCount,
+        vendorId: products.vendorId,
+        categoryId: products.categoryId,
+        vendorName: vendors.businessName,
+        categoryName: categories.name,
+        interactions: count(),
+      })
+      .from(userBehavior)
+      .innerJoin(products, eq(userBehavior.productId, products.id))
+      .leftJoin(vendors, eq(products.vendorId, vendors.id))
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .where(
+        and(
+          eq(products.isActive, true),
+          sql`${userBehavior.userId} IN (${sql.join(similarUserIds.map(id => sql`${id}`), sql`, `)})`,
+          sql`${userBehavior.productId} NOT IN (${sql.join(userProductIds.map(id => sql`${id}`), sql`, `)})`,
+          sql`${userBehavior.actionType} IN ('purchase', 'add_to_cart')`
+        )
+      )
+      .groupBy(
+        products.id,
+        products.name,
+        products.description,
+        products.price,
+        products.images,
+        products.rating,
+        products.reviewCount,
+        products.vendorId,
+        products.categoryId,
+        vendors.businessName,
+        categories.name
+      )
+      .orderBy(desc(count()), desc(products.rating))
+      .limit(limit);
+
+    return {
+      recommendations: recommendations.map(p => ({
+        productId: p.id,
+        score: Math.min(0.9, 0.5 + (p.interactions * 0.1)),
+        reason: "People with similar tastes also liked this",
+        type: "collaborative",
+        product: p
+      })),
+      metadata: {
+        algorithm: "collaborative_filtering",
+        totalProducts: recommendations.length,
+        userProfile: {
+          similarUsers: similarUsers.length,
+          userInteractions: userInteractions.length,
+        }
+      }
+    };
+  }
+
+  async getItemBasedRecommendations(productId: string, limit: number = 10): Promise<RecommendationsResponse> {
+    // Get the source product details
+    const sourceProduct = await db
+      .select()
+      .from(products)
+      .where(eq(products.id, productId))
+      .limit(1);
+
+    if (sourceProduct.length === 0) {
+      return await this.getTrendingRecommendations(limit);
+    }
+
+    const product = sourceProduct[0];
+
+    // Get pre-computed similarities
+    let similarProducts = await db
+      .select({
+        id: products.id,
+        name: products.name,
+        description: products.description,
+        price: products.price,
+        images: products.images,
+        rating: products.rating,
+        reviewCount: products.reviewCount,
+        vendorId: products.vendorId,
+        categoryId: products.categoryId,
+        vendorName: vendors.businessName,
+        categoryName: categories.name,
+        similarityScore: productSimilarities.similarityScore,
+      })
+      .from(productSimilarities)
+      .innerJoin(products, eq(productSimilarities.productBId, products.id))
+      .leftJoin(vendors, eq(products.vendorId, vendors.id))
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .where(
+        and(
+          eq(productSimilarities.productAId, productId),
+          eq(products.isActive, true)
+        )
+      )
+      .orderBy(desc(productSimilarities.similarityScore))
+      .limit(limit);
+
+    // If no pre-computed similarities, fall back to category and vendor matching
+    if (similarProducts.length < limit) {
+      const categoryMatches = await db
+        .select({
+          id: products.id,
+          name: products.name,
+          description: products.description,
+          price: products.price,
+          images: products.images,
+          rating: products.rating,
+          reviewCount: products.reviewCount,
+          vendorId: products.vendorId,
+          categoryId: products.categoryId,
+          vendorName: vendors.businessName,
+          categoryName: categories.name,
+        })
+        .from(products)
+        .leftJoin(vendors, eq(products.vendorId, vendors.id))
+        .leftJoin(categories, eq(products.categoryId, categories.id))
+        .where(
+          and(
+            eq(products.isActive, true),
+            eq(products.categoryId, product.categoryId),
+            sql`${products.id} != ${productId}`,
+            similarProducts.length > 0 ? 
+              sql`${products.id} NOT IN (${sql.join(similarProducts.map(p => sql`${p.id}`), sql`, `)})` : 
+              sql`1=1`
+          )
+        )
+        .orderBy(desc(products.rating), desc(products.reviewCount))
+        .limit(limit - similarProducts.length);
+
+      similarProducts.push(...categoryMatches.map(p => ({
+        ...p,
+        similarityScore: "0.6"
+      })));
+    }
+
+    return {
+      recommendations: similarProducts.map(p => ({
+        productId: p.id,
+        score: parseFloat(p.similarityScore || "0.5"),
+        reason: p.categoryName === product.categoryName ? 
+          `Similar to ${product.name}` : 
+          `From the same category`,
+        type: "item_based",
+        product: p
+      })),
+      metadata: {
+        algorithm: "item_based",
+        totalProducts: similarProducts.length,
+        sourceProduct: {
+          id: product.id,
+          name: product.name,
+          category: product.categoryId,
+        }
+      }
+    };
+  }
+
+  async getTrendingRecommendations(limit: number = 10): Promise<RecommendationsResponse> {
+    const trendingProducts = await this.getTrendingProducts(limit);
+
+    return {
+      recommendations: trendingProducts.map((product, index) => ({
+        productId: product.id,
+        score: 0.8 - (index * 0.05), // Decreasing score based on position
+        reason: "Trending now",
+        type: "trending",
+        product: product
+      })),
+      metadata: {
+        algorithm: "trending",
+        totalProducts: trendingProducts.length,
+      }
+    };
+  }
+
+  async getTrendingProducts(limit: number = 10): Promise<Product[]> {
+    // Calculate trending score based on recent orders, views, and rating
+    return await db
+      .select({
+        id: products.id,
+        name: products.name,
+        description: products.description,
+        price: products.price,
+        compareAtPrice: products.compareAtPrice,
+        images: products.images,
+        rating: products.rating,
+        reviewCount: products.reviewCount,
+        quantity: products.quantity,
+        vendorId: products.vendorId,
+        categoryId: products.categoryId,
+        createdAt: products.createdAt,
+      })
+      .from(products)
+      .where(eq(products.isActive, true))
+      .orderBy(
+        desc(products.isFeatured),
+        desc(products.rating),
+        desc(products.reviewCount),
+        desc(products.createdAt)
+      )
+      .limit(limit);
+  }
+
+  async getSimilarProducts(productId: string, limit: number = 6): Promise<Product[]> {
+    const result = await this.getItemBasedRecommendations(productId, limit);
+    return result.recommendations.map(r => r.product);
+  }
+
+  async updateProductSimilarities(productId: string): Promise<void> {
+    // Get the product details
+    const product = await db
+      .select()
+      .from(products)
+      .where(eq(products.id, productId))
+      .limit(1);
+
+    if (product.length === 0) return;
+
+    const sourceProduct = product[0];
+
+    // Find similar products based on various criteria
+    const similarProducts = await db
+      .select()
+      .from(products)
+      .where(
+        and(
+          eq(products.isActive, true),
+          sql`${products.id} != ${productId}`
+        )
+      );
+
+    // Calculate similarities and batch insert
+    const similarities: InsertProductSimilarity[] = [];
+
+    for (const targetProduct of similarProducts) {
+      let totalScore = 0;
+      let factors = 0;
+
+      // Category similarity (40% weight)
+      if (sourceProduct.categoryId === targetProduct.categoryId) {
+        totalScore += 0.4;
+        factors++;
+      }
+
+      // Vendor similarity (20% weight)
+      if (sourceProduct.vendorId === targetProduct.vendorId) {
+        totalScore += 0.2;
+        factors++;
+      }
+
+      // Price similarity (20% weight)
+      const priceDiff = Math.abs(parseFloat(sourceProduct.price) - parseFloat(targetProduct.price));
+      const maxPrice = Math.max(parseFloat(sourceProduct.price), parseFloat(targetProduct.price));
+      if (maxPrice > 0) {
+        const priceScore = Math.max(0, 1 - (priceDiff / maxPrice));
+        totalScore += priceScore * 0.2;
+        factors++;
+      }
+
+      // Rating similarity (20% weight)
+      const ratingDiff = Math.abs(parseFloat(sourceProduct.rating || "0") - parseFloat(targetProduct.rating || "0"));
+      const ratingScore = Math.max(0, 1 - (ratingDiff / 5));
+      totalScore += ratingScore * 0.2;
+      factors++;
+
+      // Only store if similarity is meaningful
+      if (totalScore > 0.3) {
+        similarities.push({
+          productAId: productId,
+          productBId: targetProduct.id,
+          similarityScore: totalScore.toFixed(4),
+          similarityType: "computed"
+        });
+      }
+    }
+
+    // Delete existing similarities for this product
+    await db.delete(productSimilarities).where(eq(productSimilarities.productAId, productId));
+
+    // Insert new similarities in batches
+    if (similarities.length > 0) {
+      const batchSize = 100;
+      for (let i = 0; i < similarities.length; i += batchSize) {
+        const batch = similarities.slice(i, i + batchSize);
+        await db.insert(productSimilarities).values(batch);
+      }
+    }
+  }
+
+  async updateUserPreferences(userId: string): Promise<void> {
+    // Get user's behavior data
+    const behaviorData = await db
+      .select({
+        productId: userBehavior.productId,
+        actionType: userBehavior.actionType,
+        categoryId: products.categoryId,
+        vendorId: products.vendorId,
+        price: products.price,
+      })
+      .from(userBehavior)
+      .innerJoin(products, eq(userBehavior.productId, products.id))
+      .where(eq(userBehavior.userId, userId))
+      .orderBy(desc(userBehavior.createdAt))
+      .limit(100);
+
+    if (behaviorData.length === 0) return;
+
+    // Calculate category preferences
+    const categoryScores: { [categoryId: string]: number } = {};
+    const vendorScores: { [vendorId: string]: number } = {};
+    const priceRanges: { [range: string]: number } = {};
+
+    behaviorData.forEach(behavior => {
+      const weight = this.getActionWeight(behavior.actionType);
+      
+      // Category preferences
+      if (behavior.categoryId) {
+        categoryScores[behavior.categoryId] = (categoryScores[behavior.categoryId] || 0) + weight;
+      }
+
+      // Vendor preferences
+      if (behavior.vendorId) {
+        vendorScores[behavior.vendorId] = (vendorScores[behavior.vendorId] || 0) + weight;
+      }
+
+      // Price range preferences
+      const price = parseFloat(behavior.price);
+      let priceRange = "medium";
+      if (price < 5000) priceRange = "low";
+      else if (price > 25000) priceRange = "high";
+      
+      priceRanges[priceRange] = (priceRanges[priceRange] || 0) + weight;
+    });
+
+    // Delete existing preferences
+    await db.delete(userPreferences).where(eq(userPreferences.userId, userId));
+
+    // Insert new preferences
+    const preferences: InsertUserPreference[] = [];
+
+    // Category preferences
+    Object.entries(categoryScores).forEach(([categoryId, score]) => {
+      preferences.push({
+        userId,
+        categoryId,
+        preferenceScore: (score / behaviorData.length).toFixed(4),
+        preferenceType: "category"
+      });
+    });
+
+    // Vendor preferences
+    Object.entries(vendorScores).forEach(([vendorId, score]) => {
+      preferences.push({
+        userId,
+        vendorId,
+        preferenceScore: (score / behaviorData.length).toFixed(4),
+        preferenceType: "vendor"
+      });
+    });
+
+    // Price range preferences
+    Object.entries(priceRanges).forEach(([range, score]) => {
+      preferences.push({
+        userId,
+        priceRange: range,
+        preferenceScore: (score / behaviorData.length).toFixed(4),
+        preferenceType: "price"
+      });
+    });
+
+    if (preferences.length > 0) {
+      await db.insert(userPreferences).values(preferences);
+    }
+  }
+
+  private getActionWeight(actionType: string): number {
+    switch (actionType) {
+      case "purchase": return 3.0;
+      case "add_to_cart": return 2.0;
+      case "like": return 1.5;
+      case "view": return 1.0;
+      case "share": return 1.2;
+      default: return 0.5;
+    }
   }
 
   async getOutOfStockProducts(): Promise<Product[]> {
@@ -2781,6 +3427,775 @@ export class DatabaseStorage implements IStorage {
       console.error("Error getting admin analytics:", error);
       throw error;
     }
+  }
+
+  // Security and Fraud Detection Methods
+
+  async logSecurityEvent(event: {
+    incidentType: string;
+    severity: string;
+    userId?: string;
+    sessionId?: string;
+    ipAddress?: string;
+    userAgent?: string;
+    requestPath?: string;
+    requestMethod?: string;
+    requestHeaders?: any;
+    requestBody?: any;
+    responseStatus?: number;
+    geoLocation?: any;
+    description?: string;
+    metadata?: any;
+  }) {
+    try {
+      return await db.insert(securityEvents).values({
+        incidentType: event.incidentType as any,
+        severity: event.severity,
+        userId: event.userId,
+        sessionId: event.sessionId,
+        ipAddress: event.ipAddress,
+        userAgent: event.userAgent,
+        requestPath: event.requestPath,
+        requestMethod: event.requestMethod,
+        requestHeaders: event.requestHeaders,
+        requestBody: event.requestBody,
+        responseStatus: event.responseStatus,
+        geoLocation: event.geoLocation,
+        description: event.description,
+        metadata: event.metadata,
+      }).returning();
+    } catch (error) {
+      console.error("Error logging security event:", error);
+      throw error;
+    }
+  }
+
+  async logRateLimitViolation(data: {
+    ipAddress: string;
+    userId?: string;
+    endpoint: string;
+    attemptCount: number;
+    windowEnd: Date;
+    metadata?: any;
+  }) {
+    try {
+      return await db.insert(rateLimitViolations).values(data).returning();
+    } catch (error) {
+      console.error("Error logging rate limit violation:", error);
+      throw error;
+    }
+  }
+
+  async logFraudAnalysis(data: {
+    orderId?: string;
+    userId?: string;
+    status: string;
+    riskScore: number;
+    riskFactors?: any;
+    rules?: string[];
+    ipAddress?: string;
+    deviceFingerprint?: string;
+    geoLocation?: any;
+    velocityChecks?: any;
+    behaviorScore?: number;
+    paymentRisk?: number;
+    accountAge?: number;
+    isVpnDetected?: boolean;
+    isTorDetected?: boolean;
+  }) {
+    try {
+      return await db.insert(fraudAnalysis).values({
+        orderId: data.orderId,
+        userId: data.userId,
+        status: data.status as any,
+        riskScore: data.riskScore.toString(),
+        riskFactors: data.riskFactors,
+        rules: data.rules,
+        ipAddress: data.ipAddress,
+        deviceFingerprint: data.deviceFingerprint,
+        geoLocation: data.geoLocation,
+        velocityChecks: data.velocityChecks,
+        behaviorScore: data.behaviorScore?.toString(),
+        paymentRisk: data.paymentRisk?.toString(),
+        accountAge: data.accountAge,
+        isVpnDetected: data.isVpnDetected,
+        isTorDetected: data.isTorDetected,
+      }).returning();
+    } catch (error) {
+      console.error("Error logging fraud analysis:", error);
+      throw error;
+    }
+  }
+
+  async isBlacklisted(type: string, value: string): Promise<{ isBlacklisted: boolean; reason?: string }> {
+    try {
+      const result = await db.select()
+        .from(blacklist)
+        .where(and(
+          eq(blacklist.type, type as any),
+          eq(blacklist.value, value),
+          eq(blacklist.isActive, true),
+          or(
+            isNull(blacklist.expiresAt),
+            gt(blacklist.expiresAt, new Date())
+          )
+        ))
+        .limit(1);
+
+      if (result.length > 0) {
+        return { isBlacklisted: true, reason: result[0].reason };
+      }
+
+      return { isBlacklisted: false };
+    } catch (error) {
+      console.error("Error checking blacklist:", error);
+      return { isBlacklisted: false };
+    }
+  }
+
+  async addToBlacklist(data: {
+    type: string;
+    value: string;
+    reason: string;
+    severity: string;
+    addedBy: string;
+    expiresAt?: Date;
+    metadata?: any;
+  }) {
+    try {
+      return await db.insert(blacklist).values({
+        type: data.type as any,
+        value: data.value,
+        reason: data.reason,
+        severity: data.severity,
+        addedBy: data.addedBy,
+        expiresAt: data.expiresAt,
+        metadata: data.metadata,
+      }).returning();
+    } catch (error) {
+      console.error("Error adding to blacklist:", error);
+      throw error;
+    }
+  }
+
+  async getUserRecentOrders(userId: string, hours: number = 24) {
+    try {
+      const since = new Date(Date.now() - hours * 60 * 60 * 1000);
+      return await db.select()
+        .from(orders)
+        .where(and(
+          eq(orders.userId, userId),
+          gt(orders.createdAt, since)
+        ))
+        .orderBy(desc(orders.createdAt));
+    } catch (error) {
+      console.error("Error getting user recent orders:", error);
+      return [];
+    }
+  }
+
+  async getUserRecentSessions(userId: string, days: number = 7) {
+    try {
+      // This would require a sessions tracking table in production
+      // For now, return mock data or implement session tracking
+      return [];
+    } catch (error) {
+      console.error("Error getting user recent sessions:", error);
+      return [];
+    }
+  }
+
+  async getUserKnownDevices(userId: string) {
+    try {
+      // This would require device tracking implementation
+      // For now, return empty array
+      return [];
+    } catch (error) {
+      console.error("Error getting user known devices:", error);
+      return [];
+    }
+  }
+
+  async getUserBehaviorProfile(userId: string) {
+    try {
+      // Calculate behavior profile from user orders and activities
+      const userOrders = await db.select()
+        .from(orders)
+        .where(eq(orders.userId, userId))
+        .orderBy(desc(orders.createdAt));
+
+      if (userOrders.length === 0) {
+        return null;
+      }
+
+      const totalAmount = userOrders.reduce((sum, order) => sum + parseFloat(order.totalAmount), 0);
+      const averageOrderAmount = totalAmount / userOrders.length;
+
+      return {
+        orderCount: userOrders.length,
+        averageOrderAmount,
+        totalSpent: totalAmount,
+        firstOrderDate: userOrders[userOrders.length - 1]?.createdAt,
+        lastOrderDate: userOrders[0]?.createdAt,
+      };
+    } catch (error) {
+      console.error("Error getting user behavior profile:", error);
+      return null;
+    }
+  }
+
+  async getUserVerifications(userId: string) {
+    try {
+      return await db.select()
+        .from(userVerifications)
+        .where(eq(userVerifications.userId, userId))
+        .orderBy(desc(userVerifications.createdAt));
+    } catch (error) {
+      console.error("Error getting user verifications:", error);
+      return [];
+    }
+  }
+
+  async isKnownPaymentMethod(userId: string, cardHash: string): Promise<boolean> {
+    try {
+      // This would require storing payment method hashes
+      // For now, return false (treat all as new)
+      return false;
+    } catch (error) {
+      console.error("Error checking known payment method:", error);
+      return false;
+    }
+  }
+
+  async logSuspiciousActivity(data: {
+    userId?: string;
+    activityType: string;
+    riskScore: number;
+    anomalyFactors: any;
+    ipAddress?: string;
+    userAgent?: string;
+    geoLocation?: any;
+    sessionData?: any;
+  }) {
+    try {
+      return await db.insert(suspiciousActivities).values({
+        userId: data.userId,
+        activityType: data.activityType as any,
+        riskScore: data.riskScore.toString(),
+        anomalyFactors: data.anomalyFactors,
+        ipAddress: data.ipAddress,
+        userAgent: data.userAgent,
+        geoLocation: data.geoLocation,
+        sessionData: data.sessionData,
+      }).returning();
+    } catch (error) {
+      console.error("Error logging suspicious activity:", error);
+      throw error;
+    }
+  }
+
+  async createUserVerification(data: {
+    userId: string;
+    verificationType: string;
+    documentUrl?: string;
+    documentType?: string;
+    verificationCode?: string;
+    expiresAt?: Date;
+    metadata?: any;
+  }) {
+    try {
+      return await db.insert(userVerifications).values({
+        userId: data.userId,
+        verificationType: data.verificationType as any,
+        documentUrl: data.documentUrl,
+        documentType: data.documentType,
+        verificationCode: data.verificationCode,
+        expiresAt: data.expiresAt,
+        metadata: data.metadata,
+      }).returning();
+    } catch (error) {
+      console.error("Error creating user verification:", error);
+      throw error;
+    }
+  }
+
+  async updateUserVerification(verificationId: string, data: {
+    status?: string;
+    verifiedBy?: string;
+    rejectionReason?: string;
+    extractedData?: any;
+  }) {
+    try {
+      return await db.update(userVerifications)
+        .set({
+          status: data.status as any,
+          verifiedBy: data.verifiedBy,
+          verifiedAt: data.status === 'verified' ? new Date() : undefined,
+          rejectionReason: data.rejectionReason,
+          extractedData: data.extractedData,
+          updatedAt: new Date(),
+        })
+        .where(eq(userVerifications.id, verificationId))
+        .returning();
+    } catch (error) {
+      console.error("Error updating user verification:", error);
+      throw error;
+    }
+  }
+
+  async updateVendorTrustScore(vendorId: string, scores: {
+    overallScore: number;
+    identityScore?: number;
+    activityScore?: number;
+    reviewScore?: number;
+    complianceScore?: number;
+    financialScore?: number;
+    factors?: any;
+    riskFlags?: string[];
+  }) {
+    try {
+      // Check if trust score exists
+      const existing = await db.select()
+        .from(vendorTrustScores)
+        .where(eq(vendorTrustScores.vendorId, vendorId))
+        .limit(1);
+
+      if (existing.length > 0) {
+        return await db.update(vendorTrustScores)
+          .set({
+            overallScore: scores.overallScore.toString(),
+            identityScore: scores.identityScore?.toString(),
+            activityScore: scores.activityScore?.toString(),
+            reviewScore: scores.reviewScore?.toString(),
+            complianceScore: scores.complianceScore?.toString(),
+            financialScore: scores.financialScore?.toString(),
+            factors: scores.factors,
+            riskFlags: scores.riskFlags,
+            lastUpdated: new Date(),
+          })
+          .where(eq(vendorTrustScores.vendorId, vendorId))
+          .returning();
+      } else {
+        return await db.insert(vendorTrustScores)
+          .values({
+            vendorId,
+            overallScore: scores.overallScore.toString(),
+            identityScore: scores.identityScore?.toString(),
+            activityScore: scores.activityScore?.toString(),
+            reviewScore: scores.reviewScore?.toString(),
+            complianceScore: scores.complianceScore?.toString(),
+            financialScore: scores.financialScore?.toString(),
+            factors: scores.factors,
+            riskFlags: scores.riskFlags,
+          })
+          .returning();
+      }
+    } catch (error) {
+      console.error("Error updating vendor trust score:", error);
+      throw error;
+    }
+  }
+
+  async getVendorTrustScore(vendorId: string) {
+    try {
+      const result = await db.select()
+        .from(vendorTrustScores)
+        .where(eq(vendorTrustScores.vendorId, vendorId))
+        .limit(1);
+
+      return result[0] || null;
+    } catch (error) {
+      console.error("Error getting vendor trust score:", error);
+      return null;
+    }
+  }
+
+  // Additional Security Methods
+
+  async getSecurityEvents(params: {
+    limit?: number;
+    offset?: number;
+    severity?: string;
+    incidentType?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }) {
+    try {
+      const conditions = [];
+      
+      if (params.severity) conditions.push(eq(securityEvents.severity, params.severity));
+      if (params.incidentType) conditions.push(eq(securityEvents.incidentType, params.incidentType as any));
+      if (params.startDate) conditions.push(gte(securityEvents.createdAt, params.startDate));
+      if (params.endDate) conditions.push(lte(securityEvents.createdAt, params.endDate));
+
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+      return await db.select()
+        .from(securityEvents)
+        .where(whereClause)
+        .orderBy(desc(securityEvents.createdAt))
+        .limit(params.limit || 50)
+        .offset(params.offset || 0);
+    } catch (error) {
+      console.error("Error getting security events:", error);
+      return [];
+    }
+  }
+
+  async getFraudAnalysis(params: {
+    limit?: number;
+    offset?: number;
+    status?: string;
+    minRiskScore?: number;
+    startDate?: Date;
+    endDate?: Date;
+  }) {
+    try {
+      const conditions = [];
+      
+      if (params.status) conditions.push(eq(fraudAnalysis.status, params.status as any));
+      if (params.minRiskScore) conditions.push(gte(fraudAnalysis.riskScore, params.minRiskScore.toString()));
+      if (params.startDate) conditions.push(gte(fraudAnalysis.createdAt, params.startDate));
+      if (params.endDate) conditions.push(lte(fraudAnalysis.createdAt, params.endDate));
+
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+      return await db.select()
+        .from(fraudAnalysis)
+        .where(whereClause)
+        .orderBy(desc(fraudAnalysis.createdAt))
+        .limit(params.limit || 50)
+        .offset(params.offset || 0);
+    } catch (error) {
+      console.error("Error getting fraud analysis:", error);
+      return [];
+    }
+  }
+
+  async updateFraudAnalysisReview(analysisId: string, data: {
+    status: string;
+    reviewedBy: string;
+    reviewNotes?: string;
+    reviewedAt: Date;
+  }) {
+    try {
+      return await db.update(fraudAnalysis)
+        .set({
+          status: data.status as any,
+          reviewedBy: data.reviewedBy,
+          reviewNotes: data.reviewNotes,
+          reviewedAt: data.reviewedAt,
+          updatedAt: new Date(),
+        })
+        .where(eq(fraudAnalysis.id, analysisId))
+        .returning();
+    } catch (error) {
+      console.error("Error updating fraud analysis review:", error);
+      throw error;
+    }
+  }
+
+  async getSuspiciousActivities(params: {
+    limit?: number;
+    offset?: number;
+    minRiskScore?: number;
+    activityType?: string;
+    investigated?: boolean;
+  }) {
+    try {
+      const conditions = [];
+      
+      if (params.minRiskScore) conditions.push(gte(suspiciousActivities.riskScore, params.minRiskScore.toString()));
+      if (params.activityType) conditions.push(eq(suspiciousActivities.activityType, params.activityType as any));
+      if (params.investigated !== undefined) conditions.push(eq(suspiciousActivities.isInvestigated, params.investigated));
+
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+      return await db.select()
+        .from(suspiciousActivities)
+        .where(whereClause)
+        .orderBy(desc(suspiciousActivities.createdAt))
+        .limit(params.limit || 50)
+        .offset(params.offset || 0);
+    } catch (error) {
+      console.error("Error getting suspicious activities:", error);
+      return [];
+    }
+  }
+
+  async getBlacklistEntries(params: {
+    type?: string;
+    isActive?: boolean;
+  }) {
+    try {
+      const conditions = [];
+      
+      if (params.type) conditions.push(eq(blacklist.type, params.type as any));
+      if (params.isActive !== undefined) conditions.push(eq(blacklist.isActive, params.isActive));
+
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+      return await db.select()
+        .from(blacklist)
+        .where(whereClause)
+        .orderBy(desc(blacklist.createdAt));
+    } catch (error) {
+      console.error("Error getting blacklist entries:", error);
+      return [];
+    }
+  }
+
+  async removeFromBlacklist(blacklistId: string) {
+    try {
+      return await db.update(blacklist)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(blacklist.id, blacklistId))
+        .returning();
+    } catch (error) {
+      console.error("Error removing from blacklist:", error);
+      throw error;
+    }
+  }
+
+  async getSecurityDashboard() {
+    try {
+      // Get security metrics for the dashboard
+      const recentEvents = await db.select({ count: sql`count(*)` })
+        .from(securityEvents)
+        .where(gte(securityEvents.createdAt, new Date(Date.now() - 24 * 60 * 60 * 1000))); // Last 24 hours
+
+      const fraudCases = await db.select({ 
+        status: fraudAnalysis.status, 
+        count: sql`count(*)` 
+      })
+        .from(fraudAnalysis)
+        .groupBy(fraudAnalysis.status);
+
+      const suspiciousActivities = await db.select({ count: sql`count(*)` })
+        .from(suspiciousActivities)
+        .where(eq(suspiciousActivities.isInvestigated, false));
+
+      const blacklistCount = await db.select({ count: sql`count(*)` })
+        .from(blacklist)
+        .where(eq(blacklist.isActive, true));
+
+      return {
+        recentSecurityEvents: recentEvents[0]?.count || 0,
+        fraudCasesByStatus: fraudCases,
+        pendingSuspiciousActivities: suspiciousActivities[0]?.count || 0,
+        activeBlacklistEntries: blacklistCount[0]?.count || 0,
+      };
+    } catch (error) {
+      console.error("Error getting security dashboard:", error);
+      throw error;
+    }
+  }
+
+  // Removed duplicate methods - using existing implementations
+
+  async verifyCode(verificationId: string, code: string) {
+    try {
+      const verification = await db.select()
+        .from(userVerifications)
+        .where(eq(userVerifications.id, verificationId))
+        .limit(1);
+
+      if (!verification[0]) {
+        return { success: false, message: "Verification not found" };
+      }
+
+      const v = verification[0];
+
+      if (v.status !== 'pending') {
+        return { success: false, message: "Verification already processed" };
+      }
+
+      if (v.expiresAt && new Date() > v.expiresAt) {
+        return { success: false, message: "Verification code expired" };
+      }
+
+      if (v.verificationCode !== code) {
+        return { success: false, message: "Invalid verification code" };
+      }
+
+      // Mark as verified
+      await this.updateUserVerification(verificationId, {
+        status: 'verified',
+      });
+
+      return { success: true, message: "Verification successful" };
+    } catch (error) {
+      console.error("Error verifying code:", error);
+      return { success: false, message: "Verification failed" };
+    }
+  }
+
+  async computeVendorTrustScore(vendorId: string) {
+    try {
+      const vendor = await this.getVendor(vendorId);
+      if (!vendor) {
+        throw new Error("Vendor not found");
+      }
+
+      // Calculate various trust score components
+      const identityScore = await this.calculateVendorIdentityScore(vendorId);
+      const activityScore = await this.calculateVendorActivityScore(vendorId);
+      const reviewScore = await this.calculateVendorReviewScore(vendorId);
+      const complianceScore = await this.calculateVendorComplianceScore(vendorId);
+      const financialScore = await this.calculateVendorFinancialScore(vendorId);
+
+      // Calculate overall score (weighted average)
+      const weights = {
+        identity: 0.25,
+        activity: 0.20,
+        review: 0.25,
+        compliance: 0.15,
+        financial: 0.15,
+      };
+
+      const overallScore = 
+        identityScore * weights.identity +
+        activityScore * weights.activity +
+        reviewScore * weights.review +
+        complianceScore * weights.compliance +
+        financialScore * weights.financial;
+
+      // Identify risk flags
+      const riskFlags = [];
+      if (identityScore < 0.5) riskFlags.push("UNVERIFIED_IDENTITY");
+      if (reviewScore < 0.3) riskFlags.push("POOR_REVIEWS");
+      if (activityScore < 0.2) riskFlags.push("LOW_ACTIVITY");
+      if (complianceScore < 0.4) riskFlags.push("COMPLIANCE_ISSUES");
+
+      const trustScore = await this.updateVendorTrustScore(vendorId, {
+        overallScore,
+        identityScore,
+        activityScore,
+        reviewScore,
+        complianceScore,
+        financialScore,
+        factors: {
+          weights,
+          calculations: {
+            identity: "Based on verification status and business documents",
+            activity: "Based on product listings, sales volume, and engagement",
+            review: "Based on customer ratings and review quality",
+            compliance: "Based on policy adherence and dispute resolution",
+            financial: "Based on transaction history and payment reliability",
+          },
+        },
+        riskFlags,
+      });
+
+      return trustScore;
+    } catch (error) {
+      console.error("Error computing vendor trust score:", error);
+      throw error;
+    }
+  }
+
+  // Helper methods for trust score calculation
+  private async calculateVendorIdentityScore(vendorId: string): Promise<number> {
+    // Check if vendor has verified business documents
+    const verifications = await db.select()
+      .from(userVerifications)
+      .where(and(
+        eq(userVerifications.userId, vendorId),
+        eq(userVerifications.status, 'verified')
+      ));
+
+    const hasBusinessLicense = verifications.some(v => v.verificationType === 'business_license');
+    const hasAddressProof = verifications.some(v => v.verificationType === 'address_proof');
+    const hasIdentityDoc = verifications.some(v => v.verificationType === 'identity_document');
+
+    let score = 0.2; // Base score
+    if (hasBusinessLicense) score += 0.4;
+    if (hasAddressProof) score += 0.2;
+    if (hasIdentityDoc) score += 0.2;
+
+    return Math.min(score, 1.0);
+  }
+
+  private async calculateVendorActivityScore(vendorId: string): Promise<number> {
+    const products = await db.select({ count: sql`count(*)` })
+      .from(products)
+      .where(eq(products.vendorId, vendorId));
+
+    const recentOrders = await db.select({ count: sql`count(*)` })
+      .from(orders)
+      .where(and(
+        sql`${orders.id} IN (SELECT DISTINCT order_id FROM order_items WHERE product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId}))`,
+        gte(orders.createdAt, new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) // Last 30 days
+      ));
+
+    const productCount = products[0]?.count || 0;
+    const orderCount = recentOrders[0]?.count || 0;
+
+    // Score based on activity levels
+    let score = 0;
+    if (productCount > 0) score += 0.3;
+    if (productCount > 10) score += 0.2;
+    if (productCount > 50) score += 0.2;
+    if (orderCount > 0) score += 0.1;
+    if (orderCount > 5) score += 0.1;
+    if (orderCount > 20) score += 0.1;
+
+    return Math.min(score, 1.0);
+  }
+
+  private async calculateVendorReviewScore(vendorId: string): Promise<number> {
+    const reviewStats = await db.select({
+      avgRating: sql`AVG(CAST(${reviews.rating} AS DECIMAL))`,
+      reviewCount: sql`COUNT(*)`
+    })
+      .from(reviews)
+      .innerJoin(products, eq(reviews.productId, products.id))
+      .where(eq(products.vendorId, vendorId));
+
+    const stats = reviewStats[0];
+    const avgRating = parseFloat(stats.avgRating as string) || 0;
+    const reviewCount = parseInt(stats.reviewCount as string) || 0;
+
+    if (reviewCount === 0) return 0.5; // Neutral score for no reviews
+
+    // Score based on average rating and review volume
+    let score = avgRating / 5; // Normalize to 0-1
+    if (reviewCount > 10) score += 0.1;
+    if (reviewCount > 50) score += 0.1;
+
+    return Math.min(score, 1.0);
+  }
+
+  private async calculateVendorComplianceScore(vendorId: string): Promise<number> {
+    // Check for any policy violations or disputes
+    // For now, return a base score (in production, check actual compliance data)
+    return 0.8;
+  }
+
+  private async calculateVendorFinancialScore(vendorId: string): Promise<number> {
+    // Check payment history and financial reliability
+    const completedOrders = await db.select({ count: sql`count(*)` })
+      .from(orders)
+      .where(and(
+        sql`${orders.id} IN (SELECT DISTINCT order_id FROM order_items WHERE product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId}))`,
+        eq(orders.status, 'delivered')
+      ));
+
+    const cancelledOrders = await db.select({ count: sql`count(*)` })
+      .from(orders)
+      .where(and(
+        sql`${orders.id} IN (SELECT DISTINCT order_id FROM order_items WHERE product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId}))`,
+        eq(orders.status, 'cancelled')
+      ));
+
+    const completed = parseInt(completedOrders[0]?.count as string) || 0;
+    const cancelled = parseInt(cancelledOrders[0]?.count as string) || 0;
+    const total = completed + cancelled;
+
+    if (total === 0) return 0.5; // Neutral score for no orders
+
+    const completionRate = completed / total;
+    return Math.min(completionRate + 0.2, 1.0); // Add base score
   }
 }
 

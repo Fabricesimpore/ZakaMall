@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WhatsAppSupport from "@/components/WhatsAppSupport";
 import EnhancedReviewsList from "@/components/EnhancedReviewsList";
+import SimilarProducts from "@/components/SimilarProducts";
 
 interface ProductDetailModalProps {
   productId: string | null;
@@ -141,9 +142,10 @@ export default function ProductDetailModal({
             </DialogHeader>
 
             <Tabs defaultValue="details" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="details">Détails du produit</TabsTrigger>
                 <TabsTrigger value="reviews">Avis clients</TabsTrigger>
+                <TabsTrigger value="similar">Produits similaires</TabsTrigger>
               </TabsList>
               
               <TabsContent value="details" className="mt-6">
@@ -344,6 +346,13 @@ export default function ProductDetailModal({
                   productId={product.id} 
                   vendorId={product.vendorId}
                   vendorName={product.vendor?.businessName}
+                />
+              </TabsContent>
+              
+              <TabsContent value="similar" className="mt-6">
+                <SimilarProducts 
+                  productId={product.id}
+                  limit={8}
                 />
               </TabsContent>
             </Tabs>

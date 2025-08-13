@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
+import { useUserBehaviorTracker } from "@/hooks/useUserBehaviorTracker";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -29,9 +30,13 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [isAdded, setIsAdded] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const { addToRecentlyViewed } = useRecentlyViewed();
+  const { trackViewStart, trackViewEnd, trackAddToCart } = useUserBehaviorTracker();
 
   // Track product view
   useEffect(() => {
+    // Start tracking view time
+    trackViewStart(product.id);
+
     const timer = setTimeout(() => {
       addToRecentlyViewed({
         id: product.id,
@@ -39,10 +44,25 @@ export default function ProductCard({ product }: ProductCardProps) {
         price: product.price,
         images: product.images,
       });
+      
+      // Track view after 2 seconds
+      trackViewEnd(product.id, {
+        productName: product.name,
+        productPrice: product.price,
+        productRating: product.rating,
+      });
     }, 2000); // Track after 2 seconds of viewing
 
-    return () => clearTimeout(timer);
-  }, [product.id, product.name, product.price, product.images, addToRecentlyViewed]);
+    return () => {
+      clearTimeout(timer);
+      // Track view end when component unmounts
+      trackViewEnd(product.id, {
+        productName: product.name,
+        productPrice: product.price,
+        productRating: product.rating,
+      });
+    };
+  }, [product.id, product.name, product.price, product.images, product.rating, addToRecentlyViewed, trackViewStart, trackViewEnd]);
 
   const addToCartMutation = useMutation({
     mutationFn: async () => {
@@ -55,6 +75,15 @@ export default function ProductCard({ product }: ProductCardProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
       setIsAdded(true);
       setTimeout(() => setIsAdded(false), 2000);
+      
+      // Track add to cart behavior
+      trackAddToCart(product.id, {
+        productName: product.name,
+        productPrice: product.price,
+        quantity: quantity,
+        productRating: product.rating,
+      });
+      
       toast({
         title: "Succès",
         description: `${quantity} × ${product.name} ajouté au panier`,

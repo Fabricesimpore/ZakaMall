@@ -867,6 +867,137 @@ export const insertSearchLogSchema = createInsertSchema(searchLogs).omit({
 export type SearchLog = typeof searchLogs.$inferSelect;
 export type InsertSearchLog = z.infer<typeof insertSearchLogSchema>;
 
+// User behavior tracking for recommendations
+export const userBehavior = pgTable("user_behavior", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  sessionId: varchar("session_id"),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  actionType: varchar("action_type").notNull(), // view, add_to_cart, purchase, like, share
+  duration: integer("duration"), // Time spent viewing in seconds
+  metadata: jsonb("metadata"), // Additional context data
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const userBehaviorRelations = relations(userBehavior, ({ one }) => ({
+  user: one(users, {
+    fields: [userBehavior.userId],
+    references: [users.id],
+  }),
+  product: one(products, {
+    fields: [userBehavior.productId],
+    references: [products.id],
+  }),
+}));
+
+// Product similarities for content-based recommendations
+export const productSimilarities = pgTable("product_similarities", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  productAId: varchar("product_a_id").references(() => products.id).notNull(),
+  productBId: varchar("product_b_id").references(() => products.id).notNull(),
+  similarityScore: decimal("similarity_score", { precision: 5, scale: 4 }).notNull(),
+  similarityType: varchar("similarity_type").notNull(), // category, vendor, tags, price_range, description
+  lastUpdated: timestamp("last_updated").defaultNow(),
+});
+
+export const productSimilaritiesRelations = relations(productSimilarities, ({ one }) => ({
+  productA: one(products, {
+    fields: [productSimilarities.productAId],
+    references: [products.id],
+  }),
+  productB: one(products, {
+    fields: [productSimilarities.productBId],
+    references: [products.id],
+  }),
+}));
+
+// User preferences learned from behavior
+export const userPreferences = pgTable("user_preferences", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  categoryId: varchar("category_id").references(() => categories.id),
+  vendorId: varchar("vendor_id").references(() => vendors.id),
+  priceRange: varchar("price_range"), // low, medium, high
+  preferenceScore: decimal("preference_score", { precision: 5, scale: 4 }).notNull(),
+  preferenceType: varchar("preference_type").notNull(), // category, vendor, price, brand, style
+  lastUpdated: timestamp("last_updated").defaultNow(),
+});
+
+export const userPreferencesRelations = relations(userPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userPreferences.userId],
+    references: [users.id],
+  }),
+  category: one(categories, {
+    fields: [userPreferences.categoryId],
+    references: [categories.id],
+  }),
+  vendor: one(vendors, {
+    fields: [userPreferences.vendorId],
+    references: [vendors.id],
+  }),
+}));
+
+// Insert schemas for recommendation tables
+export const insertUserBehaviorSchema = createInsertSchema(userBehavior).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertProductSimilaritySchema = createInsertSchema(productSimilarities).omit({
+  id: true,
+  lastUpdated: true,
+});
+
+export const insertUserPreferenceSchema = createInsertSchema(userPreferences).omit({
+  id: true,
+  lastUpdated: true,
+});
+
+// Types for recommendation system
+export type UserBehavior = typeof userBehavior.$inferSelect;
+export type InsertUserBehavior = z.infer<typeof insertUserBehaviorSchema>;
+
+export type ProductSimilarity = typeof productSimilarities.$inferSelect;
+export type InsertProductSimilarity = z.infer<typeof insertProductSimilaritySchema>;
+
+export type UserPreference = typeof userPreferences.$inferSelect;
+export type InsertUserPreference = z.infer<typeof insertUserPreferenceSchema>;
+
+// Recommendation interfaces
+export interface RecommendationRequest {
+  userId?: string;
+  productId?: string;
+  sessionId?: string;
+  type: "user_based" | "item_based" | "trending" | "similar" | "personalized";
+  limit?: number;
+  excludeViewed?: boolean;
+}
+
+export interface RecommendationResult {
+  productId: string;
+  score: number;
+  reason: string;
+  type: string;
+}
+
+export interface RecommendationsResponse {
+  recommendations: (RecommendationResult & {
+    product: Product;
+  })[];
+  metadata: {
+    algorithm: string;
+    totalProducts: number;
+    userProfile?: any;
+  };
+}
+
 // Advanced search filters interface
 export interface SearchFilters {
   query?: string;
@@ -915,6 +1046,204 @@ export interface TransactionData {
 export interface CartItemWithProduct extends CartItem {
   product: Product;
 }
+
+// Security and Fraud Detection Tables
+
+// Security incidents and threats
+export const securityIncidentEnum = pgEnum("security_incident_type", [
+  "brute_force",
+  "suspicious_login",
+  "account_takeover",
+  "data_breach",
+  "sql_injection",
+  "xss_attempt",
+  "csrf_attack",
+  "rate_limit_exceeded",
+  "malicious_upload",
+  "fraudulent_order",
+  "payment_fraud",
+  "identity_theft",
+  "fake_review",
+  "price_manipulation"
+]);
+
+export const securityEvents = pgTable("security_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  incidentType: securityIncidentEnum("incident_type").notNull(),
+  severity: varchar("severity").notNull(), // low, medium, high, critical
+  userId: varchar("user_id").references(() => users.id),
+  sessionId: varchar("session_id"),
+  ipAddress: varchar("ip_address"),
+  userAgent: varchar("user_agent"),
+  requestPath: varchar("request_path"),
+  requestMethod: varchar("request_method"),
+  requestHeaders: jsonb("request_headers"),
+  requestBody: jsonb("request_body"),
+  responseStatus: integer("response_status"),
+  geoLocation: jsonb("geo_location"), // country, city, lat, lng
+  isBlocked: boolean("is_blocked").default(false),
+  isResolved: boolean("is_resolved").default(false),
+  riskScore: decimal("risk_score", { precision: 3, scale: 2 }),
+  description: text("description"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
+  resolvedBy: varchar("resolved_by").references(() => users.id),
+});
+
+// Rate limiting tracking
+export const rateLimitViolations = pgTable("rate_limit_violations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ipAddress: varchar("ip_address").notNull(),
+  userId: varchar("user_id").references(() => users.id),
+  endpoint: varchar("endpoint").notNull(),
+  attemptCount: integer("attempt_count").default(1),
+  windowStart: timestamp("window_start").defaultNow(),
+  windowEnd: timestamp("window_end").notNull(),
+  isBlocked: boolean("is_blocked").default(false),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Fraud detection for orders
+export const fraudDetectionEnum = pgEnum("fraud_detection_status", [
+  "pending",
+  "approved", 
+  "flagged",
+  "blocked",
+  "manual_review"
+]);
+
+export const fraudAnalysis = pgTable("fraud_analysis", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: varchar("order_id").references(() => orders.id),
+  userId: varchar("user_id").references(() => users.id),
+  status: fraudDetectionEnum("status").default("pending"),
+  riskScore: decimal("risk_score", { precision: 5, scale: 2 }).notNull(),
+  riskFactors: jsonb("risk_factors"), // Array of detected risk factors
+  rules: jsonb("rules"), // Which fraud rules were triggered
+  ipAddress: varchar("ip_address"),
+  deviceFingerprint: varchar("device_fingerprint"),
+  geoLocation: jsonb("geo_location"),
+  velocityChecks: jsonb("velocity_checks"), // Purchase frequency, amount patterns
+  behaviorScore: decimal("behavior_score", { precision: 3, scale: 2 }),
+  paymentRisk: decimal("payment_risk", { precision: 3, scale: 2 }),
+  accountAge: integer("account_age"), // Days since account creation
+  isVpnDetected: boolean("is_vpn_detected").default(false),
+  isTorDetected: boolean("is_tor_detected").default(false),
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewNotes: text("review_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User verification and KYC
+export const verificationStatusEnum = pgEnum("verification_status", [
+  "unverified",
+  "pending",
+  "verified",
+  "rejected",
+  "expired"
+]);
+
+export const verificationTypeEnum = pgEnum("verification_type", [
+  "email",
+  "phone",
+  "identity_document",
+  "address_proof",
+  "bank_account",
+  "business_license"
+]);
+
+export const userVerifications = pgTable("user_verifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  verificationType: verificationTypeEnum("verification_type").notNull(),
+  status: verificationStatusEnum("status").default("pending"),
+  documentUrl: varchar("document_url"),
+  documentType: varchar("document_type"),
+  extractedData: jsonb("extracted_data"), // OCR extracted information
+  verificationCode: varchar("verification_code"),
+  expiresAt: timestamp("expires_at"),
+  verifiedBy: varchar("verified_by").references(() => users.id),
+  verifiedAt: timestamp("verified_at"),
+  rejectionReason: text("rejection_reason"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Trust scoring for vendors
+export const vendorTrustScores = pgTable("vendor_trust_scores", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  vendorId: varchar("vendor_id").references(() => vendors.id).notNull(),
+  overallScore: decimal("overall_score", { precision: 3, scale: 2 }).notNull(),
+  identityScore: decimal("identity_score", { precision: 3, scale: 2 }),
+  activityScore: decimal("activity_score", { precision: 3, scale: 2 }),
+  reviewScore: decimal("review_score", { precision: 3, scale: 2 }),
+  complianceScore: decimal("compliance_score", { precision: 3, scale: 2 }),
+  financialScore: decimal("financial_score", { precision: 3, scale: 2 }),
+  factors: jsonb("factors"), // Detailed scoring factors
+  riskFlags: jsonb("risk_flags"), // Array of risk flags
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Suspicious activity monitoring
+export const activityTypeEnum = pgEnum("activity_type", [
+  "login",
+  "password_change", 
+  "email_change",
+  "profile_update",
+  "order_creation",
+  "payment_attempt",
+  "review_submission",
+  "message_sent",
+  "product_listing",
+  "account_deletion"
+]);
+
+export const suspiciousActivities = pgTable("suspicious_activities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  activityType: activityTypeEnum("activity_type").notNull(),
+  riskScore: decimal("risk_score", { precision: 3, scale: 2 }).notNull(),
+  anomalyFactors: jsonb("anomaly_factors"), // What made it suspicious
+  ipAddress: varchar("ip_address"),
+  userAgent: varchar("user_agent"),
+  geoLocation: jsonb("geo_location"),
+  sessionData: jsonb("session_data"),
+  isInvestigated: boolean("is_investigated").default(false),
+  investigatedBy: varchar("investigated_by").references(() => users.id),
+  investigationNotes: text("investigation_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  investigatedAt: timestamp("investigated_at"),
+});
+
+// Blacklist management
+export const blacklistTypeEnum = pgEnum("blacklist_type", [
+  "ip_address",
+  "email_domain",
+  "phone_number", 
+  "device_fingerprint",
+  "credit_card_hash",
+  "user_account"
+]);
+
+export const blacklist = pgTable("blacklist", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  type: blacklistTypeEnum("type").notNull(),
+  value: varchar("value").notNull(), // The blacklisted value
+  reason: text("reason").notNull(),
+  severity: varchar("severity").notNull(), // low, medium, high
+  isActive: boolean("is_active").default(true),
+  expiresAt: timestamp("expires_at"),
+  addedBy: varchar("added_by").references(() => users.id).notNull(),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 export interface DriverStats {
   totalDeliveries?: number;

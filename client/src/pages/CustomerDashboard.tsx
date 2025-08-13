@@ -7,6 +7,7 @@ import ProductCard from "@/components/ProductCard";
 import ProductSearch from "@/components/ProductSearch";
 import Cart from "@/components/Cart";
 import RecentlyViewed from "@/components/RecentlyViewed";
+import RecommendationSection from "@/components/RecommendationSection";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -134,6 +135,24 @@ export default function CustomerDashboard() {
 
         {/* Recently Viewed Products */}
         <RecentlyViewed />
+
+        {/* Recommendation Sections */}
+        {!searchTerm && (
+          <div className="space-y-8 mb-12">
+            <RecommendationSection 
+              type="personalized" 
+              limit={8}
+            />
+            <RecommendationSection 
+              type="trending" 
+              limit={6}
+            />
+            <RecommendationSection 
+              type="popular" 
+              limit={6}
+            />
+          </div>
+        )}
 
         {/* Categories */}
         {categoriesError ? (
