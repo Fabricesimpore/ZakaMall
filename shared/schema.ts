@@ -738,20 +738,27 @@ export const vendorNotificationSettings = pgTable("vendor_notification_settings"
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const vendorNotificationSettingsRelations = relations(vendorNotificationSettings, ({ one }) => ({
-  user: one(users, {
-    fields: [vendorNotificationSettings.userId],
-    references: [users.id],
-  }),
-}));
+export const vendorNotificationSettingsRelations = relations(
+  vendorNotificationSettings,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [vendorNotificationSettings.userId],
+      references: [users.id],
+    }),
+  })
+);
 
-export const insertVendorNotificationSettingsSchema = createInsertSchema(vendorNotificationSettings).omit({
+export const insertVendorNotificationSettingsSchema = createInsertSchema(
+  vendorNotificationSettings
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 export type VendorNotificationSettings = typeof vendorNotificationSettings.$inferSelect;
-export type InsertVendorNotificationSettings = z.infer<typeof insertVendorNotificationSettingsSchema>;
+export type InsertVendorNotificationSettings = z.infer<
+  typeof insertVendorNotificationSettingsSchema
+>;
 
 // Additional types for frontend components
 export interface AdminStats {
