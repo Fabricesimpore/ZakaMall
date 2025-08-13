@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import WhatsAppSupport from "@/components/WhatsAppSupport";
+import ProductDetailModal from "@/components/ProductDetailModal";
 
 interface ProductCardProps {
   product: {
@@ -26,6 +27,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { toast } = useToast();
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const { addToRecentlyViewed } = useRecentlyViewed();
 
   // Track product view
@@ -102,23 +104,33 @@ export default function ProductCard({ product }: ProductCardProps) {
     return null;
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't open modal if clicking on interactive elements
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('[role="button"]')) {
+      return;
+    }
+    setShowDetailModal(true);
+  };
+
   return (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardContent className="p-0">
-        <div className="relative">
-          {getFirstImage() ? (
-            <img
-              src={getFirstImage()!}
-              alt={product.name}
-              className="w-full h-48 object-cover rounded-t-lg"
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <div className="w-full h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
-              <i className="fas fa-image text-3xl text-gray-400"></i>
-            </div>
-          )}
+    <>
+      <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={handleCardClick}>
+        <CardContent className="p-0">
+          <div className="relative">
+            {getFirstImage() ? (
+              <img
+                src={getFirstImage()!}
+                alt={product.name}
+                className="w-full h-48 object-cover rounded-t-lg"
+                loading="lazy"
+                decoding="async"
+              />
+            ) : (
+              <div className="w-full h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
+                <i className="fas fa-image text-3xl text-gray-400"></i>
+              </div>
+            )}
 
           {product.quantity <= 5 && product.quantity > 0 && (
             <Badge className="absolute top-2 right-2 bg-orange-500 text-white">Stock faible</Badge>
@@ -203,5 +215,13 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </CardContent>
     </Card>
+
+    {/* Product Detail Modal */}
+    <ProductDetailModal
+      productId={showDetailModal ? product.id : null}
+      isOpen={showDetailModal}
+      onClose={() => setShowDetailModal(false)}
+    />
+    </>
   );
 }

@@ -182,6 +182,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { amount, items } = req.body;
 
     try {
+      // Calculate commission for test order (use default 5% rate)
+      const subtotal = parseFloat(amount.toString());
+      const commissionRate = 5.00; // Default 5% commission for test orders
+      const commissionAmount = (subtotal * commissionRate) / 100;
+      const vendorEarnings = subtotal - commissionAmount;
+      const platformRevenue = commissionAmount;
+
       const testOrder = {
         customerId: "test-user-123",
         vendorId: "test-vendor-1",
@@ -189,6 +196,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subtotal: amount.toString(),
         deliveryFee: "2000",
         totalAmount: amount.toString(),
+        commissionRate: commissionRate.toString(),
+        commissionAmount: commissionAmount.toString(),
+        vendorEarnings: vendorEarnings.toString(),
+        platformRevenue: platformRevenue.toString(),
         deliveryAddress: {
           address: "Adresse de test, Ouagadougou, Burkina Faso",
           phone: "+226 70 12 34 56",
@@ -959,7 +970,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Product not found" });
       }
 
-      res.json(product);
+      // Get vendor information for the product
+      const vendor = await storage.getVendor(product.vendorId);
+      
+      // Include basic vendor info in the response
+      const productWithVendor = {
+        ...product,
+        vendor: vendor ? {
+          businessName: vendor.businessName,
+          businessPhone: vendor.businessPhone,
+        } : null,
+      };
+
+      res.json(productWithVendor);
     } catch (error) {
       console.error("Error fetching product:", error);
       res.status(500).json({ message: "Failed to fetch product" });
@@ -1457,6 +1480,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching admin stats:", error);
       res.status(500).json({ message: "Failed to fetch admin stats" });
+    }
+  });
+
+  // Commission analytics endpoints
+  app.get("/api/analytics/vendor/:id/commission", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      
+      // Check if user is the vendor owner or admin
+      const vendor = await storage.getVendor(id);
+      const user = await storage.getUser(userId);
+      
+      if (!vendor || (vendor.userId !== userId && user?.role !== "admin")) {
+        return res.status(403).json({ message: "Unauthorized to view this vendor's commission data" });
+      }
+
+      // Parse date range from query params
+      const { startDate, endDate } = req.query;
+      const dateRange = {
+        startDate: startDate ? new Date(startDate as string) : undefined,
+        endDate: endDate ? new Date(endDate as string) : undefined,
+      };
+
+      const commissionSummary = await storage.getVendorCommissionSummary(id, dateRange);
+      res.json(commissionSummary);
+    } catch (error) {
+      console.error("Error fetching vendor commission data:", error);
+      res.status(500).json({ message: "Failed to fetch commission data" });
+    }
+  });
+
+  app.get("/api/analytics/platform/commission", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      if (user?.role !== "admin") {
+        return res.status(403).json({ message: "Unauthorized: Admin access required" });
+      }
+
+      // Parse date range from query params
+      const { startDate, endDate } = req.query;
+      const dateRange = {
+        startDate: startDate ? new Date(startDate as string) : undefined,
+        endDate: endDate ? new Date(endDate as string) : undefined,
+      };
+
+      const commissionSummary = await storage.getPlatformCommissionSummary(dateRange);
+      res.json(commissionSummary);
+    } catch (error) {
+      console.error("Error fetching platform commission data:", error);
+      res.status(500).json({ message: "Failed to fetch platform commission data" });
+    }
+  });
+
+  app.get("/api/analytics/top-vendors", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      if (user?.role !== "admin") {
+        return res.status(403).json({ message: "Unauthorized: Admin access required" });
+      }
+
+      // Parse query params
+      const { limit = "10", startDate, endDate } = req.query;
+      const dateRange = {
+        startDate: startDate ? new Date(startDate as string) : undefined,
+        endDate: endDate ? new Date(endDate as string) : undefined,
+      };
+
+      const topVendors = await storage.getTopVendorsByRevenue(parseInt(limit as string), dateRange);
+      res.json(topVendors);
+    } catch (error) {
+      console.error("Error fetching top vendors:", error);
+      res.status(500).json({ message: "Failed to fetch top vendors data" });
     }
   });
 

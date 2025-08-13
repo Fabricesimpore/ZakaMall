@@ -51,7 +51,7 @@ import {
   type OrderTracking,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc, and, ilike, or, count, avg, sum, sql } from "drizzle-orm";
+import { eq, desc, asc, and, ilike, or, count, avg, sum, sql, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -924,12 +924,59 @@ export class DatabaseStorage implements IStorage {
         })
       );
 
-      // If we get here, all items have sufficient stock
+      // Get vendor information to calculate commission
+      const [vendor] = await tx
+        .select({
+          id: vendors.id,
+          commissionRate: vendors.commissionRate,
+        })
+        .from(vendors)
+        .where(eq(vendors.id, orderData.vendorId));
+
+      if (!vendor) {
+        throw new Error(`Vendor ${orderData.vendorId} not found`);
+      }
+
+      // Calculate commission breakdown
+      const subtotal = parseFloat(orderData.subtotal);
+      const deliveryFee = parseFloat(orderData.deliveryFee || "0");
+      const taxAmount = parseFloat(orderData.taxAmount || "0");
+      const totalAmount = parseFloat(orderData.totalAmount);
+      
+      // Generate order number for logging
       const orderNumber = `ZK-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+      
+      // Commission is calculated on subtotal (product value) only, not on delivery fee or tax
+      const commissionRate = parseFloat(vendor.commissionRate || "5.00");
+      const commissionAmount = (subtotal * commissionRate) / 100;
+      const vendorEarnings = subtotal - commissionAmount;
+      const platformRevenue = commissionAmount;
+
+      console.log(`[COMMISSION] Order ${orderNumber} breakdown:`, {
+        subtotal,
+        commissionRate: `${commissionRate}%`,
+        commissionAmount,
+        vendorEarnings,
+        platformRevenue,
+        deliveryFee,
+        taxAmount,
+        totalAmount
+      });
+
+      // If we get here, all items have sufficient stock
+      // Create order with commission data
+      const orderWithCommission = {
+        ...orderData,
+        orderNumber,
+        commissionRate: commissionRate.toFixed(2),
+        commissionAmount: commissionAmount.toFixed(2),
+        vendorEarnings: vendorEarnings.toFixed(2),
+        platformRevenue: platformRevenue.toFixed(2),
+      };
 
       const [order] = await tx
         .insert(orders)
-        .values({ ...orderData, orderNumber })
+        .values(orderWithCommission)
         .returning();
 
       // Insert order items
@@ -953,6 +1000,7 @@ export class DatabaseStorage implements IStorage {
         }
       }
 
+      console.log(`[ORDER] Created order ${orderNumber} with commission tracking`);
       return order;
     });
   }
@@ -964,6 +1012,98 @@ export class DatabaseStorage implements IStorage {
 
   async getOrderItemsByOrderId(orderId: string): Promise<OrderItem[]> {
     return await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+  }
+
+  // Commission analytics methods
+  async getVendorCommissionSummary(vendorId: string, dateRange?: { startDate?: Date; endDate?: Date }) {
+    const conditions = [eq(orders.vendorId, vendorId)];
+    
+    if (dateRange?.startDate) {
+      conditions.push(gte(orders.createdAt, dateRange.startDate));
+    }
+    if (dateRange?.endDate) {
+      conditions.push(lte(orders.createdAt, dateRange.endDate));
+    }
+
+    const result = await db
+      .select({
+        totalOrders: sql<number>`count(*)`,
+        totalRevenue: sql<number>`sum(${orders.subtotal})`,
+        totalCommission: sql<number>`sum(${orders.commissionAmount})`,
+        totalEarnings: sql<number>`sum(${orders.vendorEarnings})`,
+        avgCommissionRate: sql<number>`avg(${orders.commissionRate})`,
+        totalDeliveryFees: sql<number>`sum(${orders.deliveryFee})`,
+      })
+      .from(orders)
+      .where(and(...conditions));
+
+    return result[0] || {
+      totalOrders: 0,
+      totalRevenue: 0,
+      totalCommission: 0,
+      totalEarnings: 0,
+      avgCommissionRate: 0,
+      totalDeliveryFees: 0,
+    };
+  }
+
+  async getPlatformCommissionSummary(dateRange?: { startDate?: Date; endDate?: Date }) {
+    const conditions = [];
+    
+    if (dateRange?.startDate) {
+      conditions.push(gte(orders.createdAt, dateRange.startDate));
+    }
+    if (dateRange?.endDate) {
+      conditions.push(lte(orders.createdAt, dateRange.endDate));
+    }
+
+    const result = await db
+      .select({
+        totalOrders: sql<number>`count(*)`,
+        totalGMV: sql<number>`sum(${orders.totalAmount})`, // Gross Merchandise Value
+        totalCommissionRevenue: sql<number>`sum(${orders.platformRevenue})`,
+        totalVendorEarnings: sql<number>`sum(${orders.vendorEarnings})`,
+        avgCommissionRate: sql<number>`avg(${orders.commissionRate})`,
+        totalDeliveryRevenue: sql<number>`sum(${orders.deliveryFee})`,
+      })
+      .from(orders)
+      .where(conditions.length > 0 ? and(...conditions) : undefined);
+
+    return result[0] || {
+      totalOrders: 0,
+      totalGMV: 0,
+      totalCommissionRevenue: 0,
+      totalVendorEarnings: 0,
+      avgCommissionRate: 0,
+      totalDeliveryRevenue: 0,
+    };
+  }
+
+  async getTopVendorsByRevenue(limit: number = 10, dateRange?: { startDate?: Date; endDate?: Date }) {
+    const conditions = [];
+    
+    if (dateRange?.startDate) {
+      conditions.push(gte(orders.createdAt, dateRange.startDate));
+    }
+    if (dateRange?.endDate) {
+      conditions.push(lte(orders.createdAt, dateRange.endDate));
+    }
+
+    return await db
+      .select({
+        vendorId: orders.vendorId,
+        businessName: vendors.businessName,
+        totalOrders: sql<number>`count(*)`,
+        totalRevenue: sql<number>`sum(${orders.subtotal})`,
+        totalCommission: sql<number>`sum(${orders.commissionAmount})`,
+        commissionRate: sql<number>`avg(${orders.commissionRate})`,
+      })
+      .from(orders)
+      .innerJoin(vendors, eq(orders.vendorId, vendors.id))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .groupBy(orders.vendorId, vendors.businessName)
+      .orderBy(sql`sum(${orders.subtotal}) desc`)
+      .limit(limit);
   }
 
   async getOrders(filters?: {

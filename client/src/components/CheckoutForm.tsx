@@ -92,7 +92,7 @@ export default function CheckoutForm({ cartItems, total, onBack, onClose }: Chec
     defaultValues: {
       deliveryType: "standard",
       deliveryAddress: {
-        fullName: user?.name || "",
+        fullName: user?.firstName || "",
         phone: user?.phone || "",
         address: "",
         city: "Ouagadougou",

@@ -18,7 +18,7 @@ interface CartProps {
 export default function Cart({ onClose }: CartProps) {
   const [showCheckout, setShowCheckout] = useState(false);
   const { toast } = useToast();
-  const { restoreCart, saveCartToLocal, isRestoring } = useCartPersistence();
+  const { restoreCart, saveCartToLocal, clearLocalCart, isRestoring } = useCartPersistence();
 
   const { data: cartItems = [] as CartItemWithProduct[], isLoading } = useQuery({
     queryKey: ["/api/cart"],
@@ -92,7 +92,10 @@ export default function Cart({ onClose }: CartProps) {
       return await apiRequest("DELETE", "/api/cart");
     },
     onSuccess: () => {
+      // Clear both server cart and local storage
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+      // Clear local cart storage to prevent restoration
+      clearLocalCart();
       toast({
         title: "Succès",
         description: "Panier vidé",

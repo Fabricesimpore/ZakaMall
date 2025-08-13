@@ -9,6 +9,7 @@ interface CartItem {
 }
 
 const CART_STORAGE_KEY = "zakamall_cart_backup";
+const CART_CLEARED_KEY = "zakamall_cart_cleared";
 const MAX_CART_AGE_DAYS = 30;
 
 export function useCartPersistence() {
@@ -77,8 +78,34 @@ export function useCartPersistence() {
     }
   }, []);
 
+  // Check if cart was recently cleared intentionally
+  const wasCartRecentlyCleared = useCallback(() => {
+    try {
+      const clearedTimestamp = localStorage.getItem(CART_CLEARED_KEY);
+      if (!clearedTimestamp) return false;
+      
+      const timeSinceCleared = Date.now() - parseInt(clearedTimestamp);
+      const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+      
+      if (timeSinceCleared < fiveMinutes) {
+        return true; // Cart was cleared recently, don't restore
+      } else {
+        // Clear the flag if enough time has passed
+        localStorage.removeItem(CART_CLEARED_KEY);
+        return false;
+      }
+    } catch {
+      return false;
+    }
+  }, []);
+
   // Restore cart when user logs in or page loads
   const restoreCart = useCallback(async () => {
+    // Don't restore if cart was recently cleared
+    if (wasCartRecentlyCleared()) {
+      return;
+    }
+
     const localCart = loadCartFromLocal();
 
     if (localCart.length > 0 && Array.isArray(serverCart) && serverCart.length === 0) {
@@ -88,12 +115,14 @@ export function useCartPersistence() {
       // Clear local cart after successful sync
       localStorage.removeItem(CART_STORAGE_KEY);
     }
-  }, [loadCartFromLocal, serverCart, syncToServerMutation]);
+  }, [wasCartRecentlyCleared, loadCartFromLocal, serverCart, syncToServerMutation]);
 
   // Auto-save cart when server cart changes
   useEffect(() => {
     if (Array.isArray(serverCart) && serverCart.length > 0) {
       saveCartToLocal(serverCart);
+      // Clear the "cleared" flag when items are added back to cart
+      localStorage.removeItem(CART_CLEARED_KEY);
     }
   }, [serverCart, saveCartToLocal]);
 
@@ -116,15 +145,19 @@ export function useCartPersistence() {
         lastUpdated: Date.now(),
       };
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartData));
+      // Clear the "cleared" flag when adding items
+      localStorage.removeItem(CART_CLEARED_KEY);
 
       return updatedCart;
     },
     [loadCartFromLocal]
   );
 
-  // Clear local cart
+  // Clear local cart and mark as intentionally cleared
   const clearLocalCart = useCallback(() => {
     localStorage.removeItem(CART_STORAGE_KEY);
+    // Mark cart as intentionally cleared to prevent auto-restoration
+    localStorage.setItem(CART_CLEARED_KEY, Date.now().toString());
   }, []);
 
   return {
