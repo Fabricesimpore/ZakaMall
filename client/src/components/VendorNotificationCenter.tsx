@@ -199,19 +199,27 @@ export default function VendorNotificationCenter() {
     });
   };
 
-  const groupedNotifications = notifications.reduce((acc, notification) => {
-    const date = new Date(notification.createdAt || new Date()).toLocaleDateString("fr-FR");
-    if (!acc[date]) acc[date] = [];
-    acc[date].push(notification);
-    return acc;
-  }, {} as Record<string, Notification[]>);
+  const groupedNotifications = notifications.reduce(
+    (acc, notification) => {
+      const date = new Date(notification.createdAt || new Date()).toLocaleDateString("fr-FR");
+      if (!acc[date]) acc[date] = [];
+      acc[date].push(notification);
+      return acc;
+    },
+    {} as Record<string, Notification[]>
+  );
 
-  const handleSettingChange = (category: keyof VendorNotificationSettings, key: string, value: boolean | number) => {
+  const handleSettingChange = (
+    category: keyof VendorNotificationSettings,
+    key: string,
+    value: boolean | number
+  ) => {
     const updatedSettings = {
       ...settings,
-      [category]: typeof settings[category] === 'object' && settings[category] !== null
-        ? { ...settings[category], [key]: value }
-        : value,
+      [category]:
+        typeof settings[category] === "object" && settings[category] !== null
+          ? { ...settings[category], [key]: value }
+          : value,
     };
     updateSettingsMutation.mutate(updatedSettings);
   };
@@ -260,9 +268,7 @@ export default function VendorNotificationCenter() {
             <BellRing className="mr-3 text-zaka-orange" size={28} />
             Centre de Notifications
           </h2>
-          <p className="text-gray-600 mt-1">
-            Gérez vos notifications et alertes vendeur
-          </p>
+          <p className="text-gray-600 mt-1">Gérez vos notifications et alertes vendeur</p>
         </div>
         <div className="flex items-center space-x-2">
           {unreadCount > 0 && (
@@ -273,7 +279,9 @@ export default function VendorNotificationCenter() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/vendor/notifications"] })}
+            onClick={() =>
+              queryClient.invalidateQueries({ queryKey: ["/api/vendor/notifications"] })
+            }
           >
             <RefreshCw size={16} className="mr-1" />
             Actualiser
@@ -317,9 +325,7 @@ export default function VendorNotificationCenter() {
             <Card>
               <CardContent className="p-12 text-center">
                 <Bell size={48} className="mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                  Aucune notification
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-600 mb-2">Aucune notification</h3>
                 <p className="text-gray-500">
                   Vous recevrez ici toutes vos notifications importantes
                 </p>
@@ -337,9 +343,7 @@ export default function VendorNotificationCenter() {
                       <Card
                         key={notification.id}
                         className={`transition-all hover:shadow-md ${
-                          !notification.isRead
-                            ? "border-l-4 border-l-zaka-orange bg-orange-50"
-                            : ""
+                          !notification.isRead ? "border-l-4 border-l-zaka-orange bg-orange-50" : ""
                         } ${getPriorityColor(notification.type)}`}
                       >
                         <CardContent className="p-4">
@@ -377,7 +381,9 @@ export default function VendorNotificationCenter() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => deleteNotificationMutation.mutate(notification.id)}
+                                    onClick={() =>
+                                      deleteNotificationMutation.mutate(notification.id)
+                                    }
                                     disabled={deleteNotificationMutation.isPending}
                                     className="text-red-500 hover:text-red-700"
                                     title="Supprimer"
@@ -476,9 +482,7 @@ export default function VendorNotificationCenter() {
                 <Switch
                   id="sound-enabled"
                   checked={settings.soundEnabled}
-                  onCheckedChange={(checked) =>
-                    handleSettingChange("soundEnabled", "", checked)
-                  }
+                  onCheckedChange={(checked) => handleSettingChange("soundEnabled", "", checked)}
                 />
               </div>
 
@@ -524,8 +528,9 @@ export default function VendorNotificationCenter() {
               <p className="text-sm text-gray-600 mb-4">
                 Les alertes urgentes nécessitent une attention immédiate.
               </p>
-              
-              {notifications.filter(n => n.type === "urgent" || n.type === "low_stock").length === 0 ? (
+
+              {notifications.filter((n) => n.type === "urgent" || n.type === "low_stock").length ===
+              0 ? (
                 <div className="text-center py-8">
                   <CheckCircle size={48} className="mx-auto mb-4 text-green-300" />
                   <p className="text-gray-500">Aucune alerte urgente pour le moment</p>
@@ -533,7 +538,7 @@ export default function VendorNotificationCenter() {
               ) : (
                 <div className="space-y-2">
                   {notifications
-                    .filter(n => n.type === "urgent" || n.type === "low_stock")
+                    .filter((n) => n.type === "urgent" || n.type === "low_stock")
                     .map((notification) => (
                       <div
                         key={notification.id}
@@ -541,9 +546,7 @@ export default function VendorNotificationCenter() {
                       >
                         <AlertTriangle className="text-red-600" size={20} />
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-red-900">
-                            {notification.title}
-                          </p>
+                          <p className="text-sm font-medium text-red-900">{notification.title}</p>
                           <p className="text-xs text-red-700">
                             {formatDate(notification.createdAt)}
                           </p>
