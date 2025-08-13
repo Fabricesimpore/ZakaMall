@@ -7,6 +7,7 @@ import { orderNotificationService } from "./notifications/orderNotifications";
 import {
   setupAuth,
   isAuthenticated,
+  isVendor,
   hashPassword,
   verifyPassword,
   createUserSession,

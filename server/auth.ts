@@ -72,6 +72,16 @@ const _registerSchema = z.object({
   role: z.enum(["customer", "vendor", "driver"]).default("customer"),
 });
 
+// Vendor-only middleware
+export const isVendor: RequestHandler = async (req, res, next) => {
+  const sessionUser = (req as any).session?.user;
+  if (sessionUser && sessionUser.isAuthenticated && sessionUser.user?.role === "vendor") {
+    (req as any).user = sessionUser;
+    return next();
+  }
+  return res.status(403).json({ message: "Access denied. Vendor privileges required." });
+};
+
 // Helper function to hash passwords
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
