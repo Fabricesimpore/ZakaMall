@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import DriverMap from "@/components/DriverMap";
 
 export default function DriverDashboard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -324,26 +325,35 @@ export default function DriverDashboard() {
                     <Badge className="bg-zaka-blue text-white">EN ROUTE</Badge>
                   </div>
 
-                  {/* Mock GPS Map Area */}
-                  <div className="bg-gray-200 rounded-lg h-48 mb-4 flex items-center justify-center">
-                    <div className="text-center text-zaka-gray">
-                      <i className="fas fa-map text-4xl mb-2"></i>
-                      <p>Interface GPS intégrée</p>
-                      <p className="text-sm">Temps estimé: 15 min</p>
-                    </div>
+                  {/* GPS Map Component */}
+                  <div className="mb-4">
+                    <DriverMap
+                      delivery={{
+                        id: delivery.id,
+                        address: delivery.deliveryAddress?.toString() || "Adresse de livraison",
+                        customerName: delivery.customerName || "Client",
+                        phone: delivery.customerPhone || "",
+                        estimatedTime: 15,
+                        distance: 5.2
+                      }}
+                      onNavigate={() => {
+                        toast({
+                          title: "Navigation démarrée",
+                          description: "L'application de cartes va s'ouvrir",
+                        });
+                      }}
+                      onCallCustomer={() => {
+                        toast({
+                          title: "Appel en cours",
+                          description: "Connexion avec le client...",
+                        });
+                      }}
+                    />
                   </div>
 
-                  <div className="flex justify-between items-center">
-                    <div className="flex space-x-3">
-                      <Button variant="outline" className="border-zaka-blue text-zaka-blue">
-                        <i className="fas fa-phone mr-2"></i>Appeler client
-                      </Button>
-                      <Button variant="outline" className="border-zaka-gray text-zaka-gray">
-                        <i className="fas fa-navigation mr-2"></i>Navigation
-                      </Button>
-                    </div>
+                  <div className="flex justify-center">
                     <Button
-                      className="bg-zaka-green hover:bg-zaka-green"
+                      className="bg-zaka-green hover:bg-zaka-green px-8"
                       onClick={() => completeDeliveryMutation.mutate(delivery.id)}
                       disabled={completeDeliveryMutation.isPending}
                     >

@@ -26,6 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import AdminAnalytics from "@/components/AdminAnalytics";
 
 export default function AdminDashboard() {
   const [, setSelectedVendor] = useState<Vendor | null>(null);
@@ -444,14 +445,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="analytics">
-            <Card>
-              <CardHeader>
-                <CardTitle>Analytics détaillées</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">Analytics avancées en cours de développement...</p>
-              </CardContent>
-            </Card>
+            <AdminAnalytics />
           </TabsContent>
         </Tabs>
       </div>

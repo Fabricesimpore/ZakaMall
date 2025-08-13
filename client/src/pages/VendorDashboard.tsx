@@ -8,6 +8,7 @@ import { Link, useLocation } from "wouter";
 import VendorProducts from "@/components/VendorProducts";
 import VendorOrders from "@/components/VendorOrders";
 import VendorNotificationCenter from "@/components/VendorNotificationCenter";
+import VendorAnalytics from "@/components/VendorAnalytics";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
@@ -483,14 +484,7 @@ export default function VendorDashboard() {
           </TabsContent>
 
           <TabsContent value="analytics">
-            <Card>
-              <CardHeader>
-                <CardTitle>Analytics détaillées</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">Analytics avancées en cours de développement...</p>
-              </CardContent>
-            </Card>
+            <VendorAnalytics />
           </TabsContent>
 
           <TabsContent value="notifications">

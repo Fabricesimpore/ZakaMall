@@ -3188,6 +3188,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin analytics endpoint
+  app.get("/api/admin/analytics", isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = req.session?.user?.user;
+      if (!currentUser || currentUser.role !== "admin") {
+        return res.status(403).json({ error: "Access denied. Admin privileges required." });
+      }
+
+      const analytics = await storage.getAdminAnalytics();
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching admin analytics:", error);
+      res.status(500).json({ error: "Failed to fetch admin analytics" });
+    }
+  });
+
   // Vendor-specific notification endpoints
   app.get("/api/vendor/notifications", isAuthenticated, isVendor, async (req: any, res) => {
     try {

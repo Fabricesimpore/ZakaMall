@@ -2126,6 +2126,188 @@ export class DatabaseStorage implements IStorage {
       isRead: false,
     });
   }
+
+  async getAdminAnalytics(): Promise<{
+    totalUsers: number;
+    totalVendors: number;
+    totalDrivers: number;
+    totalOrders: number;
+    totalRevenue: number;
+    pendingVendors: number;
+    activeVendors: number;
+    pendingOrders: number;
+    completedOrders: number;
+    monthlyRevenue: Array<{ month: string; revenue: number; orders: number }>;
+    topVendors: Array<{ 
+      id: string; 
+      businessName: string; 
+      totalRevenue: number; 
+      totalOrders: number; 
+    }>;
+    recentActivity: Array<{
+      type: string;
+      description: string;
+      timestamp: string;
+      status: string;
+    }>;
+    platformMetrics: {
+      totalProducts: number;
+      totalCategories: number;
+      averageOrderValue: number;
+      platformCommissionEarned: number;
+    };
+  }> {
+    try {
+      // Get basic counts
+      const [userCount] = await db.select({ count: count() }).from(users);
+      const totalUsers = userCount?.count || 0;
+
+      const [vendorCount] = await db.select({ count: count() }).from(vendors);
+      const totalVendors = vendorCount?.count || 0;
+
+      const [driverCount] = await db.select({ count: count() }).from(drivers);
+      const totalDrivers = driverCount?.count || 0;
+
+      const [orderCount] = await db.select({ count: count() }).from(orders);
+      const totalOrders = orderCount?.count || 0;
+
+      const [productCount] = await db.select({ count: count() }).from(products);
+      const totalProducts = productCount?.count || 0;
+
+      const [categoryCount] = await db.select({ count: count() }).from(categories);
+      const totalCategories = categoryCount?.count || 0;
+
+      // Get vendor status counts
+      const [pendingVendorCount] = await db
+        .select({ count: count() })
+        .from(vendors)
+        .where(eq(vendors.status, "pending"));
+      const pendingVendors = pendingVendorCount?.count || 0;
+
+      const [activeVendorCount] = await db
+        .select({ count: count() })
+        .from(vendors)
+        .where(eq(vendors.status, "approved"));
+      const activeVendors = activeVendorCount?.count || 0;
+
+      // Get order status counts
+      const [pendingOrderCount] = await db
+        .select({ count: count() })
+        .from(orders)
+        .where(eq(orders.status, "pending"));
+      const pendingOrders = pendingOrderCount?.count || 0;
+
+      const [completedOrderCount] = await db
+        .select({ count: count() })
+        .from(orders)
+        .where(eq(orders.status, "delivered"));
+      const completedOrders = completedOrderCount?.count || 0;
+
+      // Calculate total revenue and platform commission
+      const [revenueResult] = await db
+        .select({ 
+          totalRevenue: sum(orders.totalAmount),
+          platformRevenue: sum(orders.platformRevenue)
+        })
+        .from(orders)
+        .where(eq(orders.status, "delivered"));
+
+      const totalRevenue = parseFloat(revenueResult?.totalRevenue || "0");
+      const platformCommissionEarned = parseFloat(revenueResult?.platformRevenue || "0");
+
+      // Calculate average order value
+      const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+      // Get monthly revenue for the last 6 months
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+      const monthlyRevenueData = await db
+        .select({
+          month: sql<string>`DATE_TRUNC('month', ${orders.createdAt})::text`,
+          revenue: sum(orders.totalAmount),
+          orders: count(orders.id)
+        })
+        .from(orders)
+        .where(and(
+          eq(orders.status, "delivered"),
+          gte(orders.createdAt, sixMonthsAgo)
+        ))
+        .groupBy(sql`DATE_TRUNC('month', ${orders.createdAt})`)
+        .orderBy(sql`DATE_TRUNC('month', ${orders.createdAt})`);
+
+      const monthlyRevenue = monthlyRevenueData.map(row => ({
+        month: new Date(row.month).toLocaleDateString("fr-FR", { month: "short" }),
+        revenue: parseFloat(row.revenue || "0"),
+        orders: row.orders || 0
+      }));
+
+      // Get top vendors by revenue
+      const topVendorsData = await db
+        .select({
+          id: vendors.id,
+          businessName: vendors.businessName,
+          totalRevenue: sum(orders.vendorEarnings),
+          totalOrders: count(orders.id)
+        })
+        .from(vendors)
+        .leftJoin(orders, eq(orders.vendorId, vendors.userId))
+        .where(eq(orders.status, "delivered"))
+        .groupBy(vendors.id, vendors.businessName)
+        .orderBy(desc(sum(orders.vendorEarnings)))
+        .limit(5);
+
+      const topVendors = topVendorsData.map(vendor => ({
+        id: vendor.id,
+        businessName: vendor.businessName || "Vendeur",
+        totalRevenue: parseFloat(vendor.totalRevenue || "0"),
+        totalOrders: vendor.totalOrders || 0
+      }));
+
+      // Get recent activity (simplified)
+      const recentOrdersData = await db
+        .select({
+          id: orders.id,
+          createdAt: orders.createdAt,
+          status: orders.status,
+          orderNumber: orders.orderNumber
+        })
+        .from(orders)
+        .orderBy(desc(orders.createdAt))
+        .limit(10);
+
+      const recentActivity = recentOrdersData.map(order => ({
+        type: "order_placed",
+        description: `Nouvelle commande ${order.orderNumber}`,
+        timestamp: order.createdAt?.toISOString() || new Date().toISOString(),
+        status: order.status || "pending"
+      }));
+
+      return {
+        totalUsers,
+        totalVendors,
+        totalDrivers,
+        totalOrders,
+        totalRevenue,
+        pendingVendors,
+        activeVendors,
+        pendingOrders,
+        completedOrders,
+        monthlyRevenue,
+        topVendors,
+        recentActivity,
+        platformMetrics: {
+          totalProducts,
+          totalCategories,
+          averageOrderValue,
+          platformCommissionEarned
+        }
+      };
+    } catch (error) {
+      console.error("Error getting admin analytics:", error);
+      throw error;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
