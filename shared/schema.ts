@@ -838,6 +838,65 @@ export type InsertVendorNotificationSettings = z.infer<
   typeof insertVendorNotificationSettingsSchema
 >;
 
+// Search logs table for analytics and suggestions
+export const searchLogs = pgTable("search_logs", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  query: varchar("query").notNull(),
+  resultsCount: integer("results_count").default(0),
+  sessionId: varchar("session_id"),
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  filters: jsonb("filters"), // Store applied filters
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const searchLogsRelations = relations(searchLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [searchLogs.userId],
+    references: [users.id],
+  }),
+}));
+
+export const insertSearchLogSchema = createInsertSchema(searchLogs).omit({
+  id: true,
+  createdAt: true,
+});
+export type SearchLog = typeof searchLogs.$inferSelect;
+export type InsertSearchLog = z.infer<typeof insertSearchLogSchema>;
+
+// Advanced search filters interface
+export interface SearchFilters {
+  query?: string;
+  categoryId?: string;
+  vendorId?: string;
+  priceMin?: number;
+  priceMax?: number;
+  rating?: number;
+  inStock?: boolean;
+  isFeatured?: boolean;
+  hasImages?: boolean;
+  tags?: string[];
+  sortBy?: "relevance" | "price_asc" | "price_desc" | "rating" | "newest" | "oldest" | "name_asc" | "name_desc";
+  limit?: number;
+  offset?: number;
+}
+
+export interface SearchResult {
+  products: Product[];
+  total: number;
+  facets: {
+    categories: { id: string; name: string; count: number }[];
+    vendors: { id: string; name: string; count: number }[];
+    priceRanges: { min: number; max: number; count: number; label: string }[];
+    ratings: { rating: number; count: number }[];
+    tags: { tag: string; count: number }[];
+  };
+  suggestions?: string[];
+}
+
 // Additional types for frontend components
 export interface AdminStats {
   totalUsers?: number;

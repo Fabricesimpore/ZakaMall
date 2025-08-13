@@ -30,6 +30,7 @@ import CreateAdmin from "@/pages/CreateAdmin";
 import ProductForm from "@/pages/ProductForm";
 import Register from "@/pages/Register";
 import OrderTracking from "@/pages/OrderTracking";
+import SearchPage from "@/pages/SearchPage";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -55,6 +56,7 @@ function Router() {
     <Switch>
       {/* Public routes accessible to all users */}
       <Route path="/products" component={Products} />
+      <Route path="/search" component={SearchPage} />
       <Route path="/cart" component={CartPage} />
       <Route path="/orders" component={OrderTracking} />
       <Route path="/test-payment" component={TestPayment} />

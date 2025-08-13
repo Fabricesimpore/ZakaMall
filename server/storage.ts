@@ -17,6 +17,7 @@ import {
   notifications,
   phoneVerifications,
   emailVerifications,
+  searchLogs,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -58,6 +59,10 @@ import {
   type EmailVerification,
   type InsertEmailVerification,
   type OrderTracking,
+  type SearchLog,
+  type InsertSearchLog,
+  type SearchFilters,
+  type SearchResult,
 } from "@shared/schema";
 import { db } from "./db";
 import {
@@ -185,6 +190,13 @@ export interface IStorage {
   addVendorResponse(reviewId: string, vendorId: string, response: string): Promise<ReviewResponse>;
   getReviewResponses(reviewId: string): Promise<ReviewResponse[]>;
   getEnhancedReviews(productId: string): Promise<any[]>;
+
+  // Advanced Search operations
+  searchProducts(filters: SearchFilters): Promise<SearchResult>;
+  logSearch(searchLog: InsertSearchLog): Promise<SearchLog>;
+  getSearchSuggestions(query: string, limit?: number): Promise<string[]>;
+  getPopularSearchTerms(limit?: number): Promise<{ term: string; count: number }[]>;
+  getSearchFacets(filters: SearchFilters): Promise<SearchResult['facets']>;
 
   // Analytics
   getVendorStats(vendorId: string): Promise<{
@@ -831,10 +843,318 @@ export class DatabaseStorage implements IStorage {
       .orderBy(categories.name);
   }
 
+  // Advanced Search Implementation
+  async searchProducts(filters: SearchFilters): Promise<SearchResult> {
+    const conditions = [];
+    
+    // Base condition - only active products
+    conditions.push(eq(products.isActive, true));
+
+    // Text search with relevance scoring
+    if (filters.query) {
+      const searchTerm = filters.query.toLowerCase();
+      conditions.push(
+        or(
+          ilike(products.name, `%${searchTerm}%`),
+          ilike(products.description, `%${searchTerm}%`),
+          ilike(products.sku, `%${searchTerm}%`),
+          ilike(products.tags, `%${searchTerm}%`)
+        )!
+      );
+    }
+
+    // Category filter
+    if (filters.categoryId) {
+      conditions.push(eq(products.categoryId, filters.categoryId));
+    }
+
+    // Vendor filter
+    if (filters.vendorId) {
+      conditions.push(eq(products.vendorId, filters.vendorId));
+    }
+
+    // Price range filter
+    if (filters.priceMin !== undefined) {
+      conditions.push(gte(products.price, filters.priceMin.toString()));
+    }
+    if (filters.priceMax !== undefined) {
+      conditions.push(lte(products.price, filters.priceMax.toString()));
+    }
+
+    // Rating filter
+    if (filters.rating !== undefined) {
+      conditions.push(gte(products.rating, filters.rating.toString()));
+    }
+
+    // Stock filter
+    if (filters.inStock) {
+      conditions.push(gte(products.quantity, 1));
+    }
+
+    // Featured filter
+    if (filters.isFeatured) {
+      conditions.push(eq(products.isFeatured, true));
+    }
+
+    // Images filter
+    if (filters.hasImages) {
+      conditions.push(sql`array_length(${products.images}, 1) > 0`);
+    }
+
+    // Tags filter
+    if (filters.tags && filters.tags.length > 0) {
+      const tagConditions = filters.tags.map(tag => 
+        ilike(products.tags, `%${tag}%`)
+      );
+      conditions.push(or(...tagConditions)!);
+    }
+
+    // Build the main query
+    let query = db
+      .select({
+        id: products.id,
+        name: products.name,
+        description: products.description,
+        price: products.price,
+        compareAtPrice: products.compareAtPrice,
+        images: products.images,
+        rating: products.rating,
+        reviewCount: products.reviewCount,
+        quantity: products.quantity,
+        isFeatured: products.isFeatured,
+        tags: products.tags,
+        vendorId: products.vendorId,
+        categoryId: products.categoryId,
+        createdAt: products.createdAt,
+        vendorName: vendors.businessName,
+        categoryName: categories.name,
+      })
+      .from(products)
+      .leftJoin(vendors, eq(products.vendorId, vendors.id))
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .where(and(...conditions));
+
+    // Apply sorting
+    switch (filters.sortBy) {
+      case "price_asc":
+        query = query.orderBy(asc(products.price));
+        break;
+      case "price_desc":
+        query = query.orderBy(desc(products.price));
+        break;
+      case "rating":
+        query = query.orderBy(desc(products.rating));
+        break;
+      case "newest":
+        query = query.orderBy(desc(products.createdAt));
+        break;
+      case "oldest":
+        query = query.orderBy(asc(products.createdAt));
+        break;
+      case "name_asc":
+        query = query.orderBy(asc(products.name));
+        break;
+      case "name_desc":
+        query = query.orderBy(desc(products.name));
+        break;
+      case "relevance":
+      default:
+        // For relevance, order by multiple factors
+        if (filters.query) {
+          // Prioritize exact matches, then partial matches
+          query = query.orderBy(
+            desc(products.isFeatured),
+            desc(products.rating),
+            desc(products.reviewCount),
+            desc(products.createdAt)
+          );
+        } else {
+          query = query.orderBy(
+            desc(products.isFeatured),
+            desc(products.rating),
+            desc(products.createdAt)
+          );
+        }
+        break;
+    }
+
+    // Get total count without pagination
+    const totalQuery = db
+      .select({ count: count() })
+      .from(products)
+      .leftJoin(vendors, eq(products.vendorId, vendors.id))
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .where(and(...conditions));
+
+    const [totalResult] = await totalQuery;
+    const total = totalResult.count;
+
+    // Apply pagination
+    const limit = filters.limit || 20;
+    const offset = filters.offset || 0;
+    
+    const paginatedProducts = await query
+      .limit(limit)
+      .offset(offset);
+
+    // Get facets for filtering
+    const facets = await this.getSearchFacets(filters);
+
+    return {
+      products: paginatedProducts as any[],
+      total,
+      facets,
+      suggestions: filters.query ? await this.getSearchSuggestions(filters.query, 5) : [],
+    };
+  }
+
+  async getSearchFacets(filters: SearchFilters): Promise<SearchResult['facets']> {
+    // Build base conditions (same as search but without the facet being calculated)
+    const baseConditions = [eq(products.isActive, true)];
+
+    if (filters.query) {
+      const searchTerm = filters.query.toLowerCase();
+      baseConditions.push(
+        or(
+          ilike(products.name, `%${searchTerm}%`),
+          ilike(products.description, `%${searchTerm}%`),
+          ilike(products.sku, `%${searchTerm}%`),
+          ilike(products.tags, `%${searchTerm}%`)
+        )!
+      );
+    }
+
+    // Get category facets
+    const categoryFacets = await db
+      .select({
+        id: categories.id,
+        name: categories.name,
+        count: count(),
+      })
+      .from(products)
+      .innerJoin(categories, eq(products.categoryId, categories.id))
+      .where(and(...baseConditions))
+      .groupBy(categories.id, categories.name)
+      .orderBy(desc(count()));
+
+    // Get vendor facets
+    const vendorFacets = await db
+      .select({
+        id: vendors.id,
+        name: vendors.businessName,
+        count: count(),
+      })
+      .from(products)
+      .innerJoin(vendors, eq(products.vendorId, vendors.id))
+      .where(and(...baseConditions))
+      .groupBy(vendors.id, vendors.businessName)
+      .orderBy(desc(count()));
+
+    // Get rating facets
+    const ratingFacets = await db
+      .select({
+        rating: sql<number>`floor(${products.rating})`,
+        count: count(),
+      })
+      .from(products)
+      .where(and(...baseConditions))
+      .groupBy(sql`floor(${products.rating})`)
+      .orderBy(desc(sql`floor(${products.rating})`));
+
+    // Define price ranges
+    const priceRanges = [
+      { min: 0, max: 1000, label: "0 - 1 000 CFA" },
+      { min: 1000, max: 5000, label: "1 000 - 5 000 CFA" },
+      { min: 5000, max: 10000, label: "5 000 - 10 000 CFA" },
+      { min: 10000, max: 25000, label: "10 000 - 25 000 CFA" },
+      { min: 25000, max: 50000, label: "25 000 - 50 000 CFA" },
+      { min: 50000, max: 999999999, label: "50 000+ CFA" },
+    ];
+
+    // Get price range facets
+    const priceRangeFacets = await Promise.all(
+      priceRanges.map(async (range) => {
+        const [result] = await db
+          .select({ count: count() })
+          .from(products)
+          .where(
+            and(
+              ...baseConditions,
+              gte(products.price, range.min.toString()),
+              lte(products.price, range.max.toString())
+            )
+          );
+        return {
+          ...range,
+          count: result.count,
+        };
+      })
+    );
+
+    // Get tag facets (extract from products.tags array)
+    const tagFacets: { tag: string; count: number }[] = [];
+    
+    return {
+      categories: categoryFacets,
+      vendors: vendorFacets,
+      priceRanges: priceRangeFacets.filter(range => range.count > 0),
+      ratings: ratingFacets.map(r => ({ rating: r.rating, count: r.count })),
+      tags: tagFacets,
+    };
+  }
+
+  async logSearch(searchLog: InsertSearchLog): Promise<SearchLog> {
+    const [log] = await db.insert(searchLogs).values(searchLog).returning();
+    return log;
+  }
+
+  async getSearchSuggestions(query: string, limit: number = 10): Promise<string[]> {
+    if (!query || query.length < 2) return [];
+
+    const searchTerm = query.toLowerCase();
+    
+    // Get product name suggestions
+    const productSuggestions = await db
+      .select({ name: products.name })
+      .from(products)
+      .where(
+        and(
+          eq(products.isActive, true),
+          ilike(products.name, `%${searchTerm}%`)
+        )
+      )
+      .limit(limit)
+      .orderBy(desc(products.rating), desc(products.reviewCount));
+
+    // Get category suggestions
+    const categorySuggestions = await db
+      .select({ name: categories.name })
+      .from(categories)
+      .where(ilike(categories.name, `%${searchTerm}%`))
+      .limit(Math.floor(limit / 2));
+
+    // Combine and deduplicate suggestions
+    const allSuggestions = [
+      ...productSuggestions.map(p => p.name),
+      ...categorySuggestions.map(c => c.name),
+    ];
+
+    return [...new Set(allSuggestions)].slice(0, limit);
+  }
+
   async getPopularSearchTerms(limit: number = 10): Promise<{ term: string; count: number }[]> {
-    // This would typically be implemented with a search_logs table
-    // For now, return empty array - would need to implement search logging first
-    return [];
+    const popularTerms = await db
+      .select({
+        term: searchLogs.query,
+        count: count(),
+      })
+      .from(searchLogs)
+      .where(gte(searchLogs.createdAt, new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))) // Last 30 days
+      .groupBy(searchLogs.query)
+      .orderBy(desc(count()))
+      .limit(limit);
+
+    return popularTerms;
   }
 
   async getOutOfStockProducts(): Promise<Product[]> {

@@ -1339,6 +1339,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Advanced Search API
+  app.get("/api/search", async (req, res) => {
+    try {
+      const {
+        q: query,
+        categoryId,
+        vendorId,
+        priceMin,
+        priceMax,
+        rating,
+        inStock,
+        isFeatured,
+        hasImages,
+        tags,
+        sortBy = "relevance",
+        limit = 20,
+        offset = 0,
+      } = req.query;
+
+      const filters: any = {
+        query: query as string,
+        categoryId: categoryId as string,
+        vendorId: vendorId as string,
+        priceMin: priceMin ? parseFloat(priceMin as string) : undefined,
+        priceMax: priceMax ? parseFloat(priceMax as string) : undefined,
+        rating: rating ? parseFloat(rating as string) : undefined,
+        inStock: inStock === "true",
+        isFeatured: isFeatured === "true",
+        hasImages: hasImages === "true",
+        tags: tags ? (Array.isArray(tags) ? tags : [tags]) : undefined,
+        sortBy: sortBy as any,
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string),
+      };
+
+      const result = await storage.searchProducts(filters);
+
+      // Log the search for analytics (if user is authenticated or has session)
+      try {
+        const sessionId = req.sessionID;
+        const userAgent = req.get("User-Agent");
+        const ipAddress = req.ip;
+
+        await storage.logSearch({
+          userId: req.session?.user?.id || null,
+          query: query as string || "",
+          resultsCount: result.total,
+          sessionId,
+          ipAddress,
+          userAgent,
+          filters: filters,
+        });
+      } catch (logError) {
+        console.warn("Failed to log search:", logError);
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error performing search:", error);
+      res.status(500).json({ message: "Search failed" });
+    }
+  });
+
+  app.get("/api/search/facets", async (req, res) => {
+    try {
+      const {
+        q: query,
+        categoryId,
+        vendorId,
+        priceMin,
+        priceMax,
+        rating,
+        inStock,
+        isFeatured,
+        hasImages,
+        tags,
+      } = req.query;
+
+      const filters: any = {
+        query: query as string,
+        categoryId: categoryId as string,
+        vendorId: vendorId as string,
+        priceMin: priceMin ? parseFloat(priceMin as string) : undefined,
+        priceMax: priceMax ? parseFloat(priceMax as string) : undefined,
+        rating: rating ? parseFloat(rating as string) : undefined,
+        inStock: inStock === "true",
+        isFeatured: isFeatured === "true",
+        hasImages: hasImages === "true",
+        tags: tags ? (Array.isArray(tags) ? tags : [tags]) : undefined,
+      };
+
+      const facets = await storage.getSearchFacets(filters);
+      res.json(facets);
+    } catch (error) {
+      console.error("Error fetching search facets:", error);
+      res.status(500).json({ message: "Failed to fetch search facets" });
+    }
+  });
+
   // Categories and search endpoints
   app.get("/api/categories", async (req, res) => {
     try {

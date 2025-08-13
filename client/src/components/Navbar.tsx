@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 // import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import SearchWithSuggestions from "@/components/SearchWithSuggestions";
+import SearchAutocomplete from "@/components/SearchAutocomplete";
 import DarkModeToggle from "@/components/DarkModeToggle";
 import WhatsAppSupport from "@/components/WhatsAppSupport";
 import {
@@ -22,17 +22,15 @@ export default function Navbar() {
   const { user, isLoading } = useAuth();
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [globalSearchTerm, setGlobalSearchTerm] = useState("");
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
   };
 
   const handleGlobalSearch = (term: string) => {
-    setGlobalSearchTerm(term);
     if (term.trim()) {
-      // Navigate to products page with search term
-      window.location.href = `/products?search=${encodeURIComponent(term)}`;
+      // Navigate to search page with search term
+      window.location.href = `/search?q=${encodeURIComponent(term)}`;
     }
   };
 
@@ -88,10 +86,9 @@ export default function Navbar() {
 
           {/* Global Search Bar - Hidden on mobile */}
           <div className="hidden md:block flex-1 max-w-md">
-            <SearchWithSuggestions
-              searchTerm={globalSearchTerm}
-              onSearchChange={handleGlobalSearch}
+            <SearchAutocomplete
               placeholder="Rechercher sur ZakaMall..."
+              onSearch={handleGlobalSearch}
               className="w-full"
             />
           </div>
@@ -112,10 +109,9 @@ export default function Navbar() {
 
                   {/* Mobile Search */}
                   <div className="mb-6">
-                    <SearchWithSuggestions
-                      searchTerm={globalSearchTerm}
-                      onSearchChange={handleGlobalSearch}
+                    <SearchAutocomplete
                       placeholder="Rechercher sur ZakaMall..."
+                      onSearch={handleGlobalSearch}
                       className="w-full"
                     />
                   </div>
