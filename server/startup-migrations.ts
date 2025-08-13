@@ -12,7 +12,7 @@ export async function runStartupMigrations() {
   try {
     // Check and create notifications table if it doesn't exist
     await ensureNotificationsTable();
-    
+
     // Check and create security tables if they don't exist
     await ensureSecurityTables();
 
@@ -88,10 +88,10 @@ async function ensureSecurityTables() {
   try {
     // Check and create required enum types first
     await ensureEnumTypes();
-    
+
     // Check and create blacklist table
     await ensureBlacklistTable();
-    
+
     console.log("✅ Security tables created successfully!");
   } catch (error) {
     console.error("❌ Failed to create security tables:", error);
@@ -116,7 +116,7 @@ async function ensureEnumTypes() {
         WHEN duplicate_object THEN null;
       END $$;
     `);
-    
+
     console.log("✅ Enum types ensured.");
   } catch (error) {
     console.error("❌ Failed to create enum types:", error);
