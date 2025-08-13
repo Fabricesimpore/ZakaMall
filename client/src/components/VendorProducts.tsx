@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import BulkProductOperations from "@/components/BulkProductOperations";
 
 export default function VendorProducts() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -26,6 +27,10 @@ export default function VendorProducts() {
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["/api/vendor/products"],
+  });
+
+  const { data: categories = [] } = useQuery<Array<{ id: string; name: string }>>({
+    queryKey: ["/api/categories"],
   });
 
   const deleteProductMutation = useMutation({
@@ -122,6 +127,14 @@ export default function VendorProducts() {
           </Button>
         </Link>
       </div>
+
+      {/* Bulk Operations */}
+      {filteredProducts.length > 0 && (
+        <BulkProductOperations 
+          products={filteredProducts} 
+          categories={categories}
+        />
+      )}
 
       {filteredProducts.length === 0 ? (
         <Card>
