@@ -33,7 +33,7 @@ export default function DriverMap({ delivery, onNavigate, onCallCustomer }: Driv
     const startTracking = () => {
       if ("geolocation" in navigator) {
         setIsTracking(true);
-        
+
         // Get current position
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -75,7 +75,7 @@ export default function DriverMap({ delivery, onNavigate, onCallCustomer }: Driv
     if (delivery && delivery.address) {
       // Try to open in Google Maps app, fallback to web
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(delivery.address)}&travelmode=driving`;
-      window.open(mapsUrl, '_blank');
+      window.open(mapsUrl, "_blank");
       onNavigate?.();
     }
   };
@@ -92,12 +92,8 @@ export default function DriverMap({ delivery, onNavigate, onCallCustomer }: Driv
       <Card>
         <CardContent className="p-6 text-center">
           <MapPin className="mx-auto mb-4 text-gray-400" size={48} />
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">
-            Aucune livraison active
-          </h3>
-          <p className="text-gray-500">
-            Acceptez une livraison pour voir l'itinéraire
-          </p>
+          <h3 className="text-lg font-semibold text-gray-600 mb-2">Aucune livraison active</h3>
+          <p className="text-gray-500">Acceptez une livraison pour voir l'itinéraire</p>
         </CardContent>
       </Card>
     );
@@ -110,12 +106,7 @@ export default function DriverMap({ delivery, onNavigate, onCallCustomer }: Driv
         <div className="relative bg-gradient-to-br from-blue-50 to-green-50 h-64 rounded-t-lg overflow-hidden">
           {/* Route Visualization */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <svg
-              width="100%"
-              height="100%"
-              viewBox="0 0 300 200"
-              className="absolute inset-0"
-            >
+            <svg width="100%" height="100%" viewBox="0 0 300 200" className="absolute inset-0">
               {/* Route Path */}
               <path
                 d="M 50 150 Q 150 50 250 100"
@@ -125,26 +116,15 @@ export default function DriverMap({ delivery, onNavigate, onCallCustomer }: Driv
                 fill="none"
                 className="animate-pulse"
               />
-              
+
               {/* Start Point (Driver) */}
-              <circle
-                cx="50"
-                cy="150"
-                r="8"
-                fill="#10B981"
-                className="animate-pulse"
-              />
+              <circle cx="50" cy="150" r="8" fill="#10B981" className="animate-pulse" />
               <text x="30" y="170" fontSize="12" fill="#374151" fontWeight="bold">
                 Vous
               </text>
-              
+
               {/* End Point (Destination) */}
-              <circle
-                cx="250"
-                cy="100"
-                r="8"
-                fill="#EF4444"
-              />
+              <circle cx="250" cy="100" r="8" fill="#EF4444" />
               <text x="220" y="85" fontSize="12" fill="#374151" fontWeight="bold">
                 Destination
               </text>
@@ -153,7 +133,7 @@ export default function DriverMap({ delivery, onNavigate, onCallCustomer }: Driv
 
           {/* Location Status */}
           <div className="absolute top-4 left-4">
-            <Badge 
+            <Badge
               variant={isTracking ? "default" : "secondary"}
               className={isTracking ? "bg-green-500" : ""}
             >
@@ -165,12 +145,8 @@ export default function DriverMap({ delivery, onNavigate, onCallCustomer }: Driv
           {/* Real-time Info */}
           {currentLocation && (
             <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-2 text-xs">
-              <p className="text-gray-600">
-                Lat: {currentLocation.latitude.toFixed(6)}
-              </p>
-              <p className="text-gray-600">
-                Lng: {currentLocation.longitude.toFixed(6)}
-              </p>
+              <p className="text-gray-600">Lat: {currentLocation.latitude.toFixed(6)}</p>
+              <p className="text-gray-600">Lng: {currentLocation.longitude.toFixed(6)}</p>
             </div>
           )}
         </div>
@@ -208,10 +184,7 @@ export default function DriverMap({ delivery, onNavigate, onCallCustomer }: Driv
 
           {/* Action Buttons */}
           <div className="flex space-x-3">
-            <Button
-              onClick={handleOpenMaps}
-              className="flex-1 bg-blue-600 hover:bg-blue-700"
-            >
+            <Button onClick={handleOpenMaps} className="flex-1 bg-blue-600 hover:bg-blue-700">
               <Navigation className="mr-2" size={16} />
               Ouvrir GPS
             </Button>
@@ -229,7 +202,8 @@ export default function DriverMap({ delivery, onNavigate, onCallCustomer }: Driv
           <div className="bg-blue-50 rounded-lg p-3">
             <p className="text-xs text-blue-800">
               <i className="fas fa-info-circle mr-1"></i>
-              Cliquez sur "Ouvrir GPS" pour lancer la navigation dans votre application de cartes préférée.
+              Cliquez sur "Ouvrir GPS" pour lancer la navigation dans votre application de cartes
+              préférée.
             </p>
           </div>
         </div>
