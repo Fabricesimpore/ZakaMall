@@ -2142,9 +2142,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 await storage.updateProduct(productId, { price: data.price.toString() });
                 results.push({ productId, success: true });
               } else {
-                results.push({ productId, success: false, error: "Product not found or access denied" });
+                results.push({
+                  productId,
+                  success: false,
+                  error: "Product not found or access denied",
+                });
               }
-            } catch (error) {
+            } catch (_error) {
               results.push({ productId, success: false, error: "Update failed" });
             }
           }
@@ -2161,16 +2165,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 await storage.updateProduct(productId, { quantity: data.quantity });
                 results.push({ productId, success: true });
               } else {
-                results.push({ productId, success: false, error: "Product not found or access denied" });
+                results.push({
+                  productId,
+                  success: false,
+                  error: "Product not found or access denied",
+                });
               }
-            } catch (error) {
+            } catch (_error) {
               results.push({ productId, success: false, error: "Update failed" });
             }
           }
           break;
 
         case "updateStatus":
-          if (!data.isActive !== undefined) {
+          if (data.isActive === undefined) {
             return res.status(400).json({ message: "isActive status is required" });
           }
           for (const productId of productIds) {
@@ -2180,9 +2188,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 await storage.updateProduct(productId, { isActive: data.isActive });
                 results.push({ productId, success: true });
               } else {
-                results.push({ productId, success: false, error: "Product not found or access denied" });
+                results.push({
+                  productId,
+                  success: false,
+                  error: "Product not found or access denied",
+                });
               }
-            } catch (error) {
+            } catch (_error) {
               results.push({ productId, success: false, error: "Update failed" });
             }
           }
@@ -2199,9 +2211,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 await storage.updateProduct(productId, { categoryId: data.categoryId });
                 results.push({ productId, success: true });
               } else {
-                results.push({ productId, success: false, error: "Product not found or access denied" });
+                results.push({
+                  productId,
+                  success: false,
+                  error: "Product not found or access denied",
+                });
               }
-            } catch (error) {
+            } catch (_error) {
               results.push({ productId, success: false, error: "Update failed" });
             }
           }
@@ -2211,16 +2227,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Unknown bulk operation" });
       }
 
-      const successCount = results.filter(r => r.success).length;
-      const failCount = results.filter(r => !r.success).length;
+      const successCount = results.filter((r) => r.success).length;
+      const failCount = results.filter((r) => !r.success).length;
 
       res.json({
         success: true,
         message: `Bulk operation completed: ${successCount} succeeded, ${failCount} failed`,
         results,
-        summary: { successCount, failCount, total: productIds.length }
+        summary: { successCount, failCount, total: productIds.length },
       });
-
     } catch (error) {
       console.error("Error performing bulk operation:", error);
       res.status(500).json({ message: "Failed to perform bulk operation" });
@@ -3209,7 +3224,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.session.user.id;
       const unreadOnly = req.query.unread === "true";
-      
+
       const notifications = await storage.getVendorNotifications(userId, unreadOnly);
       res.json(notifications);
     } catch (error) {
@@ -3218,46 +3233,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/vendor/notifications/unread-count", isAuthenticated, isVendor, async (req: any, res) => {
-    try {
-      const userId = req.session.user.id;
-      const count = await storage.getVendorUnreadNotificationCount(userId);
-      res.json({ count });
-    } catch (error) {
-      console.error("Error fetching vendor unread count:", error);
-      res.status(500).json({ error: "Failed to fetch unread count" });
+  app.get(
+    "/api/vendor/notifications/unread-count",
+    isAuthenticated,
+    isVendor,
+    async (req: any, res) => {
+      try {
+        const userId = req.session.user.id;
+        const count = await storage.getVendorUnreadNotificationCount(userId);
+        res.json({ count });
+      } catch (error) {
+        console.error("Error fetching vendor unread count:", error);
+        res.status(500).json({ error: "Failed to fetch unread count" });
+      }
     }
-  });
+  );
 
-  app.patch("/api/vendor/notifications/:id/read", isAuthenticated, isVendor, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      const userId = req.session.user.id;
-      
-      await storage.markVendorNotificationAsRead(id, userId);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error marking vendor notification as read:", error);
-      res.status(500).json({ error: "Failed to mark notification as read" });
-    }
-  });
+  app.patch(
+    "/api/vendor/notifications/:id/read",
+    isAuthenticated,
+    isVendor,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
+        const userId = req.session.user.id;
 
-  app.patch("/api/vendor/notifications/read-all", isAuthenticated, isVendor, async (req: any, res) => {
-    try {
-      const userId = req.session.user.id;
-      await storage.markAllVendorNotificationsAsRead(userId);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error marking all vendor notifications as read:", error);
-      res.status(500).json({ error: "Failed to mark all notifications as read" });
+        await storage.markVendorNotificationAsRead(id, userId);
+        res.json({ success: true });
+      } catch (error) {
+        console.error("Error marking vendor notification as read:", error);
+        res.status(500).json({ error: "Failed to mark notification as read" });
+      }
     }
-  });
+  );
+
+  app.patch(
+    "/api/vendor/notifications/read-all",
+    isAuthenticated,
+    isVendor,
+    async (req: any, res) => {
+      try {
+        const userId = req.session.user.id;
+        await storage.markAllVendorNotificationsAsRead(userId);
+        res.json({ success: true });
+      } catch (error) {
+        console.error("Error marking all vendor notifications as read:", error);
+        res.status(500).json({ error: "Failed to mark all notifications as read" });
+      }
+    }
+  );
 
   app.delete("/api/vendor/notifications/:id", isAuthenticated, isVendor, async (req: any, res) => {
     try {
       const { id } = req.params;
       const userId = req.session.user.id;
-      
+
       await storage.deleteVendorNotification(id, userId);
       res.json({ success: true });
     } catch (error) {
@@ -3281,7 +3311,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.session.user.id;
       const settings = req.body;
-      
+
       await storage.updateVendorNotificationSettings(userId, settings);
       res.json({ success: true });
     } catch (error) {
@@ -3293,16 +3323,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/vendor/notifications/test", isAuthenticated, isVendor, async (req: any, res) => {
     try {
       const userId = req.session.user.id;
-      
+
       // Create a test notification
       await storage.createNotification({
         userId,
         type: "system",
         title: "Test de notification",
-        message: "Ceci est une notification de test pour vérifier que votre système fonctionne correctement.",
+        message:
+          "Ceci est une notification de test pour vérifier que votre système fonctionne correctement.",
         data: { test: true },
       });
-      
+
       res.json({ success: true });
     } catch (error) {
       console.error("Error creating test notification:", error);

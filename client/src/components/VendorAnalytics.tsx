@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BarChart3, TrendingUp, Package, DollarSign, Eye, Users } from "lucide-react";
 
-interface VendorAnalytics {
+interface VendorAnalyticsData {
   totalSales: number;
   totalOrders: number;
   totalProducts: number;
@@ -15,7 +15,11 @@ interface VendorAnalytics {
 }
 
 export default function VendorAnalytics() {
-  const { data: analytics, isLoading, error } = useQuery<VendorAnalytics>({
+  const {
+    data: analytics,
+    isLoading,
+    error,
+  } = useQuery<VendorAnalyticsData>({
     queryKey: ["/api/vendor/analytics"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/vendor/analytics");

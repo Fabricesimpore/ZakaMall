@@ -1,21 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Users, 
-  DollarSign, 
-  Package, 
+import {
+  BarChart3,
+  TrendingUp,
+  Users,
+  DollarSign,
+  Package,
   ShoppingCart,
   Store,
   Truck,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
 } from "lucide-react";
 
-interface AdminAnalytics {
+interface AdminAnalyticsData {
   totalUsers: number;
   totalVendors: number;
   totalDrivers: number;
@@ -26,11 +25,11 @@ interface AdminAnalytics {
   pendingOrders: number;
   completedOrders: number;
   monthlyRevenue: Array<{ month: string; revenue: number; orders: number }>;
-  topVendors: Array<{ 
-    id: string; 
-    businessName: string; 
-    totalRevenue: number; 
-    totalOrders: number; 
+  topVendors: Array<{
+    id: string;
+    businessName: string;
+    totalRevenue: number;
+    totalOrders: number;
   }>;
   recentActivity: Array<{
     type: string;
@@ -47,7 +46,11 @@ interface AdminAnalytics {
 }
 
 export default function AdminAnalytics() {
-  const { data: analytics, isLoading, error } = useQuery<AdminAnalytics>({
+  const {
+    data: analytics,
+    isLoading,
+    error,
+  } = useQuery<AdminAnalyticsData>({
     queryKey: ["/api/admin/analytics"],
     refetchInterval: 60000, // Refetch every minute
   });
@@ -90,7 +93,9 @@ export default function AdminAnalytics() {
         <CardContent className="p-8 text-center">
           <BarChart3 className="mx-auto mb-4 text-gray-400" size={48} />
           <h3 className="text-lg font-semibold text-gray-600 mb-2">Aucune donnée disponible</h3>
-          <p className="text-gray-500">Les analytics seront disponibles une fois que la plateforme aura des données.</p>
+          <p className="text-gray-500">
+            Les analytics seront disponibles une fois que la plateforme aura des données.
+          </p>
         </CardContent>
       </Card>
     );
@@ -130,7 +135,7 @@ export default function AdminAnalytics() {
     }
   };
 
-  const maxRevenue = Math.max(...(analytics.monthlyRevenue?.map(m => m.revenue) || [1]));
+  const maxRevenue = Math.max(...(analytics.monthlyRevenue?.map((m) => m.revenue) || [1]));
 
   return (
     <div className="space-y-6">
@@ -139,9 +144,7 @@ export default function AdminAnalytics() {
           <BarChart3 className="mr-3 text-zaka-orange" size={28} />
           Analytics Administrateur
         </h2>
-        <p className="text-gray-600 mt-1">
-          Vue d'ensemble complète de la plateforme ZakaMall
-        </p>
+        <p className="text-gray-600 mt-1">Vue d'ensemble complète de la plateforme ZakaMall</p>
       </div>
 
       {/* Key Metrics Grid */}
@@ -154,7 +157,9 @@ export default function AdminAnalytics() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Utilisateurs totaux</p>
-                <p className="text-2xl font-bold text-zaka-dark">{analytics.totalUsers.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-zaka-dark">
+                  {analytics.totalUsers.toLocaleString()}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -201,7 +206,9 @@ export default function AdminAnalytics() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Commandes totales</p>
-                <p className="text-2xl font-bold text-zaka-dark">{analytics.totalOrders.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-zaka-dark">
+                  {analytics.totalOrders.toLocaleString()}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -219,11 +226,15 @@ export default function AdminAnalytics() {
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-zaka-dark">{analytics.platformMetrics.totalProducts.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-zaka-dark">
+                {analytics.platformMetrics.totalProducts.toLocaleString()}
+              </p>
               <p className="text-sm text-gray-600">Produits total</p>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-zaka-dark">{analytics.platformMetrics.totalCategories}</p>
+              <p className="text-2xl font-bold text-zaka-dark">
+                {analytics.platformMetrics.totalCategories}
+              </p>
               <p className="text-sm text-gray-600">Catégories</p>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
@@ -318,24 +329,15 @@ export default function AdminAnalytics() {
         <CardContent>
           <div className="space-y-3">
             {analytics.recentActivity?.map((activity, index) => (
-              <div
-                key={index}
-                className="flex items-center space-x-3 p-3 border rounded-lg"
-              >
-                <div className="flex-shrink-0">
-                  {getActivityIcon(activity.type)}
-                </div>
+              <div key={index} className="flex items-center space-x-3 p-3 border rounded-lg">
+                <div className="flex-shrink-0">{getActivityIcon(activity.type)}</div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">
-                    {activity.description}
-                  </p>
+                  <p className="text-sm font-medium text-gray-900">{activity.description}</p>
                   <p className="text-xs text-gray-500">
                     {new Date(activity.timestamp).toLocaleString("fr-FR")}
                   </p>
                 </div>
-                <Badge className={getStatusColor(activity.status)}>
-                  {activity.status}
-                </Badge>
+                <Badge className={getStatusColor(activity.status)}>{activity.status}</Badge>
               </div>
             ))}
           </div>

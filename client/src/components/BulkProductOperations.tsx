@@ -24,7 +24,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Package, Edit3, ToggleLeft, ToggleRight, Trash2 } from "lucide-react";
+import { Package, Edit3, ToggleLeft, ToggleRight } from "lucide-react";
 
 interface Product {
   id: string;
@@ -47,7 +47,10 @@ interface BulkOperation {
   value: string | number;
 }
 
-export default function BulkProductOperations({ products, categories = [] }: BulkProductOperationsProps) {
+export default function BulkProductOperations({
+  products,
+  categories = [],
+}: BulkProductOperationsProps) {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [operation, setOperation] = useState<BulkOperation>({
@@ -67,7 +70,7 @@ export default function BulkProductOperations({ products, categories = [] }: Bul
       setSelectedProducts([]);
       setIsDialogOpen(false);
       setOperation({ type: "price", value: "" });
-      
+
       toast({
         title: "Opération réussie",
         description: `${selectedProducts.length} produit(s) mis à jour avec succès`,
@@ -86,15 +89,13 @@ export default function BulkProductOperations({ products, categories = [] }: Bul
     if (selectedProducts.length === products.length) {
       setSelectedProducts([]);
     } else {
-      setSelectedProducts(products.map(p => p.id));
+      setSelectedProducts(products.map((p) => p.id));
     }
   };
 
   const handleSelectProduct = (productId: string) => {
-    setSelectedProducts(prev => 
-      prev.includes(productId)
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
+    setSelectedProducts((prev) =>
+      prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
     );
   };
 
@@ -134,9 +135,11 @@ export default function BulkProductOperations({ products, categories = [] }: Bul
         return `Définir le stock de ${count} produit(s) à ${operation.value} unités`;
       case "status":
         return `${operation.value === "true" ? "Activer" : "Désactiver"} ${count} produit(s)`;
-      case "category":
-        const categoryName = categories.find(c => c.id === operation.value)?.name || "Nouvelle catégorie";
+      case "category": {
+        const categoryName =
+          categories.find((c) => c.id === operation.value)?.name || "Nouvelle catégorie";
         return `Changer la catégorie de ${count} produit(s) vers "${categoryName}"`;
+      }
       default:
         return "";
     }
@@ -168,11 +171,9 @@ export default function BulkProductOperations({ products, categories = [] }: Bul
                 Sélectionner tout ({products.length} produits)
               </Label>
             </div>
-            
+
             {selectedProducts.length > 0 && (
-              <Badge variant="secondary">
-                {selectedProducts.length} produit(s) sélectionné(s)
-              </Badge>
+              <Badge variant="secondary">{selectedProducts.length} produit(s) sélectionné(s)</Badge>
             )}
           </div>
 
@@ -203,7 +204,9 @@ export default function BulkProductOperations({ products, categories = [] }: Bul
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{product.name}</p>
-                    <p className="text-xs text-gray-500">{parseInt(product.price).toLocaleString()} CFA</p>
+                    <p className="text-xs text-gray-500">
+                      {parseInt(product.price).toLocaleString()} CFA
+                    </p>
                   </div>
                 </div>
               ))}
