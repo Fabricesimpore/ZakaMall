@@ -1,19 +1,18 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  DollarSign, 
-  TrendingUp, 
-  Percent, 
-  ShoppingCart, 
+import {
+  DollarSign,
+  TrendingUp,
+  Percent,
+  ShoppingCart,
   Calendar,
   Users,
   Crown,
-  BarChart3
+  BarChart3,
 } from "lucide-react";
 
 interface PlatformCommissionData {
@@ -45,7 +44,11 @@ export default function PlatformCommissionAnalytics() {
   if (dateRange.startDate) queryParams.append("startDate", dateRange.startDate);
   if (dateRange.endDate) queryParams.append("endDate", dateRange.endDate);
 
-  const { data: platformData, isLoading, refetch } = useQuery<PlatformCommissionData>({
+  const {
+    data: platformData,
+    isLoading,
+    refetch,
+  } = useQuery<PlatformCommissionData>({
     queryKey: [`/api/analytics/platform/commission`, queryParams.toString()],
     queryFn: async () => {
       const url = `/api/analytics/platform/commission?${queryParams.toString()}`;
@@ -96,8 +99,9 @@ export default function PlatformCommissionAnalytics() {
     );
   }
 
-  const commissionMargin = platformData?.totalGMV ? 
-    (platformData.totalCommissionRevenue / platformData.totalGMV) * 100 : 0;
+  const commissionMargin = platformData?.totalGMV
+    ? (platformData.totalCommissionRevenue / platformData.totalGMV) * 100
+    : 0;
 
   return (
     <div className="space-y-6">
@@ -106,26 +110,30 @@ export default function PlatformCommissionAnalytics() {
           <h2 className="text-2xl font-bold text-gray-900">Platform Revenue Analytics</h2>
           <p className="text-gray-600">Commission and revenue insights</p>
         </div>
-        
+
         {/* Date Range Filter */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <Label htmlFor="startDate" className="text-sm">From:</Label>
+            <Label htmlFor="startDate" className="text-sm">
+              From:
+            </Label>
             <Input
               id="startDate"
               type="date"
               value={dateRange.startDate}
-              onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+              onChange={(e) => setDateRange((prev) => ({ ...prev, startDate: e.target.value }))}
               className="w-auto"
             />
           </div>
           <div className="flex items-center gap-2">
-            <Label htmlFor="endDate" className="text-sm">To:</Label>
+            <Label htmlFor="endDate" className="text-sm">
+              To:
+            </Label>
             <Input
               id="endDate"
               type="date"
               value={dateRange.endDate}
-              onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+              onChange={(e) => setDateRange((prev) => ({ ...prev, endDate: e.target.value }))}
               className="w-auto"
             />
           </div>
@@ -147,9 +155,7 @@ export default function PlatformCommissionAnalytics() {
             <div className="text-2xl font-bold text-green-600">
               {formatCurrency(platformData?.totalGMV || 0)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Total marketplace volume
-            </p>
+            <p className="text-xs text-muted-foreground">Total marketplace volume</p>
           </CardContent>
         </Card>
 
@@ -162,9 +168,7 @@ export default function PlatformCommissionAnalytics() {
             <div className="text-2xl font-bold text-blue-600">
               {formatCurrency(platformData?.totalCommissionRevenue || 0)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Platform earnings from commissions
-            </p>
+            <p className="text-xs text-muted-foreground">Platform earnings from commissions</p>
           </CardContent>
         </Card>
 
@@ -177,9 +181,7 @@ export default function PlatformCommissionAnalytics() {
             <div className="text-2xl font-bold text-purple-600">
               {formatCurrency(platformData?.totalVendorEarnings || 0)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Total vendor earnings
-            </p>
+            <p className="text-xs text-muted-foreground">Total vendor earnings</p>
           </CardContent>
         </Card>
 
@@ -192,9 +194,7 @@ export default function PlatformCommissionAnalytics() {
             <div className="text-2xl font-bold text-orange-600">
               {formatPercentage(platformData?.avgCommissionRate || 0)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Average across all vendors
-            </p>
+            <p className="text-xs text-muted-foreground">Average across all vendors</p>
           </CardContent>
         </Card>
       </div>
@@ -210,9 +210,7 @@ export default function PlatformCommissionAnalytics() {
             <div className="text-2xl font-bold text-gray-600">
               {platformData?.totalOrders?.toLocaleString() || 0}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Completed orders
-            </p>
+            <p className="text-xs text-muted-foreground">Completed orders</p>
           </CardContent>
         </Card>
 
@@ -225,9 +223,7 @@ export default function PlatformCommissionAnalytics() {
             <div className="text-2xl font-bold text-indigo-600">
               {formatCurrency(platformData?.totalDeliveryRevenue || 0)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              From delivery fees
-            </p>
+            <p className="text-xs text-muted-foreground">From delivery fees</p>
           </CardContent>
         </Card>
 
@@ -240,9 +236,7 @@ export default function PlatformCommissionAnalytics() {
             <div className="text-2xl font-bold text-yellow-600">
               {formatPercentage(commissionMargin)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Of total GMV
-            </p>
+            <p className="text-xs text-muted-foreground">Of total GMV</p>
           </CardContent>
         </Card>
       </div>
@@ -256,25 +250,36 @@ export default function PlatformCommissionAnalytics() {
           <div className="space-y-4">
             <div className="flex justify-between items-center py-2 border-b">
               <span className="font-medium">Total Marketplace Volume (GMV):</span>
-              <span className="text-lg font-bold">{formatCurrency(platformData?.totalGMV || 0)}</span>
+              <span className="text-lg font-bold">
+                {formatCurrency(platformData?.totalGMV || 0)}
+              </span>
             </div>
             <div className="flex justify-between items-center py-2 border-b text-blue-600">
               <span>Platform Commission Revenue:</span>
-              <span className="font-bold">{formatCurrency(platformData?.totalCommissionRevenue || 0)}</span>
+              <span className="font-bold">
+                {formatCurrency(platformData?.totalCommissionRevenue || 0)}
+              </span>
             </div>
             <div className="flex justify-between items-center py-2 border-b text-indigo-600">
               <span>Delivery Fee Revenue:</span>
-              <span className="font-bold">{formatCurrency(platformData?.totalDeliveryRevenue || 0)}</span>
+              <span className="font-bold">
+                {formatCurrency(platformData?.totalDeliveryRevenue || 0)}
+              </span>
             </div>
             <div className="flex justify-between items-center py-2 border-b text-green-600">
               <span className="font-medium">Total Platform Revenue:</span>
               <span className="text-xl font-bold">
-                {formatCurrency((platformData?.totalCommissionRevenue || 0) + (platformData?.totalDeliveryRevenue || 0))}
+                {formatCurrency(
+                  (platformData?.totalCommissionRevenue || 0) +
+                    (platformData?.totalDeliveryRevenue || 0)
+                )}
               </span>
             </div>
             <div className="flex justify-between items-center py-2 text-purple-600">
               <span>Vendor Earnings:</span>
-              <span className="font-bold">{formatCurrency(platformData?.totalVendorEarnings || 0)}</span>
+              <span className="font-bold">
+                {formatCurrency(platformData?.totalVendorEarnings || 0)}
+              </span>
             </div>
           </div>
         </CardContent>
@@ -298,8 +303,8 @@ export default function PlatformCommissionAnalytics() {
           ) : (
             <div className="space-y-4">
               {topVendors?.map((vendor, index) => (
-                <div 
-                  key={vendor.vendorId} 
+                <div
+                  key={vendor.vendorId}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
                 >
                   <div className="flex items-center gap-4">
@@ -309,7 +314,8 @@ export default function PlatformCommissionAnalytics() {
                     <div>
                       <h4 className="font-medium">{vendor.businessName}</h4>
                       <p className="text-sm text-gray-600">
-                        {vendor.totalOrders} orders • {formatPercentage(vendor.commissionRate)} commission
+                        {vendor.totalOrders} orders • {formatPercentage(vendor.commissionRate)}{" "}
+                        commission
                       </p>
                     </div>
                   </div>

@@ -8,7 +8,6 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import CheckoutForm from "./CheckoutForm";
 
 interface CartProps {
@@ -18,7 +17,7 @@ interface CartProps {
 export default function Cart({ onClose }: CartProps) {
   const [showCheckout, setShowCheckout] = useState(false);
   const { toast } = useToast();
-  const { restoreCart, saveCartToLocal, clearLocalCart, isRestoring } = useCartPersistence();
+  const { restoreCart, clearLocalCart, isRestoring } = useCartPersistence();
 
   const { data: cartItems = [] as CartItemWithProduct[], isLoading } = useQuery({
     queryKey: ["/api/cart"],
