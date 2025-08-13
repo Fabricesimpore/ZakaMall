@@ -7,17 +7,17 @@ const securityConfig = {
   rateLimiting: {
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 100, // per window
-    skipSuccessfulRequests: false
+    skipSuccessfulRequests: false,
   },
   fraudDetection: {
     enabled: true,
     riskThreshold: 0.6,
-    autoBlock: true
+    autoBlock: true,
   },
   blacklist: {
     enabled: true,
-    autoExpiry: 24 // hours
-  }
+    autoExpiry: 24, // hours
+  },
 };
 
 export const securityService = new SecurityService(securityConfig);
@@ -26,25 +26,25 @@ export const securityService = new SecurityService(securityConfig);
 export const securityMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const ip = getClientIP(req);
-    const userAgent = req.headers['user-agent'] || '';
-    
+    const userAgent = req.headers["user-agent"] || "";
+
     // Check if IP is blacklisted
     const blacklistCheck = await securityService.checkBlacklist(ip);
     if (blacklistCheck.isBlacklisted) {
       await securityService.logSecurityEvent({
         incidentType: "blacklist_access_attempt",
-        severity: "high", 
+        severity: "high",
         ipAddress: ip,
         userAgent,
         requestPath: req.path,
         requestMethod: req.method,
         description: `Blacklisted IP attempted access: ${blacklistCheck.reason}`,
-        metadata: { blacklistReason: blacklistCheck.reason }
+        metadata: { blacklistReason: blacklistCheck.reason },
       });
 
       return res.status(403).json({
         error: "Access Denied",
-        message: "Your IP address has been blocked due to security concerns."
+        message: "Your IP address has been blocked due to security concerns.",
       });
     }
 
@@ -53,7 +53,7 @@ export const securityMiddleware = async (req: Request, res: Response, next: Next
       ip,
       userAgent,
       deviceFingerprint: SecurityService.generateDeviceFingerprint(req),
-      geoLocation: await SecurityService.getGeoLocation(ip)
+      geoLocation: await SecurityService.getGeoLocation(ip),
     };
 
     next();
@@ -84,7 +84,7 @@ export const fraudDetectionMiddleware = async (req: Request, res: Response, next
       userId,
       ipAddress: security.ip,
       deviceFingerprint: security.deviceFingerprint,
-      geoLocation: security.geoLocation
+      geoLocation: security.geoLocation,
     });
 
     // Add fraud result to request for downstream processing
@@ -100,12 +100,12 @@ export const fraudDetectionMiddleware = async (req: Request, res: Response, next
         userAgent: security.userAgent,
         requestPath: req.path,
         description: `High-risk order blocked: Risk score ${fraudResult.riskScore}`,
-        metadata: { 
+        metadata: {
           orderId: orderData.id,
           riskScore: fraudResult.riskScore,
           riskFactors: fraudResult.riskFactors,
-          rules: fraudResult.rules 
-        }
+          rules: fraudResult.rules,
+        },
       });
 
       return res.status(403).json({
@@ -114,8 +114,8 @@ export const fraudDetectionMiddleware = async (req: Request, res: Response, next
         fraudAnalysis: {
           status: fraudResult.status,
           riskScore: fraudResult.riskScore,
-          recommendation: fraudResult.recommendation
-        }
+          recommendation: fraudResult.recommendation,
+        },
       });
     }
 
@@ -129,12 +129,12 @@ export const fraudDetectionMiddleware = async (req: Request, res: Response, next
         userAgent: security.userAgent,
         requestPath: req.path,
         description: `Order flagged for manual review: Risk score ${fraudResult.riskScore}`,
-        metadata: { 
+        metadata: {
           orderId: orderData.id,
           riskScore: fraudResult.riskScore,
           riskFactors: fraudResult.riskFactors,
-          rules: fraudResult.rules 
-        }
+          rules: fraudResult.rules,
+        },
       });
     }
 
@@ -146,7 +146,11 @@ export const fraudDetectionMiddleware = async (req: Request, res: Response, next
 };
 
 // Suspicious activity detection
-export const suspiciousActivityMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+export const suspiciousActivityMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const userId = (req as any).user?.claims?.sub;
     const security = (req as any).security;
@@ -159,7 +163,8 @@ export const suspiciousActivityMiddleware = async (req: Request, res: Response, 
     if (req.method === "POST" && req.body) {
       // Large request body
       const bodySize = JSON.stringify(req.body).length;
-      if (bodySize > 100000) { // 100KB
+      if (bodySize > 100000) {
+        // 100KB
         riskScore += 0.3;
         anomalyFactors.push("LARGE_REQUEST_BODY");
       }
@@ -173,7 +178,7 @@ export const suspiciousActivityMiddleware = async (req: Request, res: Response, 
         /insert\s+into/i,
         /update\s+set/i,
         /script\s*>/i,
-        /<\s*script/i
+        /<\s*script/i,
       ];
 
       for (const pattern of sqlPatterns) {
@@ -194,8 +199,8 @@ export const suspiciousActivityMiddleware = async (req: Request, res: Response, 
 
     // Check user agent patterns
     const userAgent = security.userAgent.toLowerCase();
-    const suspiciousAgents = ['bot', 'crawler', 'spider', 'scraper', 'curl', 'wget'];
-    if (suspiciousAgents.some(agent => userAgent.includes(agent))) {
+    const suspiciousAgents = ["bot", "crawler", "spider", "scraper", "curl", "wget"];
+    if (suspiciousAgents.some((agent) => userAgent.includes(agent))) {
       riskScore += 0.4;
       anomalyFactors.push("SUSPICIOUS_USER_AGENT");
     }
@@ -213,8 +218,8 @@ export const suspiciousActivityMiddleware = async (req: Request, res: Response, 
         sessionData: {
           path: req.path,
           method: req.method,
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       });
 
       // Block if risk is very high
@@ -228,12 +233,12 @@ export const suspiciousActivityMiddleware = async (req: Request, res: Response, 
           requestPath: req.path,
           requestMethod: req.method,
           description: `High-risk activity blocked: ${anomalyFactors.join(", ")}`,
-          metadata: { riskScore, anomalyFactors }
+          metadata: { riskScore, anomalyFactors },
         });
 
         return res.status(403).json({
           error: "Suspicious Activity Detected",
-          message: "This request has been blocked due to suspicious activity patterns."
+          message: "This request has been blocked due to suspicious activity patterns.",
         });
       }
     }
@@ -247,46 +252,39 @@ export const suspiciousActivityMiddleware = async (req: Request, res: Response, 
 
 // Helper functions
 function getClientIP(req: Request): string {
-  return (req.headers['x-forwarded-for'] as string)?.split(',')[0] ||
-         (req.headers['x-real-ip'] as string) ||
-         req.connection.remoteAddress ||
-         req.socket.remoteAddress ||
-         '0.0.0.0';
+  return (
+    (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
+    (req.headers["x-real-ip"] as string) ||
+    req.connection.remoteAddress ||
+    req.socket.remoteAddress ||
+    "0.0.0.0"
+  );
 }
 
 function getActivityType(path: string): string {
-  if (path.includes('/login')) return 'login';
-  if (path.includes('/orders')) return 'order_creation';
-  if (path.includes('/payment')) return 'payment_attempt';
-  if (path.includes('/profile')) return 'profile_update';
-  if (path.includes('/reviews')) return 'review_submission';
-  if (path.includes('/messages')) return 'message_sent';
-  if (path.includes('/products')) return 'product_listing';
-  return 'unknown';
+  if (path.includes("/login")) return "login";
+  if (path.includes("/orders")) return "order_creation";
+  if (path.includes("/payment")) return "payment_attempt";
+  if (path.includes("/profile")) return "profile_update";
+  if (path.includes("/reviews")) return "review_submission";
+  if (path.includes("/messages")) return "message_sent";
+  if (path.includes("/products")) return "product_listing";
+  return "unknown";
 }
 
 function getIncidentType(factors: string[]): string {
-  if (factors.includes('SQL_INJECTION_ATTEMPT')) return 'sql_injection';
-  if (factors.includes('SUSPICIOUS_USER_AGENT')) return 'suspicious_login';
-  if (factors.includes('LARGE_REQUEST_BODY')) return 'malicious_upload';
-  return 'suspicious_activity';
+  if (factors.includes("SQL_INJECTION_ATTEMPT")) return "sql_injection";
+  if (factors.includes("SUSPICIOUS_USER_AGENT")) return "suspicious_login";
+  if (factors.includes("LARGE_REQUEST_BODY")) return "malicious_upload";
+  return "suspicious_activity";
 }
 
 // Specific endpoint protections
-export const loginProtection = [
-  authRateLimit,
-  suspiciousActivityMiddleware
-];
+export const loginProtection = [authRateLimit, suspiciousActivityMiddleware];
 
-export const orderProtection = [
-  orderRateLimit,
-  fraudDetectionMiddleware
-];
+export const orderProtection = [orderRateLimit, fraudDetectionMiddleware];
 
-export const apiProtection = [
-  apiRateLimit,
-  suspiciousActivityMiddleware
-];
+export const apiProtection = [apiRateLimit, suspiciousActivityMiddleware];
 
 export const adminProtection = [
   globalRateLimit,
@@ -298,21 +296,21 @@ export const adminProtection = [
     }
 
     const user = await storage.getUser(userId);
-    if (!user || user.role !== 'admin') {
+    if (!user || user.role !== "admin") {
       await securityService.logSecurityEvent({
         incidentType: "unauthorized_admin_access",
         severity: "high",
         userId,
         ipAddress: (req as any).security?.ip,
         requestPath: req.path,
-        description: "Non-admin user attempted to access admin endpoint"
+        description: "Non-admin user attempted to access admin endpoint",
       });
 
       return res.status(403).json({ error: "Admin access required" });
     }
 
     next();
-  }
+  },
 ];
 
 // Export already handled above

@@ -874,7 +874,9 @@ export const userBehavior = pgTable("user_behavior", {
     .default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id),
   sessionId: varchar("session_id"),
-  productId: varchar("product_id").references(() => products.id).notNull(),
+  productId: varchar("product_id")
+    .references(() => products.id)
+    .notNull(),
   actionType: varchar("action_type").notNull(), // view, add_to_cart, purchase, like, share
   duration: integer("duration"), // Time spent viewing in seconds
   metadata: jsonb("metadata"), // Additional context data
@@ -897,8 +899,12 @@ export const productSimilarities = pgTable("product_similarities", {
   id: varchar("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  productAId: varchar("product_a_id").references(() => products.id).notNull(),
-  productBId: varchar("product_b_id").references(() => products.id).notNull(),
+  productAId: varchar("product_a_id")
+    .references(() => products.id)
+    .notNull(),
+  productBId: varchar("product_b_id")
+    .references(() => products.id)
+    .notNull(),
   similarityScore: decimal("similarity_score", { precision: 5, scale: 4 }).notNull(),
   similarityType: varchar("similarity_type").notNull(), // category, vendor, tags, price_range, description
   lastUpdated: timestamp("last_updated").defaultNow(),
@@ -920,7 +926,9 @@ export const userPreferences = pgTable("user_preferences", {
   id: varchar("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
+  userId: varchar("user_id")
+    .references(() => users.id)
+    .notNull(),
   categoryId: varchar("category_id").references(() => categories.id),
   vendorId: varchar("vendor_id").references(() => vendors.id),
   priceRange: varchar("price_range"), // low, medium, high
@@ -1010,7 +1018,15 @@ export interface SearchFilters {
   isFeatured?: boolean;
   hasImages?: boolean;
   tags?: string[];
-  sortBy?: "relevance" | "price_asc" | "price_desc" | "rating" | "newest" | "oldest" | "name_asc" | "name_desc";
+  sortBy?:
+    | "relevance"
+    | "price_asc"
+    | "price_desc"
+    | "rating"
+    | "newest"
+    | "oldest"
+    | "name_asc"
+    | "name_desc";
   limit?: number;
   offset?: number;
 }
@@ -1064,11 +1080,13 @@ export const securityIncidentEnum = pgEnum("security_incident_type", [
   "payment_fraud",
   "identity_theft",
   "fake_review",
-  "price_manipulation"
+  "price_manipulation",
 ]);
 
 export const securityEvents = pgTable("security_events", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   incidentType: securityIncidentEnum("incident_type").notNull(),
   severity: varchar("severity").notNull(), // low, medium, high, critical
   userId: varchar("user_id").references(() => users.id),
@@ -1093,7 +1111,9 @@ export const securityEvents = pgTable("security_events", {
 
 // Rate limiting tracking
 export const rateLimitViolations = pgTable("rate_limit_violations", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   ipAddress: varchar("ip_address").notNull(),
   userId: varchar("user_id").references(() => users.id),
   endpoint: varchar("endpoint").notNull(),
@@ -1108,14 +1128,16 @@ export const rateLimitViolations = pgTable("rate_limit_violations", {
 // Fraud detection for orders
 export const fraudDetectionEnum = pgEnum("fraud_detection_status", [
   "pending",
-  "approved", 
+  "approved",
   "flagged",
   "blocked",
-  "manual_review"
+  "manual_review",
 ]);
 
 export const fraudAnalysis = pgTable("fraud_analysis", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   orderId: varchar("order_id").references(() => orders.id),
   userId: varchar("user_id").references(() => users.id),
   status: fraudDetectionEnum("status").default("pending"),
@@ -1144,7 +1166,7 @@ export const verificationStatusEnum = pgEnum("verification_status", [
   "pending",
   "verified",
   "rejected",
-  "expired"
+  "expired",
 ]);
 
 export const verificationTypeEnum = pgEnum("verification_type", [
@@ -1153,12 +1175,16 @@ export const verificationTypeEnum = pgEnum("verification_type", [
   "identity_document",
   "address_proof",
   "bank_account",
-  "business_license"
+  "business_license",
 ]);
 
 export const userVerifications = pgTable("user_verifications", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .references(() => users.id)
+    .notNull(),
   verificationType: verificationTypeEnum("verification_type").notNull(),
   status: verificationStatusEnum("status").default("pending"),
   documentUrl: varchar("document_url"),
@@ -1176,8 +1202,12 @@ export const userVerifications = pgTable("user_verifications", {
 
 // Trust scoring for vendors
 export const vendorTrustScores = pgTable("vendor_trust_scores", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  vendorId: varchar("vendor_id").references(() => vendors.id).notNull(),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  vendorId: varchar("vendor_id")
+    .references(() => vendors.id)
+    .notNull(),
   overallScore: decimal("overall_score", { precision: 3, scale: 2 }).notNull(),
   identityScore: decimal("identity_score", { precision: 3, scale: 2 }),
   activityScore: decimal("activity_score", { precision: 3, scale: 2 }),
@@ -1193,7 +1223,7 @@ export const vendorTrustScores = pgTable("vendor_trust_scores", {
 // Suspicious activity monitoring
 export const activityTypeEnum = pgEnum("activity_type", [
   "login",
-  "password_change", 
+  "password_change",
   "email_change",
   "profile_update",
   "order_creation",
@@ -1201,11 +1231,13 @@ export const activityTypeEnum = pgEnum("activity_type", [
   "review_submission",
   "message_sent",
   "product_listing",
-  "account_deletion"
+  "account_deletion",
 ]);
 
 export const suspiciousActivities = pgTable("suspicious_activities", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id),
   activityType: activityTypeEnum("activity_type").notNull(),
   riskScore: decimal("risk_score", { precision: 3, scale: 2 }).notNull(),
@@ -1225,21 +1257,25 @@ export const suspiciousActivities = pgTable("suspicious_activities", {
 export const blacklistTypeEnum = pgEnum("blacklist_type", [
   "ip_address",
   "email_domain",
-  "phone_number", 
+  "phone_number",
   "device_fingerprint",
   "credit_card_hash",
-  "user_account"
+  "user_account",
 ]);
 
 export const blacklist = pgTable("blacklist", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   type: blacklistTypeEnum("type").notNull(),
   value: varchar("value").notNull(), // The blacklisted value
   reason: text("reason").notNull(),
   severity: varchar("severity").notNull(), // low, medium, high
   isActive: boolean("is_active").default(true),
   expiresAt: timestamp("expires_at"),
-  addedBy: varchar("added_by").references(() => users.id).notNull(),
+  addedBy: varchar("added_by")
+    .references(() => users.id)
+    .notNull(),
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

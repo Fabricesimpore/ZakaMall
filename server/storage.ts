@@ -48,9 +48,7 @@ import {
   type Review,
   type InsertReview,
   type ReviewVote,
-  type InsertReviewVote,
   type ReviewResponse,
-  type InsertReviewResponse,
   type ChatRoom,
   type InsertChatRoom,
   type ChatParticipant,
@@ -75,12 +73,9 @@ import {
   type SearchResult,
   type UserBehavior,
   type InsertUserBehavior,
-  type ProductSimilarity,
   type InsertProductSimilarity,
-  type UserPreference,
   type InsertUserPreference,
   type RecommendationRequest,
-  type RecommendationResult,
   type RecommendationsResponse,
 } from "@shared/schema";
 import { db } from "./db";
@@ -98,6 +93,8 @@ import {
   sql,
   gte,
   lte,
+  isNull,
+  gt,
 } from "drizzle-orm";
 
 export interface IStorage {
@@ -204,7 +201,11 @@ export interface IStorage {
   // Review operations
   createReview(review: InsertReview): Promise<Review>;
   getProductReviews(productId: string): Promise<Review[]>;
-  voteOnReview(reviewId: string, userId: string, voteType: 'helpful' | 'not_helpful'): Promise<void>;
+  voteOnReview(
+    reviewId: string,
+    userId: string,
+    voteType: "helpful" | "not_helpful"
+  ): Promise<void>;
   getReviewVotes(reviewId: string): Promise<ReviewVote[]>;
   addVendorResponse(reviewId: string, vendorId: string, response: string): Promise<ReviewResponse>;
   getReviewResponses(reviewId: string): Promise<ReviewResponse[]>;
@@ -215,7 +216,7 @@ export interface IStorage {
   logSearch(searchLog: InsertSearchLog): Promise<SearchLog>;
   getSearchSuggestions(query: string, limit?: number): Promise<string[]>;
   getPopularSearchTerms(limit?: number): Promise<{ term: string; count: number }[]>;
-  getSearchFacets(filters: SearchFilters): Promise<SearchResult['facets']>;
+  getSearchFacets(filters: SearchFilters): Promise<SearchResult["facets"]>;
 
   // Recommendation System operations
   trackUserBehavior(behavior: InsertUserBehavior): Promise<UserBehavior>;
@@ -875,7 +876,7 @@ export class DatabaseStorage implements IStorage {
   // Advanced Search Implementation
   async searchProducts(filters: SearchFilters): Promise<SearchResult> {
     const conditions = [];
-    
+
     // Base condition - only active products
     conditions.push(eq(products.isActive, true));
 
@@ -932,9 +933,7 @@ export class DatabaseStorage implements IStorage {
 
     // Tags filter
     if (filters.tags && filters.tags.length > 0) {
-      const tagConditions = filters.tags.map(tag => 
-        ilike(products.tags, `%${tag}%`)
-      );
+      const tagConditions = filters.tags.map((tag) => ilike(products.tags, `%${tag}%`));
       conditions.push(or(...tagConditions)!);
     }
 
@@ -1021,10 +1020,8 @@ export class DatabaseStorage implements IStorage {
     // Apply pagination
     const limit = filters.limit || 20;
     const offset = filters.offset || 0;
-    
-    const paginatedProducts = await query
-      .limit(limit)
-      .offset(offset);
+
+    const paginatedProducts = await query.limit(limit).offset(offset);
 
     // Get facets for filtering
     const facets = await this.getSearchFacets(filters);
@@ -1037,7 +1034,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getSearchFacets(filters: SearchFilters): Promise<SearchResult['facets']> {
+  async getSearchFacets(filters: SearchFilters): Promise<SearchResult["facets"]> {
     // Build base conditions (same as search but without the facet being calculated)
     const baseConditions = [eq(products.isActive, true)];
 
@@ -1122,12 +1119,12 @@ export class DatabaseStorage implements IStorage {
 
     // Get tag facets (extract from products.tags array)
     const tagFacets: { tag: string; count: number }[] = [];
-    
+
     return {
       categories: categoryFacets,
       vendors: vendorFacets,
-      priceRanges: priceRangeFacets.filter(range => range.count > 0),
-      ratings: ratingFacets.map(r => ({ rating: r.rating, count: r.count })),
+      priceRanges: priceRangeFacets.filter((range) => range.count > 0),
+      ratings: ratingFacets.map((r) => ({ rating: r.rating, count: r.count })),
       tags: tagFacets,
     };
   }
@@ -1141,17 +1138,12 @@ export class DatabaseStorage implements IStorage {
     if (!query || query.length < 2) return [];
 
     const searchTerm = query.toLowerCase();
-    
+
     // Get product name suggestions
     const productSuggestions = await db
       .select({ name: products.name })
       .from(products)
-      .where(
-        and(
-          eq(products.isActive, true),
-          ilike(products.name, `%${searchTerm}%`)
-        )
-      )
+      .where(and(eq(products.isActive, true), ilike(products.name, `%${searchTerm}%`)))
       .limit(limit)
       .orderBy(desc(products.rating), desc(products.reviewCount));
 
@@ -1164,8 +1156,8 @@ export class DatabaseStorage implements IStorage {
 
     // Combine and deduplicate suggestions
     const allSuggestions = [
-      ...productSuggestions.map(p => p.name),
-      ...categorySuggestions.map(c => c.name),
+      ...productSuggestions.map((p) => p.name),
+      ...categorySuggestions.map((c) => c.name),
     ];
 
     return [...new Set(allSuggestions)].slice(0, limit);
@@ -1189,44 +1181,51 @@ export class DatabaseStorage implements IStorage {
   // Recommendation System Implementation
   async trackUserBehavior(behavior: InsertUserBehavior): Promise<UserBehavior> {
     const [behaviorRecord] = await db.insert(userBehavior).values(behavior).returning();
-    
+
     // Trigger preference update in background (fire and forget)
     if (behavior.userId) {
       this.updateUserPreferences(behavior.userId).catch(console.error);
     }
-    
+
     return behaviorRecord;
   }
 
   async getRecommendations(request: RecommendationRequest): Promise<RecommendationsResponse> {
     const { type, userId, productId, limit = 10 } = request;
-    
+
     switch (type) {
       case "personalized":
-        return userId ? await this.getPersonalizedRecommendations(userId, limit) : 
-          await this.getTrendingRecommendations(limit);
-      
+        return userId
+          ? await this.getPersonalizedRecommendations(userId, limit)
+          : await this.getTrendingRecommendations(limit);
+
       case "similar":
-        return productId ? await this.getItemBasedRecommendations(productId, limit) :
-          await this.getTrendingRecommendations(limit);
-      
+        return productId
+          ? await this.getItemBasedRecommendations(productId, limit)
+          : await this.getTrendingRecommendations(limit);
+
       case "trending":
         return await this.getTrendingRecommendations(limit);
-      
+
       case "user_based":
-        return userId ? await this.getCollaborativeRecommendations(userId, limit) :
-          await this.getTrendingRecommendations(limit);
-      
+        return userId
+          ? await this.getCollaborativeRecommendations(userId, limit)
+          : await this.getTrendingRecommendations(limit);
+
       case "item_based":
-        return productId ? await this.getItemBasedRecommendations(productId, limit) :
-          await this.getTrendingRecommendations(limit);
-      
+        return productId
+          ? await this.getItemBasedRecommendations(productId, limit)
+          : await this.getTrendingRecommendations(limit);
+
       default:
         return await this.getTrendingRecommendations(limit);
     }
   }
 
-  async getPersonalizedRecommendations(userId: string, limit: number = 10): Promise<RecommendationsResponse> {
+  async getPersonalizedRecommendations(
+    userId: string,
+    limit: number = 10
+  ): Promise<RecommendationsResponse> {
     // Get user preferences
     const userPrefs = await db
       .select()
@@ -1242,14 +1241,16 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(userBehavior.createdAt))
       .limit(50);
 
-    const viewedProductIds = recentBehavior.map(b => b.productId);
+    const viewedProductIds = recentBehavior.map((b) => b.productId);
 
     // Build recommendations based on preferences
     let recommendedProducts: any[] = [];
 
     if (userPrefs.length > 0) {
       // Category-based recommendations
-      const categoryPrefs = userPrefs.filter(p => p.preferenceType === "category" && p.categoryId);
+      const categoryPrefs = userPrefs.filter(
+        (p) => p.preferenceType === "category" && p.categoryId
+      );
       if (categoryPrefs.length > 0) {
         const categoryRecommendations = await db
           .select({
@@ -1272,22 +1273,29 @@ export class DatabaseStorage implements IStorage {
             and(
               eq(products.isActive, true),
               eq(products.categoryId, categoryPrefs[0].categoryId!),
-              viewedProductIds.length > 0 ? sql`${products.id} NOT IN (${sql.join(viewedProductIds.map(id => sql`${id}`), sql`, `)})` : sql`1=1`
+              viewedProductIds.length > 0
+                ? sql`${products.id} NOT IN (${sql.join(
+                    viewedProductIds.map((id) => sql`${id}`),
+                    sql`, `
+                  )})`
+                : sql`1=1`
             )
           )
           .orderBy(desc(products.rating), desc(products.reviewCount))
           .limit(Math.ceil(limit * 0.6));
 
-        recommendedProducts.push(...categoryRecommendations.map(p => ({
-          ...p,
-          score: 0.8,
-          reason: `Based on your interest in ${p.categoryName}`,
-          type: "category_preference"
-        })));
+        recommendedProducts.push(
+          ...categoryRecommendations.map((p) => ({
+            ...p,
+            score: 0.8,
+            reason: `Based on your interest in ${p.categoryName}`,
+            type: "category_preference",
+          }))
+        );
       }
 
       // Vendor-based recommendations
-      const vendorPrefs = userPrefs.filter(p => p.preferenceType === "vendor" && p.vendorId);
+      const vendorPrefs = userPrefs.filter((p) => p.preferenceType === "vendor" && p.vendorId);
       if (vendorPrefs.length > 0 && recommendedProducts.length < limit) {
         const vendorRecommendations = await db
           .select({
@@ -1310,62 +1318,82 @@ export class DatabaseStorage implements IStorage {
             and(
               eq(products.isActive, true),
               eq(products.vendorId, vendorPrefs[0].vendorId!),
-              viewedProductIds.length > 0 ? sql`${products.id} NOT IN (${sql.join(viewedProductIds.map(id => sql`${id}`), sql`, `)})` : sql`1=1`,
-              recommendedProducts.length > 0 ? sql`${products.id} NOT IN (${sql.join(recommendedProducts.map(p => sql`${p.id}`), sql`, `)})` : sql`1=1`
+              viewedProductIds.length > 0
+                ? sql`${products.id} NOT IN (${sql.join(
+                    viewedProductIds.map((id) => sql`${id}`),
+                    sql`, `
+                  )})`
+                : sql`1=1`,
+              recommendedProducts.length > 0
+                ? sql`${products.id} NOT IN (${sql.join(
+                    recommendedProducts.map((p) => sql`${p.id}`),
+                    sql`, `
+                  )})`
+                : sql`1=1`
             )
           )
           .orderBy(desc(products.rating))
           .limit(Math.ceil(limit * 0.4));
 
-        recommendedProducts.push(...vendorRecommendations.map(p => ({
-          ...p,
-          score: 0.7,
-          reason: `More from ${p.vendorName}`,
-          type: "vendor_preference"
-        })));
+        recommendedProducts.push(
+          ...vendorRecommendations.map((p) => ({
+            ...p,
+            score: 0.7,
+            reason: `More from ${p.vendorName}`,
+            type: "vendor_preference",
+          }))
+        );
       }
     }
 
     // Fill remaining slots with trending products
     if (recommendedProducts.length < limit) {
       const trendingProducts = await this.getTrendingProducts(limit - recommendedProducts.length);
-      const existingIds = recommendedProducts.map(p => p.id);
-      
+      const existingIds = recommendedProducts.map((p) => p.id);
+
       const filteredTrending = trendingProducts
-        .filter(p => !existingIds.includes(p.id) && !viewedProductIds.includes(p.id))
+        .filter((p) => !existingIds.includes(p.id) && !viewedProductIds.includes(p.id))
         .slice(0, limit - recommendedProducts.length);
 
-      recommendedProducts.push(...filteredTrending.map(p => ({
-        ...p,
-        vendorName: null,
-        categoryName: null,
-        score: 0.5,
-        reason: "Trending now",
-        type: "trending"
-      })));
+      recommendedProducts.push(
+        ...filteredTrending.map((p) => ({
+          ...p,
+          vendorName: null,
+          categoryName: null,
+          score: 0.5,
+          reason: "Trending now",
+          type: "trending",
+        }))
+      );
     }
 
     return {
-      recommendations: recommendedProducts.slice(0, limit).map(p => ({
+      recommendations: recommendedProducts.slice(0, limit).map((p) => ({
         productId: p.id,
         score: p.score,
         reason: p.reason,
         type: p.type,
-        product: p
+        product: p,
       })),
       metadata: {
         algorithm: "personalized",
         totalProducts: recommendedProducts.length,
-        userProfile: userPrefs.length > 0 ? {
-          preferences: userPrefs.length,
-          topCategory: userPrefs.find(p => p.preferenceType === "category")?.categoryId,
-          topVendor: userPrefs.find(p => p.preferenceType === "vendor")?.vendorId,
-        } : null
-      }
+        userProfile:
+          userPrefs.length > 0
+            ? {
+                preferences: userPrefs.length,
+                topCategory: userPrefs.find((p) => p.preferenceType === "category")?.categoryId,
+                topVendor: userPrefs.find((p) => p.preferenceType === "vendor")?.vendorId,
+              }
+            : null,
+      },
     };
   }
 
-  async getCollaborativeRecommendations(userId: string, limit: number = 10): Promise<RecommendationsResponse> {
+  async getCollaborativeRecommendations(
+    userId: string,
+    limit: number = 10
+  ): Promise<RecommendationsResponse> {
     // Find users with similar behavior patterns
     const userInteractions = await db
       .select({ productId: userBehavior.productId })
@@ -1381,7 +1409,7 @@ export class DatabaseStorage implements IStorage {
       return await this.getTrendingRecommendations(limit);
     }
 
-    const userProductIds = userInteractions.map(i => i.productId);
+    const userProductIds = userInteractions.map((i) => i.productId);
 
     // Find similar users who also interacted with the same products
     const similarUsers = await db
@@ -1393,7 +1421,10 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           sql`${userBehavior.userId} != ${userId}`,
-          sql`${userBehavior.productId} IN (${sql.join(userProductIds.map(id => sql`${id}`), sql`, `)})`,
+          sql`${userBehavior.productId} IN (${sql.join(
+            userProductIds.map((id) => sql`${id}`),
+            sql`, `
+          )})`,
           sql`${userBehavior.actionType} IN ('purchase', 'add_to_cart')`
         )
       )
@@ -1406,7 +1437,7 @@ export class DatabaseStorage implements IStorage {
       return await this.getTrendingRecommendations(limit);
     }
 
-    const similarUserIds = similarUsers.map(u => u.userId).filter(Boolean);
+    const similarUserIds = similarUsers.map((u) => u.userId).filter(Boolean);
 
     // Get products that similar users liked but current user hasn't interacted with
     const recommendations = await db
@@ -1431,8 +1462,14 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(products.isActive, true),
-          sql`${userBehavior.userId} IN (${sql.join(similarUserIds.map(id => sql`${id}`), sql`, `)})`,
-          sql`${userBehavior.productId} NOT IN (${sql.join(userProductIds.map(id => sql`${id}`), sql`, `)})`,
+          sql`${userBehavior.userId} IN (${sql.join(
+            similarUserIds.map((id) => sql`${id}`),
+            sql`, `
+          )})`,
+          sql`${userBehavior.productId} NOT IN (${sql.join(
+            userProductIds.map((id) => sql`${id}`),
+            sql`, `
+          )})`,
           sql`${userBehavior.actionType} IN ('purchase', 'add_to_cart')`
         )
       )
@@ -1453,12 +1490,12 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
 
     return {
-      recommendations: recommendations.map(p => ({
+      recommendations: recommendations.map((p) => ({
         productId: p.id,
-        score: Math.min(0.9, 0.5 + (p.interactions * 0.1)),
+        score: Math.min(0.9, 0.5 + p.interactions * 0.1),
         reason: "People with similar tastes also liked this",
         type: "collaborative",
-        product: p
+        product: p,
       })),
       metadata: {
         algorithm: "collaborative_filtering",
@@ -1466,12 +1503,15 @@ export class DatabaseStorage implements IStorage {
         userProfile: {
           similarUsers: similarUsers.length,
           userInteractions: userInteractions.length,
-        }
-      }
+        },
+      },
     };
   }
 
-  async getItemBasedRecommendations(productId: string, limit: number = 10): Promise<RecommendationsResponse> {
+  async getItemBasedRecommendations(
+    productId: string,
+    limit: number = 10
+  ): Promise<RecommendationsResponse> {
     // Get the source product details
     const sourceProduct = await db
       .select()
@@ -1505,12 +1545,7 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(products, eq(productSimilarities.productBId, products.id))
       .leftJoin(vendors, eq(products.vendorId, vendors.id))
       .leftJoin(categories, eq(products.categoryId, categories.id))
-      .where(
-        and(
-          eq(productSimilarities.productAId, productId),
-          eq(products.isActive, true)
-        )
-      )
+      .where(and(eq(productSimilarities.productAId, productId), eq(products.isActive, true)))
       .orderBy(desc(productSimilarities.similarityScore))
       .limit(limit);
 
@@ -1538,29 +1573,35 @@ export class DatabaseStorage implements IStorage {
             eq(products.isActive, true),
             eq(products.categoryId, product.categoryId),
             sql`${products.id} != ${productId}`,
-            similarProducts.length > 0 ? 
-              sql`${products.id} NOT IN (${sql.join(similarProducts.map(p => sql`${p.id}`), sql`, `)})` : 
-              sql`1=1`
+            similarProducts.length > 0
+              ? sql`${products.id} NOT IN (${sql.join(
+                  similarProducts.map((p) => sql`${p.id}`),
+                  sql`, `
+                )})`
+              : sql`1=1`
           )
         )
         .orderBy(desc(products.rating), desc(products.reviewCount))
         .limit(limit - similarProducts.length);
 
-      similarProducts.push(...categoryMatches.map(p => ({
-        ...p,
-        similarityScore: "0.6"
-      })));
+      similarProducts.push(
+        ...categoryMatches.map((p) => ({
+          ...p,
+          similarityScore: "0.6",
+        }))
+      );
     }
 
     return {
-      recommendations: similarProducts.map(p => ({
+      recommendations: similarProducts.map((p) => ({
         productId: p.id,
         score: parseFloat(p.similarityScore || "0.5"),
-        reason: p.categoryName === product.categoryName ? 
-          `Similar to ${product.name}` : 
-          `From the same category`,
+        reason:
+          p.categoryName === product.categoryName
+            ? `Similar to ${product.name}`
+            : `From the same category`,
         type: "item_based",
-        product: p
+        product: p,
       })),
       metadata: {
         algorithm: "item_based",
@@ -1569,8 +1610,8 @@ export class DatabaseStorage implements IStorage {
           id: product.id,
           name: product.name,
           category: product.categoryId,
-        }
-      }
+        },
+      },
     };
   }
 
@@ -1580,15 +1621,15 @@ export class DatabaseStorage implements IStorage {
     return {
       recommendations: trendingProducts.map((product, index) => ({
         productId: product.id,
-        score: 0.8 - (index * 0.05), // Decreasing score based on position
+        score: 0.8 - index * 0.05, // Decreasing score based on position
         reason: "Trending now",
         type: "trending",
-        product: product
+        product: product,
       })),
       metadata: {
         algorithm: "trending",
         totalProducts: trendingProducts.length,
-      }
+      },
     };
   }
 
@@ -1622,16 +1663,12 @@ export class DatabaseStorage implements IStorage {
 
   async getSimilarProducts(productId: string, limit: number = 6): Promise<Product[]> {
     const result = await this.getItemBasedRecommendations(productId, limit);
-    return result.recommendations.map(r => r.product);
+    return result.recommendations.map((r) => r.product);
   }
 
   async updateProductSimilarities(productId: string): Promise<void> {
     // Get the product details
-    const product = await db
-      .select()
-      .from(products)
-      .where(eq(products.id, productId))
-      .limit(1);
+    const product = await db.select().from(products).where(eq(products.id, productId)).limit(1);
 
     if (product.length === 0) return;
 
@@ -1641,46 +1678,43 @@ export class DatabaseStorage implements IStorage {
     const similarProducts = await db
       .select()
       .from(products)
-      .where(
-        and(
-          eq(products.isActive, true),
-          sql`${products.id} != ${productId}`
-        )
-      );
+      .where(and(eq(products.isActive, true), sql`${products.id} != ${productId}`));
 
     // Calculate similarities and batch insert
     const similarities: InsertProductSimilarity[] = [];
 
     for (const targetProduct of similarProducts) {
       let totalScore = 0;
-      let factors = 0;
+      let _factors = 0;
 
       // Category similarity (40% weight)
       if (sourceProduct.categoryId === targetProduct.categoryId) {
         totalScore += 0.4;
-        factors++;
+        _factors++;
       }
 
       // Vendor similarity (20% weight)
       if (sourceProduct.vendorId === targetProduct.vendorId) {
         totalScore += 0.2;
-        factors++;
+        _factors++;
       }
 
       // Price similarity (20% weight)
       const priceDiff = Math.abs(parseFloat(sourceProduct.price) - parseFloat(targetProduct.price));
       const maxPrice = Math.max(parseFloat(sourceProduct.price), parseFloat(targetProduct.price));
       if (maxPrice > 0) {
-        const priceScore = Math.max(0, 1 - (priceDiff / maxPrice));
+        const priceScore = Math.max(0, 1 - priceDiff / maxPrice);
         totalScore += priceScore * 0.2;
-        factors++;
+        _factors++;
       }
 
       // Rating similarity (20% weight)
-      const ratingDiff = Math.abs(parseFloat(sourceProduct.rating || "0") - parseFloat(targetProduct.rating || "0"));
-      const ratingScore = Math.max(0, 1 - (ratingDiff / 5));
+      const ratingDiff = Math.abs(
+        parseFloat(sourceProduct.rating || "0") - parseFloat(targetProduct.rating || "0")
+      );
+      const ratingScore = Math.max(0, 1 - ratingDiff / 5);
       totalScore += ratingScore * 0.2;
-      factors++;
+      _factors++;
 
       // Only store if similarity is meaningful
       if (totalScore > 0.3) {
@@ -1688,7 +1722,7 @@ export class DatabaseStorage implements IStorage {
           productAId: productId,
           productBId: targetProduct.id,
           similarityScore: totalScore.toFixed(4),
-          similarityType: "computed"
+          similarityType: "computed",
         });
       }
     }
@@ -1729,9 +1763,9 @@ export class DatabaseStorage implements IStorage {
     const vendorScores: { [vendorId: string]: number } = {};
     const priceRanges: { [range: string]: number } = {};
 
-    behaviorData.forEach(behavior => {
+    behaviorData.forEach((behavior) => {
       const weight = this.getActionWeight(behavior.actionType);
-      
+
       // Category preferences
       if (behavior.categoryId) {
         categoryScores[behavior.categoryId] = (categoryScores[behavior.categoryId] || 0) + weight;
@@ -1747,7 +1781,7 @@ export class DatabaseStorage implements IStorage {
       let priceRange = "medium";
       if (price < 5000) priceRange = "low";
       else if (price > 25000) priceRange = "high";
-      
+
       priceRanges[priceRange] = (priceRanges[priceRange] || 0) + weight;
     });
 
@@ -1763,7 +1797,7 @@ export class DatabaseStorage implements IStorage {
         userId,
         categoryId,
         preferenceScore: (score / behaviorData.length).toFixed(4),
-        preferenceType: "category"
+        preferenceType: "category",
       });
     });
 
@@ -1773,7 +1807,7 @@ export class DatabaseStorage implements IStorage {
         userId,
         vendorId,
         preferenceScore: (score / behaviorData.length).toFixed(4),
-        preferenceType: "vendor"
+        preferenceType: "vendor",
       });
     });
 
@@ -1783,7 +1817,7 @@ export class DatabaseStorage implements IStorage {
         userId,
         priceRange: range,
         preferenceScore: (score / behaviorData.length).toFixed(4),
-        preferenceType: "price"
+        preferenceType: "price",
       });
     });
 
@@ -1794,12 +1828,18 @@ export class DatabaseStorage implements IStorage {
 
   private getActionWeight(actionType: string): number {
     switch (actionType) {
-      case "purchase": return 3.0;
-      case "add_to_cart": return 2.0;
-      case "like": return 1.5;
-      case "view": return 1.0;
-      case "share": return 1.2;
-      default: return 0.5;
+      case "purchase":
+        return 3.0;
+      case "add_to_cart":
+        return 2.0;
+      case "like":
+        return 1.5;
+      case "view":
+        return 1.0;
+      case "share":
+        return 1.2;
+      default:
+        return 0.5;
     }
   }
 
@@ -2294,7 +2334,11 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(reviews.createdAt));
   }
 
-  async voteOnReview(reviewId: string, userId: string, voteType: 'helpful' | 'not_helpful'): Promise<void> {
+  async voteOnReview(
+    reviewId: string,
+    userId: string,
+    voteType: "helpful" | "not_helpful"
+  ): Promise<void> {
     // First check if user already voted on this review
     const existingVote = await db
       .select()
@@ -2318,28 +2362,23 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Update helpfulVotes and totalVotes in reviews table
-    const votes = await db
-      .select()
-      .from(reviewVotes)
-      .where(eq(reviewVotes.reviewId, reviewId));
+    const votes = await db.select().from(reviewVotes).where(eq(reviewVotes.reviewId, reviewId));
 
-    const helpfulVotes = votes.filter(v => v.voteType === 'helpful').length;
+    const helpfulVotes = votes.filter((v) => v.voteType === "helpful").length;
     const totalVotes = votes.length;
 
-    await db
-      .update(reviews)
-      .set({ helpfulVotes, totalVotes })
-      .where(eq(reviews.id, reviewId));
+    await db.update(reviews).set({ helpfulVotes, totalVotes }).where(eq(reviews.id, reviewId));
   }
 
   async getReviewVotes(reviewId: string): Promise<ReviewVote[]> {
-    return await db
-      .select()
-      .from(reviewVotes)
-      .where(eq(reviewVotes.reviewId, reviewId));
+    return await db.select().from(reviewVotes).where(eq(reviewVotes.reviewId, reviewId));
   }
 
-  async addVendorResponse(reviewId: string, vendorId: string, response: string): Promise<ReviewResponse> {
+  async addVendorResponse(
+    reviewId: string,
+    vendorId: string,
+    response: string
+  ): Promise<ReviewResponse> {
     const [vendorResponse] = await db
       .insert(reviewResponses)
       .values({
@@ -3448,22 +3487,25 @@ export class DatabaseStorage implements IStorage {
     metadata?: any;
   }) {
     try {
-      return await db.insert(securityEvents).values({
-        incidentType: event.incidentType as any,
-        severity: event.severity,
-        userId: event.userId,
-        sessionId: event.sessionId,
-        ipAddress: event.ipAddress,
-        userAgent: event.userAgent,
-        requestPath: event.requestPath,
-        requestMethod: event.requestMethod,
-        requestHeaders: event.requestHeaders,
-        requestBody: event.requestBody,
-        responseStatus: event.responseStatus,
-        geoLocation: event.geoLocation,
-        description: event.description,
-        metadata: event.metadata,
-      }).returning();
+      return await db
+        .insert(securityEvents)
+        .values({
+          incidentType: event.incidentType as any,
+          severity: event.severity,
+          userId: event.userId,
+          sessionId: event.sessionId,
+          ipAddress: event.ipAddress,
+          userAgent: event.userAgent,
+          requestPath: event.requestPath,
+          requestMethod: event.requestMethod,
+          requestHeaders: event.requestHeaders,
+          requestBody: event.requestBody,
+          responseStatus: event.responseStatus,
+          geoLocation: event.geoLocation,
+          description: event.description,
+          metadata: event.metadata,
+        })
+        .returning();
     } catch (error) {
       console.error("Error logging security event:", error);
       throw error;
@@ -3504,42 +3546,48 @@ export class DatabaseStorage implements IStorage {
     isTorDetected?: boolean;
   }) {
     try {
-      return await db.insert(fraudAnalysis).values({
-        orderId: data.orderId,
-        userId: data.userId,
-        status: data.status as any,
-        riskScore: data.riskScore.toString(),
-        riskFactors: data.riskFactors,
-        rules: data.rules,
-        ipAddress: data.ipAddress,
-        deviceFingerprint: data.deviceFingerprint,
-        geoLocation: data.geoLocation,
-        velocityChecks: data.velocityChecks,
-        behaviorScore: data.behaviorScore?.toString(),
-        paymentRisk: data.paymentRisk?.toString(),
-        accountAge: data.accountAge,
-        isVpnDetected: data.isVpnDetected,
-        isTorDetected: data.isTorDetected,
-      }).returning();
+      return await db
+        .insert(fraudAnalysis)
+        .values({
+          orderId: data.orderId,
+          userId: data.userId,
+          status: data.status as any,
+          riskScore: data.riskScore.toString(),
+          riskFactors: data.riskFactors,
+          rules: data.rules,
+          ipAddress: data.ipAddress,
+          deviceFingerprint: data.deviceFingerprint,
+          geoLocation: data.geoLocation,
+          velocityChecks: data.velocityChecks,
+          behaviorScore: data.behaviorScore?.toString(),
+          paymentRisk: data.paymentRisk?.toString(),
+          accountAge: data.accountAge,
+          isVpnDetected: data.isVpnDetected,
+          isTorDetected: data.isTorDetected,
+        })
+        .returning();
     } catch (error) {
       console.error("Error logging fraud analysis:", error);
       throw error;
     }
   }
 
-  async isBlacklisted(type: string, value: string): Promise<{ isBlacklisted: boolean; reason?: string }> {
+  async isBlacklisted(
+    type: string,
+    value: string
+  ): Promise<{ isBlacklisted: boolean; reason?: string }> {
     try {
-      const result = await db.select()
+      const result = await db
+        .select()
         .from(blacklist)
-        .where(and(
-          eq(blacklist.type, type as any),
-          eq(blacklist.value, value),
-          eq(blacklist.isActive, true),
-          or(
-            isNull(blacklist.expiresAt),
-            gt(blacklist.expiresAt, new Date())
+        .where(
+          and(
+            eq(blacklist.type, type as any),
+            eq(blacklist.value, value),
+            eq(blacklist.isActive, true),
+            or(isNull(blacklist.expiresAt), gt(blacklist.expiresAt, new Date()))
           )
-        ))
+        )
         .limit(1);
 
       if (result.length > 0) {
@@ -3563,15 +3611,18 @@ export class DatabaseStorage implements IStorage {
     metadata?: any;
   }) {
     try {
-      return await db.insert(blacklist).values({
-        type: data.type as any,
-        value: data.value,
-        reason: data.reason,
-        severity: data.severity,
-        addedBy: data.addedBy,
-        expiresAt: data.expiresAt,
-        metadata: data.metadata,
-      }).returning();
+      return await db
+        .insert(blacklist)
+        .values({
+          type: data.type as any,
+          value: data.value,
+          reason: data.reason,
+          severity: data.severity,
+          addedBy: data.addedBy,
+          expiresAt: data.expiresAt,
+          metadata: data.metadata,
+        })
+        .returning();
     } catch (error) {
       console.error("Error adding to blacklist:", error);
       throw error;
@@ -3581,12 +3632,10 @@ export class DatabaseStorage implements IStorage {
   async getUserRecentOrders(userId: string, hours: number = 24) {
     try {
       const since = new Date(Date.now() - hours * 60 * 60 * 1000);
-      return await db.select()
+      return await db
+        .select()
         .from(orders)
-        .where(and(
-          eq(orders.userId, userId),
-          gt(orders.createdAt, since)
-        ))
+        .where(and(eq(orders.userId, userId), gt(orders.createdAt, since)))
         .orderBy(desc(orders.createdAt));
     } catch (error) {
       console.error("Error getting user recent orders:", error);
@@ -3595,31 +3644,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserRecentSessions(userId: string, days: number = 7) {
-    try {
-      // This would require a sessions tracking table in production
-      // For now, return mock data or implement session tracking
-      return [];
-    } catch (error) {
-      console.error("Error getting user recent sessions:", error);
-      return [];
-    }
+    // This would require a sessions tracking table in production
+    // For now, return mock data or implement session tracking
+    return [];
   }
 
   async getUserKnownDevices(userId: string) {
-    try {
-      // This would require device tracking implementation
-      // For now, return empty array
-      return [];
-    } catch (error) {
-      console.error("Error getting user known devices:", error);
-      return [];
-    }
+    // This would require device tracking implementation
+    // For now, return empty array
+    return [];
   }
 
   async getUserBehaviorProfile(userId: string) {
     try {
       // Calculate behavior profile from user orders and activities
-      const userOrders = await db.select()
+      const userOrders = await db
+        .select()
         .from(orders)
         .where(eq(orders.userId, userId))
         .orderBy(desc(orders.createdAt));
@@ -3646,7 +3686,8 @@ export class DatabaseStorage implements IStorage {
 
   async getUserVerifications(userId: string) {
     try {
-      return await db.select()
+      return await db
+        .select()
         .from(userVerifications)
         .where(eq(userVerifications.userId, userId))
         .orderBy(desc(userVerifications.createdAt));
@@ -3657,14 +3698,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async isKnownPaymentMethod(userId: string, cardHash: string): Promise<boolean> {
-    try {
-      // This would require storing payment method hashes
-      // For now, return false (treat all as new)
-      return false;
-    } catch (error) {
-      console.error("Error checking known payment method:", error);
-      return false;
-    }
+    // This would require storing payment method hashes
+    // For now, return false (treat all as new)
+    return false;
   }
 
   async logSuspiciousActivity(data: {
@@ -3678,16 +3714,19 @@ export class DatabaseStorage implements IStorage {
     sessionData?: any;
   }) {
     try {
-      return await db.insert(suspiciousActivities).values({
-        userId: data.userId,
-        activityType: data.activityType as any,
-        riskScore: data.riskScore.toString(),
-        anomalyFactors: data.anomalyFactors,
-        ipAddress: data.ipAddress,
-        userAgent: data.userAgent,
-        geoLocation: data.geoLocation,
-        sessionData: data.sessionData,
-      }).returning();
+      return await db
+        .insert(suspiciousActivities)
+        .values({
+          userId: data.userId,
+          activityType: data.activityType as any,
+          riskScore: data.riskScore.toString(),
+          anomalyFactors: data.anomalyFactors,
+          ipAddress: data.ipAddress,
+          userAgent: data.userAgent,
+          geoLocation: data.geoLocation,
+          sessionData: data.sessionData,
+        })
+        .returning();
     } catch (error) {
       console.error("Error logging suspicious activity:", error);
       throw error;
@@ -3704,33 +3743,40 @@ export class DatabaseStorage implements IStorage {
     metadata?: any;
   }) {
     try {
-      return await db.insert(userVerifications).values({
-        userId: data.userId,
-        verificationType: data.verificationType as any,
-        documentUrl: data.documentUrl,
-        documentType: data.documentType,
-        verificationCode: data.verificationCode,
-        expiresAt: data.expiresAt,
-        metadata: data.metadata,
-      }).returning();
+      return await db
+        .insert(userVerifications)
+        .values({
+          userId: data.userId,
+          verificationType: data.verificationType as any,
+          documentUrl: data.documentUrl,
+          documentType: data.documentType,
+          verificationCode: data.verificationCode,
+          expiresAt: data.expiresAt,
+          metadata: data.metadata,
+        })
+        .returning();
     } catch (error) {
       console.error("Error creating user verification:", error);
       throw error;
     }
   }
 
-  async updateUserVerification(verificationId: string, data: {
-    status?: string;
-    verifiedBy?: string;
-    rejectionReason?: string;
-    extractedData?: any;
-  }) {
+  async updateUserVerification(
+    verificationId: string,
+    data: {
+      status?: string;
+      verifiedBy?: string;
+      rejectionReason?: string;
+      extractedData?: any;
+    }
+  ) {
     try {
-      return await db.update(userVerifications)
+      return await db
+        .update(userVerifications)
         .set({
           status: data.status as any,
           verifiedBy: data.verifiedBy,
-          verifiedAt: data.status === 'verified' ? new Date() : undefined,
+          verifiedAt: data.status === "verified" ? new Date() : undefined,
           rejectionReason: data.rejectionReason,
           extractedData: data.extractedData,
           updatedAt: new Date(),
@@ -3743,25 +3789,30 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateVendorTrustScore(vendorId: string, scores: {
-    overallScore: number;
-    identityScore?: number;
-    activityScore?: number;
-    reviewScore?: number;
-    complianceScore?: number;
-    financialScore?: number;
-    factors?: any;
-    riskFlags?: string[];
-  }) {
+  async updateVendorTrustScore(
+    vendorId: string,
+    scores: {
+      overallScore: number;
+      identityScore?: number;
+      activityScore?: number;
+      reviewScore?: number;
+      complianceScore?: number;
+      financialScore?: number;
+      factors?: any;
+      riskFlags?: string[];
+    }
+  ) {
     try {
       // Check if trust score exists
-      const existing = await db.select()
+      const existing = await db
+        .select()
         .from(vendorTrustScores)
         .where(eq(vendorTrustScores.vendorId, vendorId))
         .limit(1);
 
       if (existing.length > 0) {
-        return await db.update(vendorTrustScores)
+        return await db
+          .update(vendorTrustScores)
           .set({
             overallScore: scores.overallScore.toString(),
             identityScore: scores.identityScore?.toString(),
@@ -3776,7 +3827,8 @@ export class DatabaseStorage implements IStorage {
           .where(eq(vendorTrustScores.vendorId, vendorId))
           .returning();
       } else {
-        return await db.insert(vendorTrustScores)
+        return await db
+          .insert(vendorTrustScores)
           .values({
             vendorId,
             overallScore: scores.overallScore.toString(),
@@ -3798,7 +3850,8 @@ export class DatabaseStorage implements IStorage {
 
   async getVendorTrustScore(vendorId: string) {
     try {
-      const result = await db.select()
+      const result = await db
+        .select()
         .from(vendorTrustScores)
         .where(eq(vendorTrustScores.vendorId, vendorId))
         .limit(1);
@@ -3822,15 +3875,17 @@ export class DatabaseStorage implements IStorage {
   }) {
     try {
       const conditions = [];
-      
+
       if (params.severity) conditions.push(eq(securityEvents.severity, params.severity));
-      if (params.incidentType) conditions.push(eq(securityEvents.incidentType, params.incidentType as any));
+      if (params.incidentType)
+        conditions.push(eq(securityEvents.incidentType, params.incidentType as any));
       if (params.startDate) conditions.push(gte(securityEvents.createdAt, params.startDate));
       if (params.endDate) conditions.push(lte(securityEvents.createdAt, params.endDate));
 
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-      return await db.select()
+      return await db
+        .select()
         .from(securityEvents)
         .where(whereClause)
         .orderBy(desc(securityEvents.createdAt))
@@ -3852,15 +3907,17 @@ export class DatabaseStorage implements IStorage {
   }) {
     try {
       const conditions = [];
-      
+
       if (params.status) conditions.push(eq(fraudAnalysis.status, params.status as any));
-      if (params.minRiskScore) conditions.push(gte(fraudAnalysis.riskScore, params.minRiskScore.toString()));
+      if (params.minRiskScore)
+        conditions.push(gte(fraudAnalysis.riskScore, params.minRiskScore.toString()));
       if (params.startDate) conditions.push(gte(fraudAnalysis.createdAt, params.startDate));
       if (params.endDate) conditions.push(lte(fraudAnalysis.createdAt, params.endDate));
 
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-      return await db.select()
+      return await db
+        .select()
         .from(fraudAnalysis)
         .where(whereClause)
         .orderBy(desc(fraudAnalysis.createdAt))
@@ -3872,14 +3929,18 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateFraudAnalysisReview(analysisId: string, data: {
-    status: string;
-    reviewedBy: string;
-    reviewNotes?: string;
-    reviewedAt: Date;
-  }) {
+  async updateFraudAnalysisReview(
+    analysisId: string,
+    data: {
+      status: string;
+      reviewedBy: string;
+      reviewNotes?: string;
+      reviewedAt: Date;
+    }
+  ) {
     try {
-      return await db.update(fraudAnalysis)
+      return await db
+        .update(fraudAnalysis)
         .set({
           status: data.status as any,
           reviewedBy: data.reviewedBy,
@@ -3904,14 +3965,18 @@ export class DatabaseStorage implements IStorage {
   }) {
     try {
       const conditions = [];
-      
-      if (params.minRiskScore) conditions.push(gte(suspiciousActivities.riskScore, params.minRiskScore.toString()));
-      if (params.activityType) conditions.push(eq(suspiciousActivities.activityType, params.activityType as any));
-      if (params.investigated !== undefined) conditions.push(eq(suspiciousActivities.isInvestigated, params.investigated));
+
+      if (params.minRiskScore)
+        conditions.push(gte(suspiciousActivities.riskScore, params.minRiskScore.toString()));
+      if (params.activityType)
+        conditions.push(eq(suspiciousActivities.activityType, params.activityType as any));
+      if (params.investigated !== undefined)
+        conditions.push(eq(suspiciousActivities.isInvestigated, params.investigated));
 
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-      return await db.select()
+      return await db
+        .select()
         .from(suspiciousActivities)
         .where(whereClause)
         .orderBy(desc(suspiciousActivities.createdAt))
@@ -3923,19 +3988,17 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getBlacklistEntries(params: {
-    type?: string;
-    isActive?: boolean;
-  }) {
+  async getBlacklistEntries(params: { type?: string; isActive?: boolean }) {
     try {
       const conditions = [];
-      
+
       if (params.type) conditions.push(eq(blacklist.type, params.type as any));
       if (params.isActive !== undefined) conditions.push(eq(blacklist.isActive, params.isActive));
 
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-      return await db.select()
+      return await db
+        .select()
         .from(blacklist)
         .where(whereClause)
         .orderBy(desc(blacklist.createdAt));
@@ -3947,7 +4010,8 @@ export class DatabaseStorage implements IStorage {
 
   async removeFromBlacklist(blacklistId: string) {
     try {
-      return await db.update(blacklist)
+      return await db
+        .update(blacklist)
         .set({ isActive: false, updatedAt: new Date() })
         .where(eq(blacklist.id, blacklistId))
         .returning();
@@ -3960,22 +4024,26 @@ export class DatabaseStorage implements IStorage {
   async getSecurityDashboard() {
     try {
       // Get security metrics for the dashboard
-      const recentEvents = await db.select({ count: sql`count(*)` })
+      const recentEvents = await db
+        .select({ count: sql`count(*)` })
         .from(securityEvents)
         .where(gte(securityEvents.createdAt, new Date(Date.now() - 24 * 60 * 60 * 1000))); // Last 24 hours
 
-      const fraudCases = await db.select({ 
-        status: fraudAnalysis.status, 
-        count: sql`count(*)` 
-      })
+      const fraudCases = await db
+        .select({
+          status: fraudAnalysis.status,
+          count: sql`count(*)`,
+        })
         .from(fraudAnalysis)
         .groupBy(fraudAnalysis.status);
 
-      const suspiciousActivities = await db.select({ count: sql`count(*)` })
+      const suspiciousActivities = await db
+        .select({ count: sql`count(*)` })
         .from(suspiciousActivities)
         .where(eq(suspiciousActivities.isInvestigated, false));
 
-      const blacklistCount = await db.select({ count: sql`count(*)` })
+      const blacklistCount = await db
+        .select({ count: sql`count(*)` })
         .from(blacklist)
         .where(eq(blacklist.isActive, true));
 
@@ -3995,7 +4063,8 @@ export class DatabaseStorage implements IStorage {
 
   async verifyCode(verificationId: string, code: string) {
     try {
-      const verification = await db.select()
+      const verification = await db
+        .select()
         .from(userVerifications)
         .where(eq(userVerifications.id, verificationId))
         .limit(1);
@@ -4006,7 +4075,7 @@ export class DatabaseStorage implements IStorage {
 
       const v = verification[0];
 
-      if (v.status !== 'pending') {
+      if (v.status !== "pending") {
         return { success: false, message: "Verification already processed" };
       }
 
@@ -4020,7 +4089,7 @@ export class DatabaseStorage implements IStorage {
 
       // Mark as verified
       await this.updateUserVerification(verificationId, {
-        status: 'verified',
+        status: "verified",
       });
 
       return { success: true, message: "Verification successful" };
@@ -4047,13 +4116,13 @@ export class DatabaseStorage implements IStorage {
       // Calculate overall score (weighted average)
       const weights = {
         identity: 0.25,
-        activity: 0.20,
+        activity: 0.2,
         review: 0.25,
         compliance: 0.15,
         financial: 0.15,
       };
 
-      const overallScore = 
+      const overallScore =
         identityScore * weights.identity +
         activityScore * weights.activity +
         reviewScore * weights.review +
@@ -4097,16 +4166,14 @@ export class DatabaseStorage implements IStorage {
   // Helper methods for trust score calculation
   private async calculateVendorIdentityScore(vendorId: string): Promise<number> {
     // Check if vendor has verified business documents
-    const verifications = await db.select()
+    const verifications = await db
+      .select()
       .from(userVerifications)
-      .where(and(
-        eq(userVerifications.userId, vendorId),
-        eq(userVerifications.status, 'verified')
-      ));
+      .where(and(eq(userVerifications.userId, vendorId), eq(userVerifications.status, "verified")));
 
-    const hasBusinessLicense = verifications.some(v => v.verificationType === 'business_license');
-    const hasAddressProof = verifications.some(v => v.verificationType === 'address_proof');
-    const hasIdentityDoc = verifications.some(v => v.verificationType === 'identity_document');
+    const hasBusinessLicense = verifications.some((v) => v.verificationType === "business_license");
+    const hasAddressProof = verifications.some((v) => v.verificationType === "address_proof");
+    const hasIdentityDoc = verifications.some((v) => v.verificationType === "identity_document");
 
     let score = 0.2; // Base score
     if (hasBusinessLicense) score += 0.4;
@@ -4117,16 +4184,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   private async calculateVendorActivityScore(vendorId: string): Promise<number> {
-    const products = await db.select({ count: sql`count(*)` })
+    const products = await db
+      .select({ count: sql`count(*)` })
       .from(products)
       .where(eq(products.vendorId, vendorId));
 
-    const recentOrders = await db.select({ count: sql`count(*)` })
+    const recentOrders = await db
+      .select({ count: sql`count(*)` })
       .from(orders)
-      .where(and(
-        sql`${orders.id} IN (SELECT DISTINCT order_id FROM order_items WHERE product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId}))`,
-        gte(orders.createdAt, new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) // Last 30 days
-      ));
+      .where(
+        and(
+          sql`${orders.id} IN (SELECT DISTINCT order_id FROM order_items WHERE product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId}))`,
+          gte(orders.createdAt, new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) // Last 30 days
+        )
+      );
 
     const productCount = products[0]?.count || 0;
     const orderCount = recentOrders[0]?.count || 0;
@@ -4144,10 +4215,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   private async calculateVendorReviewScore(vendorId: string): Promise<number> {
-    const reviewStats = await db.select({
-      avgRating: sql`AVG(CAST(${reviews.rating} AS DECIMAL))`,
-      reviewCount: sql`COUNT(*)`
-    })
+    const reviewStats = await db
+      .select({
+        avgRating: sql`AVG(CAST(${reviews.rating} AS DECIMAL))`,
+        reviewCount: sql`COUNT(*)`,
+      })
       .from(reviews)
       .innerJoin(products, eq(reviews.productId, products.id))
       .where(eq(products.vendorId, vendorId));
@@ -4174,19 +4246,25 @@ export class DatabaseStorage implements IStorage {
 
   private async calculateVendorFinancialScore(vendorId: string): Promise<number> {
     // Check payment history and financial reliability
-    const completedOrders = await db.select({ count: sql`count(*)` })
+    const completedOrders = await db
+      .select({ count: sql`count(*)` })
       .from(orders)
-      .where(and(
-        sql`${orders.id} IN (SELECT DISTINCT order_id FROM order_items WHERE product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId}))`,
-        eq(orders.status, 'delivered')
-      ));
+      .where(
+        and(
+          sql`${orders.id} IN (SELECT DISTINCT order_id FROM order_items WHERE product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId}))`,
+          eq(orders.status, "delivered")
+        )
+      );
 
-    const cancelledOrders = await db.select({ count: sql`count(*)` })
+    const cancelledOrders = await db
+      .select({ count: sql`count(*)` })
       .from(orders)
-      .where(and(
-        sql`${orders.id} IN (SELECT DISTINCT order_id FROM order_items WHERE product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId}))`,
-        eq(orders.status, 'cancelled')
-      ));
+      .where(
+        and(
+          sql`${orders.id} IN (SELECT DISTINCT order_id FROM order_items WHERE product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId}))`,
+          eq(orders.status, "cancelled")
+        )
+      );
 
     const completed = parseInt(completedOrders[0]?.count as string) || 0;
     const cancelled = parseInt(cancelledOrders[0]?.count as string) || 0;

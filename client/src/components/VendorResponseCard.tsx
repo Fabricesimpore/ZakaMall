@@ -33,9 +33,7 @@ export default function VendorResponseCard({ response, vendorName }: VendorRespo
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
             <Building2 className="w-4 h-4 text-blue-600" />
-            <span className="font-medium text-blue-800">
-              {vendorName || "Vendeur"}
-            </span>
+            <span className="font-medium text-blue-800">{vendorName || "Vendeur"}</span>
             {response.isOfficial && (
               <Badge variant="outline" className="text-xs border-blue-500 text-blue-700">
                 Réponse officielle
@@ -44,7 +42,7 @@ export default function VendorResponseCard({ response, vendorName }: VendorRespo
           </div>
           <span className="text-sm text-gray-600">{formatDate(response.createdAt)}</span>
         </div>
-        
+
         <p className="text-gray-700 leading-relaxed">{response.response}</p>
       </CardContent>
     </Card>

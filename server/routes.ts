@@ -26,13 +26,11 @@ import {
 } from "@shared/schema";
 import { randomInt } from "crypto";
 import { validatePassword } from "./utils/passwordValidation";
-import { 
-  securityMiddleware, 
-  loginProtection, 
-  orderProtection, 
-  apiProtection,
+import {
+  securityMiddleware,
+  loginProtection,
+  orderProtection,
   adminProtection,
-  securityService 
 } from "./security/SecurityMiddleware";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -1287,7 +1285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const enhanced = req.query.enhanced === "true";
-      
+
       if (enhanced) {
         const reviews = await storage.getEnhancedReviews(id);
         res.json(reviews);
@@ -1308,7 +1306,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id: reviewId } = req.params;
       const { voteType } = req.body;
 
-      if (!['helpful', 'not_helpful'].includes(voteType)) {
+      if (!["helpful", "not_helpful"].includes(voteType)) {
         return res.status(400).json({ message: "Invalid vote type" });
       }
 
@@ -1324,7 +1322,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id: reviewId } = req.params;
       const { response } = req.body;
-      
+
       // Get vendor ID from user
       const vendorData = await storage.getVendorByUserId(req.user.claims.sub);
       if (!vendorData) {
@@ -1395,7 +1393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         await storage.logSearch({
           userId: req.session?.user?.id || null,
-          query: query as string || "",
+          query: (query as string) || "",
           resultsCount: result.total,
           sessionId,
           ipAddress,
@@ -1547,13 +1545,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/recommendations", async (req, res) => {
     try {
-      const { 
-        userId, 
-        sessionId, 
-        type = "personalized", 
-        limit = "10", 
-        categoryId, 
-        excludeProductIds 
+      const {
+        userId,
+        sessionId: _sessionId,
+        type = "personalized",
+        limit = "10",
+        categoryId,
+        excludeProductIds,
       } = req.query;
 
       const limitNum = parseInt(limit as string, 10);
@@ -1565,17 +1563,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         case "personalized":
           if (userId) {
             recommendations = await storage.getPersonalizedRecommendations(
-              userId as string, 
-              limitNum, 
-              categoryId as string, 
+              userId as string,
+              limitNum,
+              categoryId as string,
               excludeIds
             );
           } else {
             // Fall back to trending for anonymous users
             recommendations = await storage.getRecommendations(
-              "trending", 
-              limitNum, 
-              categoryId as string, 
+              "trending",
+              limitNum,
+              categoryId as string,
               excludeIds
             );
           }
@@ -1583,7 +1581,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         case "collaborative":
           if (userId) {
             recommendations = await storage.getCollaborativeRecommendations(
-              userId as string, 
+              userId as string,
               limitNum
             );
           } else {
@@ -1594,9 +1592,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         case "popular":
         case "newest":
           recommendations = await storage.getRecommendations(
-            type as "trending" | "popular" | "newest", 
-            limitNum, 
-            categoryId as string, 
+            type as "trending" | "popular" | "newest",
+            limitNum,
+            categoryId as string,
             excludeIds
           );
           break;
@@ -1670,14 +1668,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Security and Fraud Detection API endpoints
   app.get("/api/security/events", isAuthenticated, adminProtection, async (req: any, res) => {
     try {
-      const { 
-        limit = 50, 
-        offset = 0, 
-        severity, 
-        incidentType, 
-        startDate, 
-        endDate 
-      } = req.query;
+      const { limit = 50, offset = 0, severity, incidentType, startDate, endDate } = req.query;
 
       const events = await storage.getSecurityEvents({
         limit: parseInt(limit),
@@ -1695,77 +1686,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/security/fraud-analysis", isAuthenticated, adminProtection, async (req: any, res) => {
-    try {
-      const { 
-        limit = 50, 
-        offset = 0, 
-        status, 
-        minRiskScore,
-        startDate, 
-        endDate 
-      } = req.query;
+  app.get(
+    "/api/security/fraud-analysis",
+    isAuthenticated,
+    adminProtection,
+    async (req: any, res) => {
+      try {
+        const { limit = 50, offset = 0, status, minRiskScore, startDate, endDate } = req.query;
 
-      const analysis = await storage.getFraudAnalysis({
-        limit: parseInt(limit),
-        offset: parseInt(offset),
-        status,
-        minRiskScore: minRiskScore ? parseFloat(minRiskScore) : undefined,
-        startDate: startDate ? new Date(startDate) : undefined,
-        endDate: endDate ? new Date(endDate) : undefined,
-      });
+        const analysis = await storage.getFraudAnalysis({
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+          status,
+          minRiskScore: minRiskScore ? parseFloat(minRiskScore) : undefined,
+          startDate: startDate ? new Date(startDate) : undefined,
+          endDate: endDate ? new Date(endDate) : undefined,
+        });
 
-      res.json(analysis);
-    } catch (error) {
-      console.error("Error fetching fraud analysis:", error);
-      res.status(500).json({ message: "Failed to fetch fraud analysis" });
+        res.json(analysis);
+      } catch (error) {
+        console.error("Error fetching fraud analysis:", error);
+        res.status(500).json({ message: "Failed to fetch fraud analysis" });
+      }
     }
-  });
+  );
 
-  app.put("/api/security/fraud-analysis/:id/review", isAuthenticated, adminProtection, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      const { status, notes } = req.body;
-      const reviewerId = req.user.claims.sub;
+  app.put(
+    "/api/security/fraud-analysis/:id/review",
+    isAuthenticated,
+    adminProtection,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
+        const { status, notes } = req.body;
+        const reviewerId = req.user.claims.sub;
 
-      const updated = await storage.updateFraudAnalysisReview(id, {
-        status,
-        reviewedBy: reviewerId,
-        reviewNotes: notes,
-        reviewedAt: new Date(),
-      });
+        const updated = await storage.updateFraudAnalysisReview(id, {
+          status,
+          reviewedBy: reviewerId,
+          reviewNotes: notes,
+          reviewedAt: new Date(),
+        });
 
-      res.json(updated);
-    } catch (error) {
-      console.error("Error updating fraud analysis review:", error);
-      res.status(500).json({ message: "Failed to update fraud analysis" });
+        res.json(updated);
+      } catch (error) {
+        console.error("Error updating fraud analysis review:", error);
+        res.status(500).json({ message: "Failed to update fraud analysis" });
+      }
     }
-  });
+  );
 
-  app.get("/api/security/suspicious-activities", isAuthenticated, adminProtection, async (req: any, res) => {
-    try {
-      const { 
-        limit = 50, 
-        offset = 0, 
-        minRiskScore,
-        activityType,
-        investigated = false
-      } = req.query;
+  app.get(
+    "/api/security/suspicious-activities",
+    isAuthenticated,
+    adminProtection,
+    async (req: any, res) => {
+      try {
+        const {
+          limit = 50,
+          offset = 0,
+          minRiskScore,
+          activityType,
+          investigated = false,
+        } = req.query;
 
-      const activities = await storage.getSuspiciousActivities({
-        limit: parseInt(limit),
-        offset: parseInt(offset),
-        minRiskScore: minRiskScore ? parseFloat(minRiskScore) : undefined,
-        activityType,
-        investigated: investigated === 'true',
-      });
+        const activities = await storage.getSuspiciousActivities({
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+          minRiskScore: minRiskScore ? parseFloat(minRiskScore) : undefined,
+          activityType,
+          investigated: investigated === "true",
+        });
 
-      res.json(activities);
-    } catch (error) {
-      console.error("Error fetching suspicious activities:", error);
-      res.status(500).json({ message: "Failed to fetch suspicious activities" });
+        res.json(activities);
+      } catch (error) {
+        console.error("Error fetching suspicious activities:", error);
+        res.status(500).json({ message: "Failed to fetch suspicious activities" });
+      }
     }
-  });
+  );
 
   app.post("/api/security/blacklist", isAuthenticated, adminProtection, async (req: any, res) => {
     try {
@@ -1794,7 +1793,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const blacklistEntries = await storage.getBlacklistEntries({
         type,
-        isActive: isActive === 'true',
+        isActive: isActive === "true",
       });
 
       res.json(blacklistEntries);
@@ -1804,17 +1803,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/security/blacklist/:id", isAuthenticated, adminProtection, async (req: any, res) => {
-    try {
-      const { id } = req.params;
+  app.delete(
+    "/api/security/blacklist/:id",
+    isAuthenticated,
+    adminProtection,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
 
-      await storage.removeFromBlacklist(id);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error removing from blacklist:", error);
-      res.status(500).json({ message: "Failed to remove from blacklist" });
+        await storage.removeFromBlacklist(id);
+        res.json({ success: true });
+      } catch (error) {
+        console.error("Error removing from blacklist:", error);
+        res.status(500).json({ message: "Failed to remove from blacklist" });
+      }
     }
-  });
+  );
 
   app.get("/api/security/dashboard", isAuthenticated, adminProtection, async (req: any, res) => {
     try {
@@ -1833,13 +1837,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email } = req.body;
 
       const verification = await storage.createEmailVerification(userId, email);
-      
+
       // TODO: Send verification email
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         verificationId: verification.id,
-        message: "Verification email sent" 
+        message: "Verification email sent",
       });
     } catch (error) {
       console.error("Error creating email verification:", error);
@@ -1853,13 +1857,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { phone } = req.body;
 
       const verification = await storage.createPhoneVerification(userId, phone);
-      
+
       // TODO: Send SMS verification
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         verificationId: verification.id,
-        message: "Verification SMS sent" 
+        message: "Verification SMS sent",
       });
     } catch (error) {
       console.error("Error creating phone verification:", error);
@@ -1872,7 +1876,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { verificationId, code } = req.body;
 
       const result = await storage.verifyCode(verificationId, code);
-      
+
       if (result.success) {
         res.json({ success: true, message: "Verification successful" });
       } else {
@@ -1918,17 +1922,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/vendors/:id/compute-trust-score", isAuthenticated, adminProtection, async (req: any, res) => {
-    try {
-      const { id } = req.params;
+  app.post(
+    "/api/vendors/:id/compute-trust-score",
+    isAuthenticated,
+    adminProtection,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
 
-      const trustScore = await storage.computeVendorTrustScore(id);
-      res.json(trustScore);
-    } catch (error) {
-      console.error("Error computing vendor trust score:", error);
-      res.status(500).json({ message: "Failed to compute trust score" });
+        const trustScore = await storage.computeVendorTrustScore(id);
+        res.json(trustScore);
+      } catch (error) {
+        console.error("Error computing vendor trust score:", error);
+        res.status(500).json({ message: "Failed to compute trust score" });
+      }
     }
-  });
+  );
 
   // Inventory management routes
   app.get("/api/inventory/low-stock", isAuthenticated, async (req: any, res) => {

@@ -62,8 +62,8 @@ export class SecurityService {
 
       // Get current request count for this IP/endpoint
       const current = this.ipRequestCounts.get(key);
-      
-      if (!current || (now - current.windowStart) > windowMs) {
+
+      if (!current || now - current.windowStart > windowMs) {
         // New window
         this.ipRequestCounts.set(key, { count: 1, windowStart: now });
         return next();
@@ -78,7 +78,7 @@ export class SecurityService {
           requestPath: req.path,
           requestMethod: req.method,
           description: `Rate limit exceeded for endpoint ${endpoint}`,
-          metadata: { endpoint, requestCount: current.count, maxRequests }
+          metadata: { endpoint, requestCount: current.count, maxRequests },
         });
 
         // Log to rate limit violations table
@@ -87,7 +87,7 @@ export class SecurityService {
         return res.status(429).json({
           error: "Too Many Requests",
           message: "Rate limit exceeded. Please try again later.",
-          retryAfter: Math.ceil((windowMs - (now - current.windowStart)) / 1000)
+          retryAfter: Math.ceil((windowMs - (now - current.windowStart)) / 1000),
         });
       }
 
@@ -107,7 +107,7 @@ export class SecurityService {
       deviceRisk: await this.calculateDeviceRisk(userContext.deviceFingerprint, userContext.userId),
       behaviorRisk: await this.calculateBehaviorRisk(userContext.userId, orderData),
       accountRisk: await this.calculateAccountRisk(userContext.userId),
-      paymentRisk: await this.calculatePaymentRisk(orderData.paymentMethod, userContext.userId)
+      paymentRisk: await this.calculatePaymentRisk(orderData.paymentMethod, userContext.userId),
     };
 
     const rules: string[] = [];
@@ -118,12 +118,12 @@ export class SecurityService {
       velocity: 0.25,
       location: 0.15,
       device: 0.15,
-      behavior: 0.20,
+      behavior: 0.2,
       account: 0.15,
-      payment: 0.10
+      payment: 0.1,
     };
 
-    riskScore = 
+    riskScore =
       riskFactors.velocityRisk * weights.velocity +
       riskFactors.locationRisk * weights.location +
       riskFactors.deviceRisk * weights.device +
@@ -147,7 +147,8 @@ export class SecurityService {
       riskScore += 0.25;
     }
 
-    if (orderData.amount > 500000) { // High value order
+    if (orderData.amount > 500000) {
+      // High value order
       rules.push("HIGH_VALUE_ORDER");
       riskScore += 0.1;
     }
@@ -164,7 +165,8 @@ export class SecurityService {
       recommendation = "Moderate fraud risk. Requires manual review before processing.";
     } else if (riskScore >= 0.4) {
       status = "flagged";
-      recommendation = "Low-medium fraud risk. Monitor closely and consider additional verification.";
+      recommendation =
+        "Low-medium fraud risk. Monitor closely and consider additional verification.";
     }
 
     // Log fraud analysis
@@ -177,7 +179,7 @@ export class SecurityService {
       rules,
       ipAddress: userContext.ipAddress,
       deviceFingerprint: userContext.deviceFingerprint,
-      geoLocation: userContext.geoLocation
+      geoLocation: userContext.geoLocation,
     });
 
     return {
@@ -185,15 +187,17 @@ export class SecurityService {
       status,
       riskFactors,
       rules,
-      recommendation
+      recommendation,
     };
   }
 
   // Check if IP/user is blacklisted
-  async checkBlacklist(ip: string, userId?: string, email?: string): Promise<{ isBlacklisted: boolean; reason?: string }> {
-    const blacklistChecks = [
-      { type: "ip_address", value: ip },
-    ];
+  async checkBlacklist(
+    ip: string,
+    userId?: string,
+    email?: string
+  ): Promise<{ isBlacklisted: boolean; reason?: string }> {
+    const blacklistChecks = [{ type: "ip_address", value: ip }];
 
     if (userId) {
       blacklistChecks.push({ type: "user_account", value: userId });
@@ -236,16 +240,18 @@ export class SecurityService {
 
   // Private helper methods
   private getClientIP(req: Request): string {
-    return (req.headers['x-forwarded-for'] as string)?.split(',')[0] ||
-           (req.headers['x-real-ip'] as string) ||
-           req.connection.remoteAddress ||
-           req.socket.remoteAddress ||
-           '0.0.0.0';
+    return (
+      (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
+      (req.headers["x-real-ip"] as string) ||
+      req.connection.remoteAddress ||
+      req.socket.remoteAddress ||
+      "0.0.0.0"
+    );
   }
 
   private cleanupOldEntries(now: number, windowMs: number) {
     for (const [key, data] of this.ipRequestCounts.entries()) {
-      if ((now - data.windowStart) > windowMs) {
+      if (now - data.windowStart > windowMs) {
         this.ipRequestCounts.delete(key);
       }
     }
@@ -258,7 +264,7 @@ export class SecurityService {
       endpoint,
       attemptCount,
       windowEnd,
-      metadata: { timestamp: new Date().toISOString() }
+      metadata: { timestamp: new Date().toISOString() },
     });
   }
 
@@ -274,14 +280,15 @@ export class SecurityService {
     const totalAmount = recentOrders.reduce((sum, order) => sum + parseFloat(order.totalAmount), 0);
 
     let risk = 0;
-    
+
     // High frequency risk
     if (orderCount > 10) risk += 0.8;
     else if (orderCount > 5) risk += 0.5;
     else if (orderCount > 2) risk += 0.2;
 
     // High amount risk
-    if (totalAmount > 1000000) risk += 0.6; // > 1M CFA
+    if (totalAmount > 1000000)
+      risk += 0.6; // > 1M CFA
     else if (totalAmount > 500000) risk += 0.3; // > 500K CFA
 
     return Math.min(risk, 1.0);
@@ -292,16 +299,17 @@ export class SecurityService {
     let risk = 0;
 
     // Check if IP is from known VPN/proxy providers (simplified)
-    const vpnRanges = ['10.0.0.0', '192.168.0.0', '172.16.0.0']; // Add real VPN ranges
-    if (vpnRanges.some(range => ipAddress.startsWith(range.split('.')[0]))) {
+    const vpnRanges = ["10.0.0.0", "192.168.0.0", "172.16.0.0"]; // Add real VPN ranges
+    if (vpnRanges.some((range) => ipAddress.startsWith(range.split(".")[0]))) {
       risk += 0.4;
     }
 
     // Check for location changes
     const recentSessions = await storage.getUserRecentSessions(userId, 7); // Last 7 days
-    const uniqueIPs = new Set(recentSessions.map(s => s.ipAddress));
-    
-    if (uniqueIPs.size > 10) risk += 0.6; // Too many different IPs
+    const uniqueIPs = new Set(recentSessions.map((s) => s.ipAddress));
+
+    if (uniqueIPs.size > 10)
+      risk += 0.6; // Too many different IPs
     else if (uniqueIPs.size > 5) risk += 0.3;
 
     return Math.min(risk, 1.0);
@@ -311,7 +319,7 @@ export class SecurityService {
     if (!deviceFingerprint) return 0.5; // Unknown device
 
     const knownDevices = await storage.getUserKnownDevices(userId);
-    const isKnownDevice = knownDevices.some(d => d.fingerprint === deviceFingerprint);
+    const isKnownDevice = knownDevices.some((d) => d.fingerprint === deviceFingerprint);
 
     return isKnownDevice ? 0.1 : 0.7; // High risk for unknown devices
   }
@@ -330,7 +338,7 @@ export class SecurityService {
     // Check for unusual order amounts compared to history
     const avgOrderAmount = userProfile.averageOrderAmount || 0;
     const currentAmount = parseFloat(orderData.totalAmount);
-    
+
     if (avgOrderAmount > 0 && currentAmount > avgOrderAmount * 5) {
       risk += 0.5; // Order 5x larger than usual
     }
@@ -346,14 +354,20 @@ export class SecurityService {
     const accountAge = (Date.now() - new Date(user.createdAt!).getTime()) / (1000 * 60 * 60 * 24); // days
 
     // New account risk
-    if (accountAge < 1) risk += 0.8; // Less than 1 day
-    else if (accountAge < 7) risk += 0.4; // Less than 1 week
+    if (accountAge < 1)
+      risk += 0.8; // Less than 1 day
+    else if (accountAge < 7)
+      risk += 0.4; // Less than 1 week
     else if (accountAge < 30) risk += 0.2; // Less than 1 month
 
     // Unverified account risk
     const verifications = await storage.getUserVerifications(userId);
-    const hasEmailVerification = verifications.some(v => v.verificationType === 'email' && v.status === 'verified');
-    const hasPhoneVerification = verifications.some(v => v.verificationType === 'phone' && v.status === 'verified');
+    const hasEmailVerification = verifications.some(
+      (v) => v.verificationType === "email" && v.status === "verified"
+    );
+    const hasPhoneVerification = verifications.some(
+      (v) => v.verificationType === "phone" && v.status === "verified"
+    );
 
     if (!hasEmailVerification) risk += 0.3;
     if (!hasPhoneVerification) risk += 0.2;
@@ -365,16 +379,16 @@ export class SecurityService {
     let risk = 0;
 
     // Check payment method type
-    if (paymentMethod.type === 'credit_card') {
+    if (paymentMethod.type === "credit_card") {
       // Check for stolen card patterns
       const cardHash = this.hashCardNumber(paymentMethod.cardNumber);
       const isKnownCard = await storage.isKnownPaymentMethod(userId, cardHash);
-      
+
       if (!isKnownCard) risk += 0.4; // New payment method
     }
 
     // Mobile money typically has lower risk in West Africa
-    if (paymentMethod.type === 'mobile_money') {
+    if (paymentMethod.type === "mobile_money") {
       risk += 0.1;
     }
 
@@ -382,29 +396,29 @@ export class SecurityService {
   }
 
   private hashCardNumber(cardNumber: string): string {
-    return crypto.createHash('sha256').update(cardNumber).digest('hex');
+    return crypto.createHash("sha256").update(cardNumber).digest("hex");
   }
 
   // Device fingerprinting
   static generateDeviceFingerprint(req: Request): string {
     const components = [
-      req.headers['user-agent'] || '',
-      req.headers['accept-language'] || '',
-      req.headers['accept-encoding'] || '',
-      req.headers['accept'] || '',
+      req.headers["user-agent"] || "",
+      req.headers["accept-language"] || "",
+      req.headers["accept-encoding"] || "",
+      req.headers["accept"] || "",
     ];
 
-    return crypto.createHash('md5').update(components.join('|')).digest('hex');
+    return crypto.createHash("md5").update(components.join("|")).digest("hex");
   }
 
   // GeoIP lookup (simplified - in production use a proper GeoIP service)
   static async getGeoLocation(ip: string): Promise<any> {
     // This would integrate with a real GeoIP service like MaxMind
     return {
-      country: 'BF', // Burkina Faso
-      city: 'Ouagadougou',
+      country: "BF", // Burkina Faso
+      city: "Ouagadougou",
       lat: 12.3714,
-      lng: -1.5197
+      lng: -1.5197,
     };
   }
 }

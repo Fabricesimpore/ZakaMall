@@ -44,7 +44,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         price: product.price,
         images: product.images,
       });
-      
+
       // Track view after 2 seconds
       trackViewEnd(product.id, {
         productName: product.name,
@@ -62,7 +62,16 @@ export default function ProductCard({ product }: ProductCardProps) {
         productRating: product.rating,
       });
     };
-  }, [product.id, product.name, product.price, product.images, product.rating, addToRecentlyViewed, trackViewStart, trackViewEnd]);
+  }, [
+    product.id,
+    product.name,
+    product.price,
+    product.images,
+    product.rating,
+    addToRecentlyViewed,
+    trackViewStart,
+    trackViewEnd,
+  ]);
 
   const addToCartMutation = useMutation({
     mutationFn: async () => {
@@ -75,7 +84,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
       setIsAdded(true);
       setTimeout(() => setIsAdded(false), 2000);
-      
+
       // Track add to cart behavior
       trackAddToCart(product.id, {
         productName: product.name,
@@ -83,7 +92,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         quantity: quantity,
         productRating: product.rating,
       });
-      
+
       toast({
         title: "Succès",
         description: `${quantity} × ${product.name} ajouté au panier`,

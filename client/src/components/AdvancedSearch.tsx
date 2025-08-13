@@ -86,15 +86,19 @@ export default function AdvancedSearch() {
 
   // Debounced search function
   const debouncedSearch = useCallback(
-    debounce((newFilters: SearchFilters) => {
-      const params = new URLSearchParams();
-      Object.entries(newFilters).forEach(([key, value]) => {
-        if (value !== undefined && value !== "" && value !== false) {
-          params.set(key, value.toString());
-        }
-      });
-      setLocation(`/search?${params.toString()}`);
-    }, 300),
+    (newFilters: SearchFilters) => {
+      const debouncedFn = debounce((filters: SearchFilters) => {
+        const params = new URLSearchParams();
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined && value !== "" && value !== false) {
+            params.set(key, value.toString());
+          }
+        });
+        setLocation(`/search?${params.toString()}`);
+      }, 300);
+
+      debouncedFn(newFilters);
+    },
     [setLocation]
   );
 

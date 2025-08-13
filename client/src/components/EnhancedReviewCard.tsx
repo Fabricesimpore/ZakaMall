@@ -28,10 +28,10 @@ interface EnhancedReview {
 }
 
 interface EnhancedReviewCardProps {
-  review: EnhancedReview,
-  productId: string,
-  isVendor?: boolean,
-  vendorId?: string,
+  review: EnhancedReview;
+  productId: string;
+  isVendor?: boolean;
+  vendorId?: string;
 }
 
 export default function EnhancedReviewCard({
@@ -136,8 +136,8 @@ export default function EnhancedReviewCard({
     }
   };
 
-  const helpfulnessPercentage = review.totalVotes > 0 ? 
-    Math.round((review.helpfulVotes / review.totalVotes) * 100) : 0;
+  const helpfulnessPercentage =
+    review.totalVotes > 0 ? Math.round((review.helpfulVotes / review.totalVotes) * 100) : 0;
 
   return (
     <Card className="mb-4">
@@ -146,7 +146,8 @@ export default function EnhancedReviewCard({
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
               <span className="font-medium text-sm">
-                {review.userName?.charAt(0)}{review.userLastName?.charAt(0)}
+                {review.userName?.charAt(0)}
+                {review.userLastName?.charAt(0)}
               </span>
             </div>
             <div>
@@ -156,7 +157,8 @@ export default function EnhancedReviewCard({
                 </span>
                 {review.purchaseVerified && (
                   <Badge variant="outline" className="text-xs border-green-500 text-green-700">
-                    <Shield className="w-3 h-3 mr-1" />Achat vérifié
+                    <Shield className="w-3 h-3 mr-1" />
+                    Achat vérifié
                   </Badge>
                 )}
                 {getReviewerLevelBadge(review.reviewerLevel)}
@@ -167,9 +169,7 @@ export default function EnhancedReviewCard({
                     <Star
                       key={star}
                       className={`w-4 h-4 ${
-                        star <= review.rating
-                          ? "text-yellow-400 fill-current"
-                          : "text-gray-300"
+                        star <= review.rating ? "text-yellow-400 fill-current" : "text-gray-300"
                       }`}
                     />
                   ))}
@@ -179,10 +179,7 @@ export default function EnhancedReviewCard({
             </div>
           </div>
           {review.isRecommended !== null && (
-            <Badge 
-              variant={review.isRecommended ? "default" : "secondary"}
-              className="text-xs"
-            >
+            <Badge variant={review.isRecommended ? "default" : "secondary"} className="text-xs">
               {review.isRecommended ? "Recommandé" : "Non recommandé"}
             </Badge>
           )}
@@ -190,13 +187,9 @@ export default function EnhancedReviewCard({
       </CardHeader>
 
       <CardContent>
-        {review.title && (
-          <h4 className="font-semibold mb-2">{review.title}</h4>
-        )}
-        
-        {review.comment && (
-          <p className="text-gray-700 mb-3 leading-relaxed">{review.comment}</p>
-        )}
+        {review.title && <h4 className="font-semibold mb-2">{review.title}</h4>}
+
+        {review.comment && <p className="text-gray-700 mb-3 leading-relaxed">{review.comment}</p>}
 
         {review.images && review.images.length > 0 && (
           <div className="flex space-x-2 mb-3">
@@ -217,7 +210,7 @@ export default function EnhancedReviewCard({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleVote('helpful')}
+                onClick={() => handleVote("helpful")}
                 disabled={voteOnReviewMutation.isPending}
                 className="text-gray-600 hover:text-green-600"
               >
@@ -227,7 +220,7 @@ export default function EnhancedReviewCard({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleVote('not_helpful')}
+                onClick={() => handleVote("not_helpful")}
                 disabled={voteOnReviewMutation.isPending}
                 className="text-gray-600 hover:text-red-600"
               >
@@ -235,7 +228,7 @@ export default function EnhancedReviewCard({
                 Pas utile
               </Button>
             </div>
-            
+
             {review.totalVotes > 0 && (
               <span className="text-sm text-gray-500">
                 {helpfulnessPercentage}% trouvent cela utile

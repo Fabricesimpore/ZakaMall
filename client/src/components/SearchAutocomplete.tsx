@@ -19,10 +19,10 @@ interface SearchSuggestion {
   type: "suggestion" | "popular" | "recent";
 }
 
-export default function SearchAutocomplete({ 
-  placeholder = "Rechercher des produits...", 
+export default function SearchAutocomplete({
+  placeholder = "Rechercher des produits...",
   className = "",
-  onSearch 
+  onSearch,
 }: SearchAutocompleteProps) {
   const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -46,12 +46,12 @@ export default function SearchAutocomplete({
   // Save recent searches
   const saveRecentSearch = (searchQuery: string) => {
     if (!searchQuery.trim()) return;
-    
-    const updatedSearches = [
-      searchQuery,
-      ...recentSearches.filter(s => s !== searchQuery)
-    ].slice(0, 5); // Keep only last 5 searches
-    
+
+    const updatedSearches = [searchQuery, ...recentSearches.filter((s) => s !== searchQuery)].slice(
+      0,
+      5
+    ); // Keep only last 5 searches
+
     setRecentSearches(updatedSearches);
     localStorage.setItem("zakamall_recent_searches", JSON.stringify(updatedSearches));
   };
@@ -73,7 +73,10 @@ export default function SearchAutocomplete({
     queryKey: ["/api/search/suggestions", query],
     queryFn: async () => {
       if (query.length < 2) return [];
-      const response = await apiRequest("GET", `/api/search/suggestions?q=${encodeURIComponent(query)}`);
+      const response = await apiRequest(
+        "GET",
+        `/api/search/suggestions?q=${encodeURIComponent(query)}`
+      );
       return response.json();
     },
     enabled: query.length >= 2 && showSuggestions,
@@ -103,7 +106,7 @@ export default function SearchAutocomplete({
 
     saveRecentSearch(finalQuery);
     setShowSuggestions(false);
-    
+
     if (onSearch) {
       onSearch(finalQuery);
     } else {
@@ -143,8 +146,12 @@ export default function SearchAutocomplete({
   // Combine all suggestions
   const allSuggestions: SearchSuggestion[] = [
     ...suggestions.map((text: string) => ({ text, type: "suggestion" as const })),
-    ...(query.length === 0 ? recentSearches.map(text => ({ text, type: "recent" as const })) : []),
-    ...(query.length === 0 ? popularTerms.map((term: any) => ({ text: term.term, type: "popular" as const })) : []),
+    ...(query.length === 0
+      ? recentSearches.map((text) => ({ text, type: "recent" as const }))
+      : []),
+    ...(query.length === 0
+      ? popularTerms.map((term: any) => ({ text: term.term, type: "popular" as const }))
+      : []),
   ];
 
   return (
@@ -179,7 +186,7 @@ export default function SearchAutocomplete({
 
       {/* Suggestions Dropdown */}
       {showSuggestions && (
-        <Card 
+        <Card
           ref={suggestionsRef}
           className="absolute top-full left-0 right-0 mt-1 z-50 max-h-80 overflow-y-auto shadow-lg"
         >
@@ -260,12 +267,12 @@ export default function SearchAutocomplete({
                       >
                         <Search className="w-4 h-4 text-gray-400" />
                         <span className="flex-1">
-                          <span 
+                          <span
                             dangerouslySetInnerHTML={{
                               __html: suggestion.replace(
                                 new RegExp(`(${query})`, "gi"),
                                 "<strong>$1</strong>"
-                              )
+                              ),
                             }}
                           />
                         </span>

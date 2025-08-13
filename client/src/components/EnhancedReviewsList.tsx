@@ -4,9 +4,15 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import EnhancedReviewCard from "./EnhancedReviewCard";
 import VendorResponseCard from "./VendorResponseCard";
-import { Button } from "@/components/ui/button";
+// Button import removed as it's unused
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Star, TrendingUp, Clock, ThumbsUp } from "lucide-react";
 
 interface EnhancedReview {
@@ -43,10 +49,10 @@ interface EnhancedReviewsListProps {
   vendorName?: string;
 }
 
-export default function EnhancedReviewsList({ 
-  productId, 
-  vendorId, 
-  vendorName 
+export default function EnhancedReviewsList({
+  productId,
+  vendorId,
+  vendorName,
 }: EnhancedReviewsListProps) {
   const { user } = useAuth();
   const [sortBy, setSortBy] = useState("newest");
@@ -55,7 +61,10 @@ export default function EnhancedReviewsList({
   const isVendor = user?.role === "vendor";
 
   const { data: reviews = [], isLoading } = useQuery({
-    queryKey: [`/api/products/${productId}/reviews`, { enhanced: true, sort: sortBy, filter: filterBy }],
+    queryKey: [
+      `/api/products/${productId}/reviews`,
+      { enhanced: true, sort: sortBy, filter: filterBy },
+    ],
     queryFn: async () => {
       const response = await apiRequest("GET", `/api/products/${productId}/reviews?enhanced=true`);
       return response.json();
@@ -66,7 +75,7 @@ export default function EnhancedReviewsList({
     queryKey: [`/api/reviews/responses`, productId],
     queryFn: async () => {
       const responses: { [reviewId: string]: VendorResponse[] } = {};
-      
+
       // Fetch responses for each review
       await Promise.all(
         reviews.map(async (review: EnhancedReview) => {
@@ -80,7 +89,7 @@ export default function EnhancedReviewsList({
           }
         })
       );
-      
+
       return responses;
     },
     enabled: reviews.length > 0,
@@ -135,15 +144,16 @@ export default function EnhancedReviewsList({
 
   const reviewStats = React.useMemo(() => {
     const total = reviews.length;
-    const averageRating = total > 0 ? 
-      reviews.reduce((sum, review) => sum + review.rating, 0) / total : 0;
-    const verifiedPurchases = reviews.filter(review => review.purchaseVerified).length;
-    const withImages = reviews.filter(review => review.images && review.images.length > 0).length;
-    
-    const ratingDistribution = [1, 2, 3, 4, 5].map(rating => ({
+    const averageRating =
+      total > 0 ? reviews.reduce((sum, review) => sum + review.rating, 0) / total : 0;
+    const verifiedPurchases = reviews.filter((review) => review.purchaseVerified).length;
+    const withImages = reviews.filter((review) => review.images && review.images.length > 0).length;
+
+    const ratingDistribution = [1, 2, 3, 4, 5].map((rating) => ({
       rating,
-      count: reviews.filter(review => review.rating === rating).length,
-      percentage: total > 0 ? (reviews.filter(review => review.rating === rating).length / total) * 100 : 0
+      count: reviews.filter((review) => review.rating === rating).length,
+      percentage:
+        total > 0 ? (reviews.filter((review) => review.rating === rating).length / total) * 100 : 0,
     }));
 
     return {
@@ -151,7 +161,7 @@ export default function EnhancedReviewsList({
       averageRating,
       verifiedPurchases,
       withImages,
-      ratingDistribution
+      ratingDistribution,
     };
   }, [reviews]);
 
@@ -195,24 +205,22 @@ export default function EnhancedReviewsList({
               </div>
               <div className="text-sm text-gray-600">Note moyenne</div>
             </div>
-            
+
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">
                 {reviewStats.verifiedPurchases}
               </div>
               <div className="text-sm text-gray-600">Achats vérifiés</div>
             </div>
-            
+
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {reviewStats.withImages}
-              </div>
+              <div className="text-2xl font-bold text-blue-600">{reviewStats.withImages}</div>
               <div className="text-sm text-gray-600">Avec photos</div>
             </div>
-            
+
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">
-                {reviews.filter(r => r.reviewerLevel !== 'basic').length}
+                {reviews.filter((r) => r.reviewerLevel !== "basic").length}
               </div>
               <div className="text-sm text-gray-600">Reviewers de confiance</div>
             </div>
@@ -224,7 +232,9 @@ export default function EnhancedReviewsList({
             <div className="space-y-2">
               {reviewStats.ratingDistribution.reverse().map(({ rating, count, percentage }) => (
                 <div key={rating} className="flex items-center space-x-3">
-                  <span className="text-sm w-12">{rating} étoile{rating > 1 ? 's' : ''}</span>
+                  <span className="text-sm w-12">
+                    {rating} étoile{rating > 1 ? "s" : ""}
+                  </span>
                   <div className="flex-1 bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-yellow-400 h-2 rounded-full"
@@ -273,7 +283,7 @@ export default function EnhancedReviewsList({
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex-1">
               <label className="text-sm font-medium mb-2 block">Filtrer par</label>
               <Select value={filterBy} onValueChange={setFilterBy}>
@@ -300,7 +310,9 @@ export default function EnhancedReviewsList({
         {sortedAndFilteredReviews.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-gray-500">
-              {reviews.length === 0 ? "Aucun avis pour ce produit" : "Aucun avis ne correspond aux filtres sélectionnés"}
+              {reviews.length === 0
+                ? "Aucun avis pour ce produit"
+                : "Aucun avis ne correspond aux filtres sélectionnés"}
             </CardContent>
           </Card>
         ) : (

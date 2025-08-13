@@ -139,18 +139,9 @@ export default function CustomerDashboard() {
         {/* Recommendation Sections */}
         {!searchTerm && (
           <div className="space-y-8 mb-12">
-            <RecommendationSection 
-              type="personalized" 
-              limit={8}
-            />
-            <RecommendationSection 
-              type="trending" 
-              limit={6}
-            />
-            <RecommendationSection 
-              type="popular" 
-              limit={6}
-            />
+            <RecommendationSection type="personalized" limit={8} />
+            <RecommendationSection type="trending" limit={6} />
+            <RecommendationSection type="popular" limit={6} />
           </div>
         )}
 
