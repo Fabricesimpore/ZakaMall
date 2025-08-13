@@ -2094,6 +2094,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/vendor/analytics", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const vendor = await storage.getVendorByUserId(userId);
+
+      if (!vendor) {
+        return res.status(403).json({ message: "Only vendors can access analytics" });
+      }
+
+      const analytics = await storage.getVendorAnalytics(vendor.id);
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching vendor analytics:", error);
+      res.status(500).json({ message: "Failed to fetch vendor analytics" });
+    }
+  });
+
+  // Bulk product operations
+  app.patch("/api/vendor/products/bulk", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const vendor = await storage.getVendorByUserId(userId);
+
+      if (!vendor) {
+        return res.status(403).json({ message: "Only vendors can perform bulk operations" });
+      }
+
+      const { operation, productIds, data } = req.body;
+
+      if (!operation || !productIds || !Array.isArray(productIds)) {
+        return res.status(400).json({ message: "Invalid bulk operation parameters" });
+      }
+
+      let results = [];
+
+      switch (operation) {
+        case "updatePrice":
+          if (!data.price || isNaN(data.price)) {
+            return res.status(400).json({ message: "Valid price is required" });
+          }
+          for (const productId of productIds) {
+            try {
+              const product = await storage.getProduct(productId);
+              if (product && product.vendorId === vendor.id) {
+                await storage.updateProduct(productId, { price: data.price.toString() });
+                results.push({ productId, success: true });
+              } else {
+                results.push({ productId, success: false, error: "Product not found or access denied" });
+              }
+            } catch (error) {
+              results.push({ productId, success: false, error: "Update failed" });
+            }
+          }
+          break;
+
+        case "updateStock":
+          if (!data.quantity || isNaN(data.quantity)) {
+            return res.status(400).json({ message: "Valid quantity is required" });
+          }
+          for (const productId of productIds) {
+            try {
+              const product = await storage.getProduct(productId);
+              if (product && product.vendorId === vendor.id) {
+                await storage.updateProduct(productId, { quantity: data.quantity });
+                results.push({ productId, success: true });
+              } else {
+                results.push({ productId, success: false, error: "Product not found or access denied" });
+              }
+            } catch (error) {
+              results.push({ productId, success: false, error: "Update failed" });
+            }
+          }
+          break;
+
+        case "updateStatus":
+          if (!data.isActive !== undefined) {
+            return res.status(400).json({ message: "isActive status is required" });
+          }
+          for (const productId of productIds) {
+            try {
+              const product = await storage.getProduct(productId);
+              if (product && product.vendorId === vendor.id) {
+                await storage.updateProduct(productId, { isActive: data.isActive });
+                results.push({ productId, success: true });
+              } else {
+                results.push({ productId, success: false, error: "Product not found or access denied" });
+              }
+            } catch (error) {
+              results.push({ productId, success: false, error: "Update failed" });
+            }
+          }
+          break;
+
+        case "updateCategory":
+          if (!data.categoryId) {
+            return res.status(400).json({ message: "Category ID is required" });
+          }
+          for (const productId of productIds) {
+            try {
+              const product = await storage.getProduct(productId);
+              if (product && product.vendorId === vendor.id) {
+                await storage.updateProduct(productId, { categoryId: data.categoryId });
+                results.push({ productId, success: true });
+              } else {
+                results.push({ productId, success: false, error: "Product not found or access denied" });
+              }
+            } catch (error) {
+              results.push({ productId, success: false, error: "Update failed" });
+            }
+          }
+          break;
+
+        default:
+          return res.status(400).json({ message: "Unknown bulk operation" });
+      }
+
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.filter(r => !r.success).length;
+
+      res.json({
+        success: true,
+        message: `Bulk operation completed: ${successCount} succeeded, ${failCount} failed`,
+        results,
+        summary: { successCount, failCount, total: productIds.length }
+      });
+
+    } catch (error) {
+      console.error("Error performing bulk operation:", error);
+      res.status(500).json({ message: "Failed to perform bulk operation" });
+    }
+  });
+
   app.get("/api/vendor/products", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -3052,6 +3184,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting notification:", error);
       res.status(500).json({ error: "Failed to delete notification" });
+    }
+  });
+
+  // Vendor-specific notification endpoints
+  app.get("/api/vendor/notifications", isAuthenticated, isVendor, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      const unreadOnly = req.query.unread === "true";
+      
+      const notifications = await storage.getVendorNotifications(userId, unreadOnly);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching vendor notifications:", error);
+      res.status(500).json({ error: "Failed to fetch vendor notifications" });
+    }
+  });
+
+  app.get("/api/vendor/notifications/unread-count", isAuthenticated, isVendor, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      const count = await storage.getVendorUnreadNotificationCount(userId);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error fetching vendor unread count:", error);
+      res.status(500).json({ error: "Failed to fetch unread count" });
+    }
+  });
+
+  app.patch("/api/vendor/notifications/:id/read", isAuthenticated, isVendor, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.session.user.id;
+      
+      await storage.markVendorNotificationAsRead(id, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking vendor notification as read:", error);
+      res.status(500).json({ error: "Failed to mark notification as read" });
+    }
+  });
+
+  app.patch("/api/vendor/notifications/read-all", isAuthenticated, isVendor, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      await storage.markAllVendorNotificationsAsRead(userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking all vendor notifications as read:", error);
+      res.status(500).json({ error: "Failed to mark all notifications as read" });
+    }
+  });
+
+  app.delete("/api/vendor/notifications/:id", isAuthenticated, isVendor, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.session.user.id;
+      
+      await storage.deleteVendorNotification(id, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting vendor notification:", error);
+      res.status(500).json({ error: "Failed to delete notification" });
+    }
+  });
+
+  app.get("/api/vendor/notification-settings", isAuthenticated, isVendor, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      const settings = await storage.getVendorNotificationSettings(userId);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching vendor notification settings:", error);
+      res.status(500).json({ error: "Failed to fetch notification settings" });
+    }
+  });
+
+  app.put("/api/vendor/notification-settings", isAuthenticated, isVendor, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      const settings = req.body;
+      
+      await storage.updateVendorNotificationSettings(userId, settings);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating vendor notification settings:", error);
+      res.status(500).json({ error: "Failed to update notification settings" });
+    }
+  });
+
+  app.post("/api/vendor/notifications/test", isAuthenticated, isVendor, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      
+      // Create a test notification
+      await storage.createNotification({
+        userId,
+        type: "system",
+        title: "Test de notification",
+        message: "Ceci est une notification de test pour vérifier que votre système fonctionne correctement.",
+        data: { test: true },
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error creating test notification:", error);
+      res.status(500).json({ error: "Failed to create test notification" });
     }
   });
 

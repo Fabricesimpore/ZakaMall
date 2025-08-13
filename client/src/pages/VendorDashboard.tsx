@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import VendorProducts from "@/components/VendorProducts";
 import VendorOrders from "@/components/VendorOrders";
+import VendorNotificationCenter from "@/components/VendorNotificationCenter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
@@ -362,15 +363,18 @@ export default function VendorDashboard() {
                 ? "analytics"
                 : location.includes("/inventory")
                   ? "products"
-                  : "overview"
+                  : location.includes("/notifications")
+                    ? "notifications"
+                    : "overview"
           }
           className="space-y-6"
         >
-          <TabsList className="grid grid-cols-4 w-full lg:w-auto">
+          <TabsList className="grid grid-cols-5 w-full lg:w-auto">
             <TabsTrigger value="overview">Aperçu</TabsTrigger>
             <TabsTrigger value="products">Produits</TabsTrigger>
             <TabsTrigger value="orders">Commandes</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -487,6 +491,10 @@ export default function VendorDashboard() {
                 <p className="text-gray-600">Analytics avancées en cours de développement...</p>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <VendorNotificationCenter />
           </TabsContent>
         </Tabs>
       </div>

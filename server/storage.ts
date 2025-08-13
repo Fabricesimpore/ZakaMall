@@ -44,6 +44,9 @@ import {
   type InsertPayment,
   type Notification,
   type InsertNotification,
+  vendorNotificationSettings,
+  type VendorNotificationSettings,
+  type InsertVendorNotificationSettings,
   type PhoneVerification,
   type InsertPhoneVerification,
   type EmailVerification,
@@ -51,7 +54,7 @@ import {
   type OrderTracking,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc, and, ilike, or, count, avg, sum, sql, gte, lte } from "drizzle-orm";
+import { eq, desc, asc, and, ilike, or, count, countDistinct, avg, sum, sql, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -164,6 +167,15 @@ export interface IStorage {
     monthlyOrders: number;
     totalProducts: number;
     averageRating: number;
+  }>;
+  getVendorAnalytics(vendorId: string): Promise<{
+    totalSales: number;
+    totalOrders: number;
+    totalProducts: number;
+    totalCustomers: number;
+    monthlyRevenue: Array<{ month: string; revenue: number }>;
+    topProducts: Array<{ name: string; sales: number; revenue: number }>;
+    recentOrders: Array<{ id: string; customerName: string; amount: number; status: string }>;
   }>;
   getDriverStats(driverId: string): Promise<{
     dailyEarnings: number;
@@ -1291,7 +1303,7 @@ export class DatabaseStorage implements IStorage {
     const [monthlyOrdersResult] = await db
       .select({ count: count() })
       .from(orders)
-      .where(and(eq(orders.vendorId, vendorId), eq(orders.createdAt, monthStart)));
+      .where(and(eq(orders.vendorId, vendorId), gte(orders.createdAt, monthStart)));
 
     const [productsResult] = await db
       .select({ count: count() })
@@ -1308,6 +1320,119 @@ export class DatabaseStorage implements IStorage {
       monthlyOrders: monthlyOrdersResult?.count || 0,
       totalProducts: productsResult?.count || 0,
       averageRating: Number(ratingResult?.avg || 0),
+    };
+  }
+
+  // Enhanced vendor analytics methods
+  async getVendorAnalytics(vendorId: string): Promise<{
+    totalSales: number;
+    totalOrders: number;
+    totalProducts: number;
+    totalCustomers: number;
+    monthlyRevenue: Array<{ month: string; revenue: number }>;
+    topProducts: Array<{ name: string; sales: number; revenue: number }>;
+    recentOrders: Array<{ id: string; customerName: string; amount: number; status: string }>;
+  }> {
+    const now = new Date();
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+
+    // Total sales
+    const [salesResult] = await db
+      .select({ total: sum(orders.totalAmount) })
+      .from(orders)
+      .where(eq(orders.vendorId, vendorId));
+
+    // Total orders
+    const [ordersResult] = await db
+      .select({ count: count() })
+      .from(orders)
+      .where(eq(orders.vendorId, vendorId));
+
+    // Total products
+    const [productsResult] = await db
+      .select({ count: count() })
+      .from(products)
+      .where(eq(products.vendorId, vendorId));
+
+    // Unique customers
+    const [customersResult] = await db
+      .select({ count: countDistinct(orders.customerId) })
+      .from(orders)
+      .where(eq(orders.vendorId, vendorId));
+
+    // Monthly revenue for last 6 months
+    const monthlyRevenue = [];
+    for (let i = 5; i >= 0; i--) {
+      const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+      
+      const [monthResult] = await db
+        .select({ total: sum(orders.totalAmount) })
+        .from(orders)
+        .where(
+          and(
+            eq(orders.vendorId, vendorId),
+            gte(orders.createdAt, monthStart),
+            lte(orders.createdAt, monthEnd)
+          )
+        );
+
+      const monthNames = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jui", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"];
+      monthlyRevenue.push({
+        month: monthNames[monthStart.getMonth()],
+        revenue: Number(monthResult?.total || 0),
+      });
+    }
+
+    // Top products by sales
+    const topProducts = await db
+      .select({
+        name: products.name,
+        sales: count(orderItems.id),
+        revenue: sum(sql<number>`${orderItems.quantity} * ${orderItems.unitPrice}`),
+      })
+      .from(orderItems)
+      .innerJoin(products, eq(orderItems.productId, products.id))
+      .innerJoin(orders, eq(orderItems.orderId, orders.id))
+      .where(eq(orders.vendorId, vendorId))
+      .groupBy(products.id, products.name)
+      .orderBy(desc(count(orderItems.id)))
+      .limit(5);
+
+    // Recent orders
+    const recentOrders = await db
+      .select({
+        id: orders.id,
+        customerName: sql<string>`CASE 
+          WHEN ${orders.customerId} IS NOT NULL THEN CONCAT(${users.firstName}, ' ', ${users.lastName})
+          ELSE ${orders.guestName}
+        END`,
+        amount: orders.totalAmount,
+        status: orders.status,
+      })
+      .from(orders)
+      .leftJoin(users, eq(orders.customerId, users.id))
+      .where(eq(orders.vendorId, vendorId))
+      .orderBy(desc(orders.createdAt))
+      .limit(5);
+
+    return {
+      totalSales: Number(salesResult?.total || 0),
+      totalOrders: ordersResult?.count || 0,
+      totalProducts: productsResult?.count || 0,
+      totalCustomers: customersResult?.count || 0,
+      monthlyRevenue,
+      topProducts: topProducts.map(p => ({
+        name: p.name,
+        sales: p.sales,
+        revenue: Number(p.revenue || 0),
+      })),
+      recentOrders: recentOrders.map(o => ({
+        id: o.id,
+        customerName: o.customerName || "Client invité",
+        amount: Number(o.amount),
+        status: o.status || "pending",
+      })),
     };
   }
 
@@ -1874,6 +1999,130 @@ export class DatabaseStorage implements IStorage {
       title: "Stock faible",
       message: `Le produit "${productName}" n'a plus que ${stockQuantity} unité${stockQuantity !== 1 ? "s" : ""} en stock.`,
       data: { productName, stockQuantity },
+      isRead: false,
+    });
+  }
+
+  // Vendor-specific notification methods
+  async getVendorNotifications(userId: string, unreadOnly = false): Promise<Notification[]> {
+    const conditions = [eq(notifications.userId, userId)];
+    if (unreadOnly) {
+      conditions.push(eq(notifications.isRead, false));
+    }
+
+    const vendorNotifications = await db
+      .select()
+      .from(notifications)
+      .where(and(...conditions))
+      .orderBy(desc(notifications.createdAt))
+      .limit(100);
+
+    return vendorNotifications;
+  }
+
+  async getVendorUnreadNotificationCount(userId: string): Promise<number> {
+    const [result] = await db
+      .select({ count: count() })
+      .from(notifications)
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+    return result?.count || 0;
+  }
+
+  async markVendorNotificationAsRead(notificationId: string, userId: string): Promise<void> {
+    await db
+      .update(notifications)
+      .set({
+        isRead: true,
+        readAt: new Date(),
+      })
+      .where(and(eq(notifications.id, notificationId), eq(notifications.userId, userId)));
+  }
+
+  async markAllVendorNotificationsAsRead(userId: string): Promise<void> {
+    await db
+      .update(notifications)
+      .set({
+        isRead: true,
+        readAt: new Date(),
+      })
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+  }
+
+  async deleteVendorNotification(notificationId: string, userId: string): Promise<void> {
+    await db
+      .delete(notifications)
+      .where(and(eq(notifications.id, notificationId), eq(notifications.userId, userId)));
+  }
+
+  async getVendorNotificationSettings(userId: string): Promise<VendorNotificationSettings | null> {
+    const [settings] = await db
+      .select()
+      .from(vendorNotificationSettings)
+      .where(eq(vendorNotificationSettings.userId, userId));
+
+    if (!settings) {
+      // Create default settings for the vendor
+      const defaultSettings = {
+        userId,
+        emailNotifications: {
+          newOrders: true,
+          orderStatusChanges: true,
+          lowStock: true,
+          payments: true,
+          reviews: true,
+          system: true,
+        },
+        pushNotifications: {
+          newOrders: true,
+          orderStatusChanges: false,
+          lowStock: true,
+          urgentAlerts: true,
+        },
+        smsNotifications: {
+          newOrders: false,
+          urgentAlerts: true,
+        },
+        lowStockThreshold: 5,
+        soundEnabled: true,
+      };
+
+      const [created] = await db
+        .insert(vendorNotificationSettings)
+        .values(defaultSettings)
+        .returning();
+      
+      return created;
+    }
+
+    return settings;
+  }
+
+  async updateVendorNotificationSettings(
+    userId: string,
+    settings: Partial<VendorNotificationSettings>
+  ): Promise<void> {
+    await db
+      .update(vendorNotificationSettings)
+      .set({
+        ...settings,
+        updatedAt: new Date(),
+      })
+      .where(eq(vendorNotificationSettings.userId, userId));
+  }
+
+  async createVendorNotification(
+    vendorId: string,
+    type: string,
+    title: string,
+    message: string,
+    data?: any
+  ): Promise<void> {
+    await this.createNotification({
+      userId: vendorId,
+      type,
+      title,
+      message,
+      data,
       isRead: false,
     });
   }
