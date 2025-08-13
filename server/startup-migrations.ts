@@ -92,7 +92,10 @@ async function ensureSecurityTables() {
     // Check and create blacklist table
     await ensureBlacklistTable();
 
-    console.log("✅ Security tables created successfully!");
+    // Check and create recommendation system tables
+    await ensureRecommendationTables();
+
+    console.log("✅ Security and recommendation tables created successfully!");
   } catch (error) {
     console.error("❌ Failed to create security tables:", error);
     throw error;
@@ -180,6 +183,238 @@ async function ensureBlacklistTable() {
     console.log("✅ Blacklist table created successfully with indexes!");
   } catch (error) {
     console.error("❌ Failed to create blacklist table:", error);
+    throw error;
+  }
+}
+
+async function ensureRecommendationTables() {
+  try {
+    // Create user_behavior table
+    await ensureUserBehaviorTable();
+
+    // Create search_logs table
+    await ensureSearchLogsTable();
+
+    // Create product_similarities table
+    await ensureProductSimilaritiesTable();
+
+    // Create user_preferences table
+    await ensureUserPreferencesTable();
+
+    console.log("✅ Recommendation tables created successfully!");
+  } catch (error) {
+    console.error("❌ Failed to create recommendation tables:", error);
+    throw error;
+  }
+}
+
+async function ensureUserBehaviorTable() {
+  try {
+    // Check if user_behavior table exists
+    const tableExists = await db.execute(sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'user_behavior'
+      );
+    `);
+
+    if (tableExists.rows[0]?.exists) {
+      console.log("✅ User behavior table already exists.");
+      return;
+    }
+
+    console.log("📊 Creating user_behavior table...");
+
+    // Create user_behavior table
+    await db.execute(sql`
+      CREATE TABLE user_behavior (
+        "id" VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        "user_id" VARCHAR REFERENCES users(id),
+        "session_id" VARCHAR,
+        "product_id" VARCHAR NOT NULL REFERENCES products(id),
+        "action_type" VARCHAR NOT NULL,
+        "duration" INTEGER,
+        "metadata" JSONB,
+        "created_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create indexes for performance
+    await db.execute(sql`
+      CREATE INDEX user_behavior_user_id_idx ON user_behavior(user_id);
+    `);
+
+    await db.execute(sql`
+      CREATE INDEX user_behavior_product_id_idx ON user_behavior(product_id);
+    `);
+
+    await db.execute(sql`
+      CREATE INDEX user_behavior_session_id_idx ON user_behavior(session_id);
+    `);
+
+    await db.execute(sql`
+      CREATE INDEX user_behavior_created_at_idx ON user_behavior(created_at DESC);
+    `);
+
+    console.log("✅ User behavior table created successfully!");
+  } catch (error) {
+    console.error("❌ Failed to create user_behavior table:", error);
+    throw error;
+  }
+}
+
+async function ensureSearchLogsTable() {
+  try {
+    // Check if search_logs table exists
+    const tableExists = await db.execute(sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'search_logs'
+      );
+    `);
+
+    if (tableExists.rows[0]?.exists) {
+      console.log("✅ Search logs table already exists.");
+      return;
+    }
+
+    console.log("📊 Creating search_logs table...");
+
+    // Create search_logs table
+    await db.execute(sql`
+      CREATE TABLE search_logs (
+        "id" VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        "user_id" VARCHAR REFERENCES users(id),
+        "query" VARCHAR NOT NULL,
+        "results_count" INTEGER DEFAULT 0,
+        "session_id" VARCHAR,
+        "ip_address" VARCHAR,
+        "user_agent" TEXT,
+        "filters" JSONB,
+        "created_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create indexes for performance
+    await db.execute(sql`
+      CREATE INDEX search_logs_user_id_idx ON search_logs(user_id);
+    `);
+
+    await db.execute(sql`
+      CREATE INDEX search_logs_query_idx ON search_logs(query);
+    `);
+
+    await db.execute(sql`
+      CREATE INDEX search_logs_created_at_idx ON search_logs(created_at DESC);
+    `);
+
+    console.log("✅ Search logs table created successfully!");
+  } catch (error) {
+    console.error("❌ Failed to create search_logs table:", error);
+    throw error;
+  }
+}
+
+async function ensureProductSimilaritiesTable() {
+  try {
+    // Check if product_similarities table exists
+    const tableExists = await db.execute(sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'product_similarities'
+      );
+    `);
+
+    if (tableExists.rows[0]?.exists) {
+      console.log("✅ Product similarities table already exists.");
+      return;
+    }
+
+    console.log("📊 Creating product_similarities table...");
+
+    // Create product_similarities table
+    await db.execute(sql`
+      CREATE TABLE product_similarities (
+        "id" VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        "product_a_id" VARCHAR NOT NULL REFERENCES products(id),
+        "product_b_id" VARCHAR NOT NULL REFERENCES products(id),
+        "similarity_score" DECIMAL(5, 4) NOT NULL,
+        "similarity_type" VARCHAR NOT NULL,
+        "last_updated" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create indexes for performance
+    await db.execute(sql`
+      CREATE INDEX product_similarities_product_a_idx ON product_similarities(product_a_id);
+    `);
+
+    await db.execute(sql`
+      CREATE INDEX product_similarities_product_b_idx ON product_similarities(product_b_id);
+    `);
+
+    await db.execute(sql`
+      CREATE INDEX product_similarities_score_idx ON product_similarities(similarity_score DESC);
+    `);
+
+    console.log("✅ Product similarities table created successfully!");
+  } catch (error) {
+    console.error("❌ Failed to create product_similarities table:", error);
+    throw error;
+  }
+}
+
+async function ensureUserPreferencesTable() {
+  try {
+    // Check if user_preferences table exists
+    const tableExists = await db.execute(sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'user_preferences'
+      );
+    `);
+
+    if (tableExists.rows[0]?.exists) {
+      console.log("✅ User preferences table already exists.");
+      return;
+    }
+
+    console.log("📊 Creating user_preferences table...");
+
+    // Create user_preferences table
+    await db.execute(sql`
+      CREATE TABLE user_preferences (
+        "id" VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        "user_id" VARCHAR NOT NULL REFERENCES users(id),
+        "category_id" VARCHAR REFERENCES categories(id),
+        "vendor_id" VARCHAR REFERENCES vendors(id),
+        "price_range" VARCHAR,
+        "preference_score" DECIMAL(5, 4) NOT NULL,
+        "preference_type" VARCHAR NOT NULL,
+        "last_updated" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create indexes for performance
+    await db.execute(sql`
+      CREATE INDEX user_preferences_user_id_idx ON user_preferences(user_id);
+    `);
+
+    await db.execute(sql`
+      CREATE INDEX user_preferences_category_id_idx ON user_preferences(category_id);
+    `);
+
+    await db.execute(sql`
+      CREATE INDEX user_preferences_vendor_id_idx ON user_preferences(vendor_id);
+    `);
+
+    console.log("✅ User preferences table created successfully!");
+  } catch (error) {
+    console.error("❌ Failed to create user_preferences table:", error);
     throw error;
   }
 }
