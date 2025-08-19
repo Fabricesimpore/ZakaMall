@@ -85,7 +85,11 @@ export default function AdminDashboard() {
     enabled: !!user && user.role === "admin",
   });
 
-  const { data: allUsers = [], isLoading: usersLoading, error: usersError } = useQuery({
+  const {
+    data: allUsers = [],
+    isLoading: usersLoading,
+    error: usersError,
+  } = useQuery({
     queryKey: ["/api/admin/users"],
     enabled: !!user && user.role === "admin",
   });
@@ -95,7 +99,11 @@ export default function AdminDashboard() {
     enabled: !!user && user.role === "admin",
   });
 
-  const { data: pendingVendors = [], isLoading: vendorsLoading, error: vendorsError } = useQuery({
+  const {
+    data: pendingVendors = [],
+    isLoading: vendorsLoading,
+    error: vendorsError,
+  } = useQuery({
     queryKey: ["/api/vendors", { status: "pending" }],
     enabled: !!user && user.role === "admin",
   });
@@ -480,7 +488,8 @@ export default function AdminDashboard() {
                     <div className="bg-red-50 border border-red-200 p-4 rounded-lg mb-4">
                       <p className="text-red-600 text-sm">
                         <i className="fas fa-exclamation-circle mr-2"></i>
-                        Erreur lors du chargement des demandes vendeurs: {(vendorsError as Error).message}
+                        Erreur lors du chargement des demandes vendeurs:{" "}
+                        {(vendorsError as Error).message}
                       </p>
                     </div>
                   )}

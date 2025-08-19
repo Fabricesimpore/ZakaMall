@@ -497,7 +497,7 @@ export class DatabaseStorage implements IStorage {
           phone: users.phone,
           role: users.role,
           createdAt: users.createdAt,
-        }
+        },
       })
       .from(vendors)
       .leftJoin(users, eq(vendors.userId, users.id))

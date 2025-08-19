@@ -29,7 +29,7 @@ export const getQueryFn: <T>(_options: { on401: UnauthorizedBehavior }) => Query
   async ({ queryKey }) => {
     // Handle query parameters properly
     let url = queryKey[0] as string;
-    if (queryKey.length > 1 && typeof queryKey[1] === 'object' && queryKey[1] !== null) {
+    if (queryKey.length > 1 && typeof queryKey[1] === "object" && queryKey[1] !== null) {
       const params = new URLSearchParams();
       Object.entries(queryKey[1] as Record<string, string>).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {

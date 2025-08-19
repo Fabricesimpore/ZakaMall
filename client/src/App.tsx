@@ -65,7 +65,7 @@ function Router() {
       <Route path="/create-admin" component={CreateAdmin} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/profile" component={AdminProfile} />
-      
+
       {/* Setup routes - accessible during post-registration flow */}
       <Route path="/vendor-setup" component={VendorSetup} />
       <Route path="/driver-setup" component={DriverSetup} />
