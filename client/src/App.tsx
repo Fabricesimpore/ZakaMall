@@ -64,56 +64,34 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/create-admin" component={CreateAdmin} />
 
+      {/* Setup routes - accessible during post-registration flow */}
+      <Route path="/vendor-setup" component={VendorSetup} />
+      <Route path="/driver-setup" component={DriverSetup} />
+      <Route path="/vendor-pending" component={VendorPending} />
+      <Route path="/driver-pending" component={DriverPending} />
+
+      {/* Admin routes - these will handle their own authentication internally */}
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/profile" component={AdminProfile} />
+
       {!isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (
         <>
           <Route path="/" component={Home} />
           <Route path="/customer" component={CustomerDashboard} />
+          <Route path="/vendor" component={VendorDashboard} />
+          <Route path="/vendor/dashboard" component={VendorDashboard} />
+          <Route path="/vendor/products/new" component={() => <ProductForm />} />
+          <Route path="/vendor/products/:id/edit">
+            {(params) => <ProductForm productId={params.id} />}
+          </Route>
+          <Route path="/vendor/inventory" component={VendorInventoryPage} />
+          <Route path="/vendor/orders" component={VendorOrdersPage} />
+          <Route path="/vendor/analytics" component={VendorAnalyticsPage} />
+          <Route path="/driver" component={DriverDashboard} />
           <Route path="/profile" component={Profile} />
           <Route path="/chat" component={Chat} />
-
-          {/* Admin routes */}
-          {user?.role === "admin" && (
-            <>
-              <Route path="/admin" component={AdminDashboard} />
-              <Route path="/admin/profile" component={AdminProfile} />
-            </>
-          )}
-
-          {/* Vendor routes */}
-          {user?.role === "vendor" && (
-            <>
-              <Route path="/vendor" component={VendorDashboard} />
-              <Route path="/vendor/dashboard" component={VendorDashboard} />
-              <Route path="/vendor/products/new" component={() => <ProductForm />} />
-              <Route path="/vendor/products/:id/edit">
-                {(params) => <ProductForm productId={params.id} />}
-              </Route>
-              <Route path="/vendor/inventory" component={VendorInventoryPage} />
-              <Route path="/vendor/orders" component={VendorOrdersPage} />
-              <Route path="/vendor/analytics" component={VendorAnalyticsPage} />
-            </>
-          )}
-
-          {/* Driver routes */}
-          {user?.role === "driver" && (
-            <>
-              <Route path="/driver" component={DriverDashboard} />
-            </>
-          )}
-
-          {/* Setup routes - only accessible if user doesn't have the role yet */}
-          {user?.role === "customer" && (
-            <>
-              <Route path="/vendor-setup" component={VendorSetup} />
-              <Route path="/driver-setup" component={DriverSetup} />
-            </>
-          )}
-
-          {/* Pending routes - only for users waiting approval */}
-          <Route path="/vendor-pending" component={VendorPending} />
-          <Route path="/driver-pending" component={DriverPending} />
         </>
       )}
       <Route component={NotFound} />
