@@ -49,10 +49,11 @@ export default function AdminDashboard() {
   const queryClient = useQueryClient();
 
   // Debug logging
-  console.log("AdminDashboard - User:", user);
-  console.log("AdminDashboard - Auth loading:", authLoading);
-  console.log("AdminDashboard - User role:", user?.role);
-  console.log("AdminDashboard - Is admin check:", !!user && user.role === "admin");
+  console.log("🔍 AdminDashboard - User:", user);
+  console.log("🔍 AdminDashboard - Auth loading:", authLoading);
+  console.log("🔍 AdminDashboard - User role:", user?.role);
+  console.log("🔍 AdminDashboard - Is admin check:", !!user && user.role === "admin");
+  console.log("🔍 AdminDashboard - Vendor query enabled:", !!user && user.role === "admin");
 
   // Create user form state
   const [createUserDialogOpen, setCreateUserDialogOpen] = useState(false);

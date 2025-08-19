@@ -39,12 +39,19 @@ export async function setupAuth(app: Express) {
 // Authentication middleware
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const sessionUser = (req as any).session?.user;
+  console.log("🔍 Auth middleware - Session user:", {
+    exists: !!sessionUser,
+    isAuthenticated: sessionUser?.isAuthenticated,
+    userId: sessionUser?.claims?.sub,
+    role: sessionUser?.user?.role
+  });
 
   if (sessionUser && sessionUser.isAuthenticated) {
     (req as any).user = sessionUser;
     return next();
   }
 
+  console.log("❌ Auth middleware - No valid session");
   return res.status(401).json({ message: "Unauthorized" });
 };
 

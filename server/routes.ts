@@ -527,6 +527,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
+      // Update session with fresh user data
+      if ((req as any).session?.user) {
+        console.log("🔄 Updating session with fresh user data:", { id: user.id, role: user.role });
+        (req as any).session.user.user = user;
+      }
+
       // Get additional role-specific data
       let roleData = null;
       if (user.role === "vendor") {
@@ -673,10 +679,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/vendors", isAuthenticated, async (req: any, res) => {
     try {
+      console.log("🔍 GET /api/vendors - Auth check");
+      console.log("User ID from session:", req.user?.claims?.sub);
       const user = await storage.getUser(req.user.claims.sub);
+      console.log("User from database:", { id: user?.id, role: user?.role, email: user?.email });
+      
       if (user?.role !== "admin") {
+        console.log("❌ Access denied - user role:", user?.role, "required: admin");
         return res.status(403).json({ message: "Unauthorized" });
       }
+      
+      console.log("✅ Admin access granted");
 
       const { status } = req.query;
       const vendors = await storage.getVendors(status as any);
