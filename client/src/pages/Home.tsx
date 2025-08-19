@@ -189,27 +189,33 @@ export default function Home() {
 
             {user?.role === "admin" && (
               <>
-                <Button className="p-6 bg-zaka-green hover:bg-zaka-green text-white text-left h-auto">
-                  <div>
-                    <i className="fas fa-user-check text-2xl mb-2 block"></i>
-                    <h3 className="font-semibold mb-1">Approuver vendeurs</h3>
-                    <p className="text-sm opacity-90">Gérer les demandes</p>
-                  </div>
-                </Button>
-                <Button className="p-6 bg-zaka-blue hover:bg-zaka-blue text-white text-left h-auto">
-                  <div>
-                    <i className="fas fa-chart-line text-2xl mb-2 block"></i>
-                    <h3 className="font-semibold mb-1">Analytics plateforme</h3>
-                    <p className="text-sm opacity-90">Voir les métriques globales</p>
-                  </div>
-                </Button>
-                <Button className="p-6 bg-zaka-orange hover:bg-zaka-orange text-white text-left h-auto">
-                  <div>
-                    <i className="fas fa-cog text-2xl mb-2 block"></i>
-                    <h3 className="font-semibold mb-1">Paramètres</h3>
-                    <p className="text-sm opacity-90">Configuration système</p>
-                  </div>
-                </Button>
+                <Link href="/admin">
+                  <Button className="p-6 bg-zaka-green hover:bg-zaka-green text-white text-left h-auto w-full">
+                    <div>
+                      <i className="fas fa-user-check text-2xl mb-2 block"></i>
+                      <h3 className="font-semibold mb-1">Approuver vendeurs</h3>
+                      <p className="text-sm opacity-90">Gérer les demandes</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link href="/admin">
+                  <Button className="p-6 bg-zaka-blue hover:bg-zaka-blue text-white text-left h-auto w-full">
+                    <div>
+                      <i className="fas fa-chart-line text-2xl mb-2 block"></i>
+                      <h3 className="font-semibold mb-1">Analytics plateforme</h3>
+                      <p className="text-sm opacity-90">Voir les métriques globales</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link href="/admin/profile">
+                  <Button className="p-6 bg-zaka-orange hover:bg-zaka-orange text-white text-left h-auto w-full">
+                    <div>
+                      <i className="fas fa-cog text-2xl mb-2 block"></i>
+                      <h3 className="font-semibold mb-1">Paramètres</h3>
+                      <p className="text-sm opacity-90">Configuration système</p>
+                    </div>
+                  </Button>
+                </Link>
               </>
             )}
           </div>

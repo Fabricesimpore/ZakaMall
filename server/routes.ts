@@ -3546,6 +3546,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
 
+      console.log("🗑️ Delete user attempt:", { 
+        targetUserId: id, 
+        adminUserId: userId,
+        adminRole: user?.role 
+      });
+
       if (user?.role !== "admin") {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -3555,11 +3561,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Cannot delete your own account" });
       }
 
+      // Prevent deleting the protected admin account
+      const targetUser = await storage.getUser(id);
+      if (targetUser?.email === "simporefabrice15@gmail.com") {
+        console.log("❌ Blocked attempt to delete protected admin account");
+        return res.status(403).json({ message: "Cannot delete protected admin account" });
+      }
+
+      console.log("🔥 Deleting user:", id);
       await storage.deleteUser(id);
+      console.log("✅ User deleted successfully:", id);
       res.json({ message: "User deleted successfully" });
     } catch (error) {
-      console.error("Error deleting user:", error);
-      res.status(500).json({ message: "Failed to delete user" });
+      console.error("❌ Error deleting user:", error);
+      console.error("Error details:", {
+        message: (error as any).message,
+        code: (error as any).code,
+        detail: (error as any).detail
+      });
+      res.status(500).json({ message: "Failed to delete user", error: (error as any).message });
     }
   });
 
