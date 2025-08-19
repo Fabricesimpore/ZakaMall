@@ -540,11 +540,21 @@ export class DatabaseStorage implements IStorage {
     }
 
     // If rejecting/suspending vendor, change user role back to "customer"
+    // BUT NEVER change admin roles!
     if ((status === "rejected" || status === "suspended") && vendor) {
-      await db
-        .update(users)
-        .set({ role: "customer", updatedAt: new Date() })
-        .where(eq(users.id, vendor.userId));
+      // Get the user to check if they're the protected admin
+      const user = await db.select().from(users).where(eq(users.id, vendor.userId)).limit(1);
+      const targetUser = user[0];
+      
+      if (targetUser?.email === "simporefabrice15@gmail.com") {
+        console.log("🛡️ PROTECTED: Admin user role will NOT be changed to customer during vendor rejection");
+      } else {
+        await db
+          .update(users)
+          .set({ role: "customer", updatedAt: new Date() })
+          .where(eq(users.id, vendor.userId));
+        console.log(`Changed user ${targetUser?.email} role to customer after vendor rejection`);
+      }
     }
 
     return vendor;
@@ -654,11 +664,21 @@ export class DatabaseStorage implements IStorage {
     }
 
     // If rejecting/suspending driver, change user role back to "customer"
+    // BUT NEVER change admin roles!
     if ((status === "rejected" || status === "suspended") && driver) {
-      await db
-        .update(users)
-        .set({ role: "customer", updatedAt: new Date() })
-        .where(eq(users.id, driver.userId));
+      // Get the user to check if they're the protected admin
+      const user = await db.select().from(users).where(eq(users.id, driver.userId)).limit(1);
+      const targetUser = user[0];
+      
+      if (targetUser?.email === "simporefabrice15@gmail.com") {
+        console.log("🛡️ PROTECTED: Admin user role will NOT be changed to customer during driver rejection");
+      } else {
+        await db
+          .update(users)
+          .set({ role: "customer", updatedAt: new Date() })
+          .where(eq(users.id, driver.userId));
+        console.log(`Changed user ${targetUser?.email} role to customer after driver rejection`);
+      }
     }
 
     return driver;
