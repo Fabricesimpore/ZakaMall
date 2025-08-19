@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { useUserBehaviorTracker } from "@/hooks/useUserBehaviorTracker";
@@ -30,48 +30,27 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [isAdded, setIsAdded] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const { addToRecentlyViewed } = useRecentlyViewed();
-  const { trackViewStart, trackViewEnd, trackAddToCart } = useUserBehaviorTracker();
+  const { trackViewEnd, trackAddToCart } = useUserBehaviorTracker();
 
-  // Track product view
-  useEffect(() => {
-    // Start tracking view time
-    trackViewStart(product.id);
+  // Track product view when user actually interacts with the product
+  const handleProductClick = () => {
+    // Add to recently viewed when user clicks to view details
+    addToRecentlyViewed({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      images: product.images,
+    });
 
-    const timer = setTimeout(() => {
-      addToRecentlyViewed({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        images: product.images,
-      });
+    // Track product interaction
+    trackViewEnd(product.id, {
+      productName: product.name,
+      productPrice: product.price,
+      productRating: product.rating,
+    });
 
-      // Track view after 2 seconds
-      trackViewEnd(product.id, {
-        productName: product.name,
-        productPrice: product.price,
-        productRating: product.rating,
-      });
-    }, 2000); // Track after 2 seconds of viewing
-
-    return () => {
-      clearTimeout(timer);
-      // Track view end when component unmounts
-      trackViewEnd(product.id, {
-        productName: product.name,
-        productPrice: product.price,
-        productRating: product.rating,
-      });
-    };
-  }, [
-    product.id,
-    product.name,
-    product.price,
-    product.images,
-    product.rating,
-    addToRecentlyViewed,
-    trackViewStart,
-    trackViewEnd,
-  ]);
+    setShowDetailModal(true);
+  };
 
   const addToCartMutation = useMutation({
     mutationFn: async () => {
@@ -148,7 +127,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     if (target.closest("button") || target.closest('[role="button"]')) {
       return;
     }
-    setShowDetailModal(true);
+    handleProductClick();
   };
 
   return (
