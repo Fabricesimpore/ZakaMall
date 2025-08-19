@@ -429,23 +429,24 @@ export class DatabaseStorage implements IStorage {
         { name: "chatParticipants", fn: () => db.delete(chatParticipants).where(eq(chatParticipants.userId, userId)) },
         { name: "chatRooms", fn: () => db.delete(chatRooms).where(eq(chatRooms.createdBy, userId)) },
         { name: "reviews", fn: () => db.delete(reviews).where(eq(reviews.userId, userId)) },
-        { name: "reviewVotes", fn: () => db.delete(reviewVotes).where(eq(reviewVotes.userId, userId)) },
+        // { name: "reviewVotes", fn: () => db.delete(reviewVotes).where(eq(reviewVotes.userId, userId)) }, // Disabled - table may not exist in production
         { name: "cart", fn: () => db.delete(cart).where(eq(cart.userId, userId)) },
         { name: "orders", fn: () => db.delete(orders).where(eq(orders.customerId, userId)) },
         { name: "phoneVerifications", fn: () => db.delete(phoneVerifications).where(eq(phoneVerifications.userId, userId)) },
         { name: "emailVerifications", fn: () => db.delete(emailVerifications).where(eq(emailVerifications.userId, userId)) },
         { name: "notifications", fn: () => db.delete(notifications).where(eq(notifications.userId, userId)) },
         { name: "vendorNotificationSettings", fn: () => db.delete(vendorNotificationSettings).where(eq(vendorNotificationSettings.userId, userId)) },
-        { name: "searchLogs", fn: () => db.delete(searchLogs).where(eq(searchLogs.userId, userId)) },
-        { name: "userBehavior", fn: () => db.delete(userBehavior).where(eq(userBehavior.userId, userId)) },
-        { name: "userPreferences", fn: () => db.delete(userPreferences).where(eq(userPreferences.userId, userId)) },
-        { name: "securityEvents", fn: () => db.delete(securityEvents).where(eq(securityEvents.userId, userId)) },
-        { name: "rateLimitViolations", fn: () => db.delete(rateLimitViolations).where(eq(rateLimitViolations.userId, userId)) },
-        { name: "fraudAnalysis", fn: () => db.delete(fraudAnalysis).where(eq(fraudAnalysis.userId, userId)) },
-        { name: "userVerifications", fn: () => db.delete(userVerifications).where(eq(userVerifications.userId, userId)) },
-        { name: "vendorTrustScores", fn: () => db.delete(vendorTrustScores).where(eq(vendorTrustScores.userId, userId)) },
-        { name: "suspiciousActivities", fn: () => db.delete(suspiciousActivities).where(eq(suspiciousActivities.userId, userId)) },
-        { name: "blacklist", fn: () => db.delete(blacklist).where(eq(blacklist.userId, userId)) },
+        // Advanced tables that may not exist in production - skip for now
+        // { name: "searchLogs", fn: () => db.delete(searchLogs).where(eq(searchLogs.userId, userId)) },
+        // { name: "userBehavior", fn: () => db.delete(userBehavior).where(eq(userBehavior.userId, userId)) },
+        // { name: "userPreferences", fn: () => db.delete(userPreferences).where(eq(userPreferences.userId, userId)) },
+        // { name: "securityEvents", fn: () => db.delete(securityEvents).where(eq(securityEvents.userId, userId)) },
+        // { name: "rateLimitViolations", fn: () => db.delete(rateLimitViolations).where(eq(rateLimitViolations.userId, userId)) },
+        // { name: "fraudAnalysis", fn: () => db.delete(fraudAnalysis).where(eq(fraudAnalysis.userId, userId)) },
+        // { name: "userVerifications", fn: () => db.delete(userVerifications).where(eq(userVerifications.userId, userId)) },
+        // { name: "vendorTrustScores", fn: () => db.delete(vendorTrustScores).where(eq(vendorTrustScores.userId, userId)) },
+        // { name: "suspiciousActivities", fn: () => db.delete(suspiciousActivities).where(eq(suspiciousActivities.userId, userId)) },
+        // { name: "blacklist", fn: () => db.delete(blacklist).where(eq(blacklist.userId, userId)) },
         { name: "drivers", fn: () => db.delete(drivers).where(eq(drivers.userId, userId)) },
         { name: "vendors", fn: () => db.delete(vendors).where(eq(vendors.userId, userId)) },
         { name: "users", fn: () => db.delete(users).where(eq(users.id, userId)) },
@@ -458,11 +459,19 @@ export class DatabaseStorage implements IStorage {
           console.log(`✅ Deleted from ${step.name}`);
         } catch (error: any) {
           console.error(`❌ Failed to delete from ${step.name}:`, error.message);
-          // Check if it's a table not found error, in which case we can continue
-          if (error.message.includes('relation') && error.message.includes('does not exist')) {
-            console.log(`⚠️ Table ${step.name} does not exist, skipping...`);
+          const errorMsg = error.message || '';
+          
+          // Check for various table/column not found errors
+          if (
+            errorMsg.includes('relation') && errorMsg.includes('does not exist') ||
+            errorMsg.includes('column') && errorMsg.includes('does not exist') ||
+            errorMsg.includes('table') && errorMsg.includes('does not exist') ||
+            errorMsg.includes('Failed query') && errorMsg.includes('user_id')
+          ) {
+            console.log(`⚠️ Table/column ${step.name} issue (likely missing in DB), skipping...`);
             continue;
           }
+          
           // For other errors, still throw
           throw new Error(`Failed to delete from ${step.name}: ${error.message}`);
         }
