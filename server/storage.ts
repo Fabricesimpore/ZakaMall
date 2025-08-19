@@ -438,23 +438,34 @@ export class DatabaseStorage implements IStorage {
     try {
       // Try to delete related records, but don't fail if they don't exist
       await safeDelete("messages", () => db.delete(messages).where(eq(messages.senderId, userId)));
-      await safeDelete("chatParticipants", () => db.delete(chatParticipants).where(eq(chatParticipants.userId, userId)));
-      await safeDelete("chatRooms", () => db.delete(chatRooms).where(eq(chatRooms.createdBy, userId)));
+      await safeDelete("chatParticipants", () =>
+        db.delete(chatParticipants).where(eq(chatParticipants.userId, userId))
+      );
+      await safeDelete("chatRooms", () =>
+        db.delete(chatRooms).where(eq(chatRooms.createdBy, userId))
+      );
       await safeDelete("reviews", () => db.delete(reviews).where(eq(reviews.userId, userId)));
       await safeDelete("cart", () => db.delete(cart).where(eq(cart.userId, userId)));
       await safeDelete("orders", () => db.delete(orders).where(eq(orders.customerId, userId)));
-      await safeDelete("phoneVerifications", () => db.delete(phoneVerifications).where(eq(phoneVerifications.userId, userId)));
-      await safeDelete("emailVerifications", () => db.delete(emailVerifications).where(eq(emailVerifications.userId, userId)));
-      await safeDelete("notifications", () => db.delete(notifications).where(eq(notifications.userId, userId)));
-      await safeDelete("vendorNotificationSettings", () => db.delete(vendorNotificationSettings).where(eq(vendorNotificationSettings.userId, userId)));
+      await safeDelete("phoneVerifications", () =>
+        db.delete(phoneVerifications).where(eq(phoneVerifications.userId, userId))
+      );
+      await safeDelete("emailVerifications", () =>
+        db.delete(emailVerifications).where(eq(emailVerifications.userId, userId))
+      );
+      await safeDelete("notifications", () =>
+        db.delete(notifications).where(eq(notifications.userId, userId))
+      );
+      await safeDelete("vendorNotificationSettings", () =>
+        db.delete(vendorNotificationSettings).where(eq(vendorNotificationSettings.userId, userId))
+      );
       await safeDelete("drivers", () => db.delete(drivers).where(eq(drivers.userId, userId)));
       await safeDelete("vendors", () => db.delete(vendors).where(eq(vendors.userId, userId)));
-      
+
       // Finally delete the user - this is the only one that must succeed
       console.log("🔥 Deleting user record...");
       await db.delete(users).where(eq(users.id, userId));
       console.log("✅ User deletion completed successfully");
-      
     } catch (error: any) {
       console.error("❌ Failed to delete user record:", error.message);
       throw new Error(`Failed to delete user: ${error.message}`);
@@ -545,9 +556,11 @@ export class DatabaseStorage implements IStorage {
       // Get the user to check if they're the protected admin
       const user = await db.select().from(users).where(eq(users.id, vendor.userId)).limit(1);
       const targetUser = user[0];
-      
+
       if (targetUser?.email === "simporefabrice15@gmail.com") {
-        console.log("🛡️ PROTECTED: Admin user role will NOT be changed to customer during vendor rejection");
+        console.log(
+          "🛡️ PROTECTED: Admin user role will NOT be changed to customer during vendor rejection"
+        );
       } else {
         await db
           .update(users)
@@ -669,9 +682,11 @@ export class DatabaseStorage implements IStorage {
       // Get the user to check if they're the protected admin
       const user = await db.select().from(users).where(eq(users.id, driver.userId)).limit(1);
       const targetUser = user[0];
-      
+
       if (targetUser?.email === "simporefabrice15@gmail.com") {
-        console.log("🛡️ PROTECTED: Admin user role will NOT be changed to customer during driver rejection");
+        console.log(
+          "🛡️ PROTECTED: Admin user role will NOT be changed to customer during driver rejection"
+        );
       } else {
         await db
           .update(users)
