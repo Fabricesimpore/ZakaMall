@@ -24,8 +24,8 @@ interface SearchFilters {
   query?: string;
   categoryId?: string;
   vendorId?: string;
-  priceMin?: number;
-  priceMax?: number;
+  minPrice?: number;
+  maxPrice?: number;
   rating?: number;
   inStock?: boolean;
   isFeatured?: boolean;
@@ -70,8 +70,8 @@ export default function AdvancedSearch() {
     query: searchParams.get("q") || "",
     categoryId: searchParams.get("categoryId") || "",
     vendorId: searchParams.get("vendorId") || "",
-    priceMin: searchParams.get("priceMin") ? parseInt(searchParams.get("priceMin")!) : undefined,
-    priceMax: searchParams.get("priceMax") ? parseInt(searchParams.get("priceMax")!) : undefined,
+    minPrice: searchParams.get("minPrice") ? parseInt(searchParams.get("minPrice")!) : undefined,
+    maxPrice: searchParams.get("maxPrice") ? parseInt(searchParams.get("maxPrice")!) : undefined,
     rating: searchParams.get("rating") ? parseInt(searchParams.get("rating")!) : undefined,
     inStock: searchParams.get("inStock") === "true",
     isFeatured: searchParams.get("isFeatured") === "true",
@@ -82,7 +82,7 @@ export default function AdvancedSearch() {
   });
 
   const [showFilters, setShowFilters] = useState(false);
-  const [priceRange, setPriceRange] = useState([filters.priceMin || 0, filters.priceMax || 100000]);
+  const [priceRange, setPriceRange] = useState([filters.minPrice || 0, filters.maxPrice || 100000]);
 
   // Debounced search function
   const debouncedSearch = useCallback(
@@ -138,8 +138,8 @@ export default function AdvancedSearch() {
   const clearFilters = () => {
     const clearedFilters: SearchFilters = {
       query: filters.query,
-      priceMin: undefined,
-      priceMax: undefined,
+      minPrice: undefined,
+      maxPrice: undefined,
       sortBy: "relevance",
       limit: 20,
       offset: 0,
@@ -159,8 +159,8 @@ export default function AdvancedSearch() {
   const handlePriceChange = (values: number[]) => {
     setPriceRange(values);
     updateFilters({
-      priceMin: values[0] > 0 ? values[0] : undefined,
-      priceMax: values[1] < 100000 ? values[1] : undefined,
+      minPrice: values[0] > 0 ? values[0] : undefined,
+      maxPrice: values[1] < 100000 ? values[1] : undefined,
     });
   };
 
