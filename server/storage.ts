@@ -422,20 +422,41 @@ export class DatabaseStorage implements IStorage {
   async deleteUser(userId: string): Promise<void> {
     try {
       console.log("🗑️ Starting user deletion for:", userId);
-      
+
       // Delete in correct order to handle foreign key constraints
       const deletionSteps = [
         { name: "messages", fn: () => db.delete(messages).where(eq(messages.senderId, userId)) },
-        { name: "chatParticipants", fn: () => db.delete(chatParticipants).where(eq(chatParticipants.userId, userId)) },
-        { name: "chatRooms", fn: () => db.delete(chatRooms).where(eq(chatRooms.createdBy, userId)) },
+        {
+          name: "chatParticipants",
+          fn: () => db.delete(chatParticipants).where(eq(chatParticipants.userId, userId)),
+        },
+        {
+          name: "chatRooms",
+          fn: () => db.delete(chatRooms).where(eq(chatRooms.createdBy, userId)),
+        },
         { name: "reviews", fn: () => db.delete(reviews).where(eq(reviews.userId, userId)) },
         // { name: "reviewVotes", fn: () => db.delete(reviewVotes).where(eq(reviewVotes.userId, userId)) }, // Disabled - table may not exist in production
         { name: "cart", fn: () => db.delete(cart).where(eq(cart.userId, userId)) },
         { name: "orders", fn: () => db.delete(orders).where(eq(orders.customerId, userId)) },
-        { name: "phoneVerifications", fn: () => db.delete(phoneVerifications).where(eq(phoneVerifications.userId, userId)) },
-        { name: "emailVerifications", fn: () => db.delete(emailVerifications).where(eq(emailVerifications.userId, userId)) },
-        { name: "notifications", fn: () => db.delete(notifications).where(eq(notifications.userId, userId)) },
-        { name: "vendorNotificationSettings", fn: () => db.delete(vendorNotificationSettings).where(eq(vendorNotificationSettings.userId, userId)) },
+        {
+          name: "phoneVerifications",
+          fn: () => db.delete(phoneVerifications).where(eq(phoneVerifications.userId, userId)),
+        },
+        {
+          name: "emailVerifications",
+          fn: () => db.delete(emailVerifications).where(eq(emailVerifications.userId, userId)),
+        },
+        {
+          name: "notifications",
+          fn: () => db.delete(notifications).where(eq(notifications.userId, userId)),
+        },
+        {
+          name: "vendorNotificationSettings",
+          fn: () =>
+            db
+              .delete(vendorNotificationSettings)
+              .where(eq(vendorNotificationSettings.userId, userId)),
+        },
         // Advanced tables that may not exist in production - skip for now
         // { name: "searchLogs", fn: () => db.delete(searchLogs).where(eq(searchLogs.userId, userId)) },
         // { name: "userBehavior", fn: () => db.delete(userBehavior).where(eq(userBehavior.userId, userId)) },
@@ -459,19 +480,19 @@ export class DatabaseStorage implements IStorage {
           console.log(`✅ Deleted from ${step.name}`);
         } catch (error: any) {
           console.error(`❌ Failed to delete from ${step.name}:`, error.message);
-          const errorMsg = error.message || '';
-          
+          const errorMsg = error.message || "";
+
           // Check for various table/column not found errors
           if (
-            errorMsg.includes('relation') && errorMsg.includes('does not exist') ||
-            errorMsg.includes('column') && errorMsg.includes('does not exist') ||
-            errorMsg.includes('table') && errorMsg.includes('does not exist') ||
-            errorMsg.includes('Failed query') && errorMsg.includes('user_id')
+            (errorMsg.includes("relation") && errorMsg.includes("does not exist")) ||
+            (errorMsg.includes("column") && errorMsg.includes("does not exist")) ||
+            (errorMsg.includes("table") && errorMsg.includes("does not exist")) ||
+            (errorMsg.includes("Failed query") && errorMsg.includes("user_id"))
           ) {
             console.log(`⚠️ Table/column ${step.name} issue (likely missing in DB), skipping...`);
             continue;
           }
-          
+
           // For other errors, still throw
           throw new Error(`Failed to delete from ${step.name}: ${error.message}`);
         }

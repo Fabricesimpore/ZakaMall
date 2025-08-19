@@ -664,12 +664,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
-      console.log("🚨 Emergency admin restore attempt by:", { id: userId, email: user?.email, role: user?.role });
+
+      console.log("🚨 Emergency admin restore attempt by:", {
+        id: userId,
+        email: user?.email,
+        role: user?.role,
+      });
 
       // Check if this user's email matches known admin emails
       const adminEmails = ["simporefabrice15@gmail.com"]; // Protected admin email
-      
+
       if (!user || !adminEmails.includes(user.email || "")) {
         return res.status(403).json({
           message: "Emergency restore only available for designated admin emails",
@@ -686,7 +690,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Restore admin role
       console.log("🔧 Restoring admin role for:", user.email);
       const updatedUser = await storage.updateUserRole(userId, "admin");
-      
+
       res.json({
         message: "Admin role restored successfully",
         user: updatedUser,
@@ -703,18 +707,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const dbUser = await storage.getUser(userId);
       const sessionUser = (req as any).session?.user;
-      
+
       res.json({
         database: {
           id: dbUser?.id,
           email: dbUser?.email,
-          role: dbUser?.role
+          role: dbUser?.role,
         },
         session: {
           id: sessionUser?.claims?.sub,
           role: sessionUser?.user?.role,
-          isAuthenticated: sessionUser?.isAuthenticated
-        }
+          isAuthenticated: sessionUser?.isAuthenticated,
+        },
       });
     } catch (error) {
       console.error("Error checking role debug:", error);
@@ -727,16 +731,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const freshUser = await storage.getUser(userId);
-      
+
       if (!freshUser) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Update session with fresh user data
       if ((req as any).session?.user) {
-        console.log("🔄 Force refreshing session with database user:", { email: freshUser.email, role: freshUser.role });
+        console.log("🔄 Force refreshing session with database user:", {
+          email: freshUser.email,
+          role: freshUser.role,
+        });
         (req as any).session.user.user = freshUser;
-        
+
         // Save session to ensure it's persisted
         (req as any).session.save((err: any) => {
           if (err) {
@@ -746,10 +753,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         });
       }
-      
+
       res.json({
         message: "Session refreshed successfully",
-        user: freshUser
+        user: freshUser,
       });
     } catch (error) {
       console.error("Error refreshing session:", error);
@@ -762,7 +769,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       console.log("🚨 Nuclear admin restore for:", { email: user?.email, currentRole: user?.role });
 
       // Check if this user's email matches protected admin email
@@ -787,10 +794,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Clear the session cookie
       res.clearCookie("connect.sid");
-      
+
       res.json({
         message: "Admin role restored and session cleared. Please log in again.",
-        action: "redirect_to_login"
+        action: "redirect_to_login",
       });
     } catch (error) {
       console.error("Error in nuclear restore:", error);
@@ -802,23 +809,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/check-db-role", async (req, res) => {
     try {
       const { email } = req.body;
-      
+
       // Only allow checking the protected admin email
       if (email !== "simporefabrice15@gmail.com") {
         return res.status(403).json({ message: "Can only check protected admin email" });
       }
-      
+
       const user = await storage.getUserByEmail(email);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found in database" });
       }
-      
+
       res.json({
         email: user.email,
         role: user.role,
         id: user.id,
-        message: `User role in database is: ${user.role}`
+        message: `User role in database is: ${user.role}`,
       });
     } catch (error) {
       console.error("Error checking database role:", error);
@@ -826,31 +833,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Direct database role update (no auth required for emergency)  
+  // Direct database role update (no auth required for emergency)
   app.post("/api/admin/force-db-admin", async (req, res) => {
     try {
       const { email } = req.body;
-      
+
       // Only allow updating the protected admin email
       if (email !== "simporefabrice15@gmail.com") {
         return res.status(403).json({ message: "Can only update protected admin email" });
       }
-      
+
       const user = await storage.getUserByEmail(email);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found in database" });
       }
-      
-      console.log("🚨 FORCE updating user to admin:", { email: user.email, currentRole: user.role });
+
+      console.log("🚨 FORCE updating user to admin:", {
+        email: user.email,
+        currentRole: user.role,
+      });
       const updated = await storage.updateUserRole(user.id, "admin");
-      
+
       res.json({
         message: "User role forcefully updated to admin in database",
         user: {
           email: updated.email,
-          role: updated.role
-        }
+          role: updated.role,
+        },
       });
     } catch (error) {
       console.error("Error forcing admin role:", error);
@@ -889,12 +899,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("User ID from session:", req.user?.claims?.sub);
       const user = await storage.getUser(req.user.claims.sub);
       console.log("User from database:", { id: user?.id, role: user?.role, email: user?.email });
-      
+
       if (user?.role !== "admin") {
         console.log("❌ Access denied - user role:", user?.role, "required: admin");
         return res.status(403).json({ message: "Unauthorized" });
       }
-      
+
       console.log("✅ Admin access granted");
 
       const { status } = req.query;
@@ -3545,10 +3555,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
 
-      console.log("🗑️ Delete user attempt:", { 
-        targetUserId: id, 
+      console.log("🗑️ Delete user attempt:", {
+        targetUserId: id,
         adminUserId: userId,
-        adminRole: user?.role 
+        adminRole: user?.role,
       });
 
       if (user?.role !== "admin") {
@@ -3576,7 +3586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error details:", {
         message: (error as any).message,
         code: (error as any).code,
-        detail: (error as any).detail
+        detail: (error as any).detail,
       });
       res.status(500).json({ message: "Failed to delete user", error: (error as any).message });
     }

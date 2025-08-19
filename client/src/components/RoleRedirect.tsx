@@ -8,10 +8,10 @@ interface RoleRedirectProps {
   children: React.ReactNode;
 }
 
-export default function RoleRedirect({ 
-  allowedRoles, 
-  redirectTo = "/", 
-  children 
+export default function RoleRedirect({
+  allowedRoles,
+  redirectTo = "/",
+  children,
 }: RoleRedirectProps) {
   const { user, isLoading } = useAuth();
   const [, setLocation] = useLocation();

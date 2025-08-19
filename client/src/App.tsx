@@ -72,7 +72,7 @@ function Router() {
           <Route path="/customer" component={CustomerDashboard} />
           <Route path="/profile" component={Profile} />
           <Route path="/chat" component={Chat} />
-          
+
           {/* Admin routes */}
           {user?.role === "admin" && (
             <>
@@ -80,7 +80,7 @@ function Router() {
               <Route path="/admin/profile" component={AdminProfile} />
             </>
           )}
-          
+
           {/* Vendor routes */}
           {user?.role === "vendor" && (
             <>
@@ -95,14 +95,14 @@ function Router() {
               <Route path="/vendor/analytics" component={VendorAnalyticsPage} />
             </>
           )}
-          
+
           {/* Driver routes */}
           {user?.role === "driver" && (
             <>
               <Route path="/driver" component={DriverDashboard} />
             </>
           )}
-          
+
           {/* Setup routes - only accessible if user doesn't have the role yet */}
           {user?.role === "customer" && (
             <>
@@ -110,7 +110,7 @@ function Router() {
               <Route path="/driver-setup" component={DriverSetup} />
             </>
           )}
-          
+
           {/* Pending routes - only for users waiting approval */}
           <Route path="/vendor-pending" component={VendorPending} />
           <Route path="/driver-pending" component={DriverPending} />

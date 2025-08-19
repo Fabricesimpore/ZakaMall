@@ -43,7 +43,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     exists: !!sessionUser,
     isAuthenticated: sessionUser?.isAuthenticated,
     userId: sessionUser?.claims?.sub,
-    role: sessionUser?.user?.role
+    role: sessionUser?.user?.role,
   });
 
   if (sessionUser && sessionUser.isAuthenticated) {
@@ -106,9 +106,9 @@ export function createUserSession(req: any, user: any): Promise<void> {
       id: user.id,
       email: user.email,
       role: user.role,
-      isAdmin: user.role === "admin"
+      isAdmin: user.role === "admin",
     });
-    
+
     const userSession = {
       claims: {
         sub: user.id,
