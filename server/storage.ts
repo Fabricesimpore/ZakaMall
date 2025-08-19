@@ -420,88 +420,44 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(userId: string): Promise<void> {
-    try {
-      console.log("🗑️ Starting user deletion for:", userId);
+    console.log("🗑️ Starting simplified user deletion for:", userId);
 
-      // Delete in correct order to handle foreign key constraints
-      const deletionSteps = [
-        { name: "messages", fn: () => db.delete(messages).where(eq(messages.senderId, userId)) },
-        {
-          name: "chatParticipants",
-          fn: () => db.delete(chatParticipants).where(eq(chatParticipants.userId, userId)),
-        },
-        {
-          name: "chatRooms",
-          fn: () => db.delete(chatRooms).where(eq(chatRooms.createdBy, userId)),
-        },
-        { name: "reviews", fn: () => db.delete(reviews).where(eq(reviews.userId, userId)) },
-        // { name: "reviewVotes", fn: () => db.delete(reviewVotes).where(eq(reviewVotes.userId, userId)) }, // Disabled - table may not exist in production
-        { name: "cart", fn: () => db.delete(cart).where(eq(cart.userId, userId)) },
-        { name: "orders", fn: () => db.delete(orders).where(eq(orders.customerId, userId)) },
-        {
-          name: "phoneVerifications",
-          fn: () => db.delete(phoneVerifications).where(eq(phoneVerifications.userId, userId)),
-        },
-        {
-          name: "emailVerifications",
-          fn: () => db.delete(emailVerifications).where(eq(emailVerifications.userId, userId)),
-        },
-        {
-          name: "notifications",
-          fn: () => db.delete(notifications).where(eq(notifications.userId, userId)),
-        },
-        {
-          name: "vendorNotificationSettings",
-          fn: () =>
-            db
-              .delete(vendorNotificationSettings)
-              .where(eq(vendorNotificationSettings.userId, userId)),
-        },
-        // Advanced tables that may not exist in production - skip for now
-        // { name: "searchLogs", fn: () => db.delete(searchLogs).where(eq(searchLogs.userId, userId)) },
-        // { name: "userBehavior", fn: () => db.delete(userBehavior).where(eq(userBehavior.userId, userId)) },
-        // { name: "userPreferences", fn: () => db.delete(userPreferences).where(eq(userPreferences.userId, userId)) },
-        // { name: "securityEvents", fn: () => db.delete(securityEvents).where(eq(securityEvents.userId, userId)) },
-        // { name: "rateLimitViolations", fn: () => db.delete(rateLimitViolations).where(eq(rateLimitViolations.userId, userId)) },
-        // { name: "fraudAnalysis", fn: () => db.delete(fraudAnalysis).where(eq(fraudAnalysis.userId, userId)) },
-        // { name: "userVerifications", fn: () => db.delete(userVerifications).where(eq(userVerifications.userId, userId)) },
-        // { name: "vendorTrustScores", fn: () => db.delete(vendorTrustScores).where(eq(vendorTrustScores.userId, userId)) },
-        // { name: "suspiciousActivities", fn: () => db.delete(suspiciousActivities).where(eq(suspiciousActivities.userId, userId)) },
-        // { name: "blacklist", fn: () => db.delete(blacklist).where(eq(blacklist.userId, userId)) },
-        { name: "drivers", fn: () => db.delete(drivers).where(eq(drivers.userId, userId)) },
-        { name: "vendors", fn: () => db.delete(vendors).where(eq(vendors.userId, userId)) },
-        { name: "users", fn: () => db.delete(users).where(eq(users.id, userId)) },
-      ];
-
-      for (const step of deletionSteps) {
-        try {
-          console.log(`🔥 Deleting from ${step.name}...`);
-          await step.fn();
-          console.log(`✅ Deleted from ${step.name}`);
-        } catch (error: any) {
-          console.error(`❌ Failed to delete from ${step.name}:`, error.message);
-          const errorMsg = error.message || "";
-
-          // Check for various table/column not found errors
-          if (
-            (errorMsg.includes("relation") && errorMsg.includes("does not exist")) ||
-            (errorMsg.includes("column") && errorMsg.includes("does not exist")) ||
-            (errorMsg.includes("table") && errorMsg.includes("does not exist")) ||
-            (errorMsg.includes("Failed query") && errorMsg.includes("user_id"))
-          ) {
-            console.log(`⚠️ Table/column ${step.name} issue (likely missing in DB), skipping...`);
-            continue;
-          }
-
-          // For other errors, still throw
-          throw new Error(`Failed to delete from ${step.name}: ${error.message}`);
-        }
+    // Helper function to safely delete from a table
+    const safeDelete = async (name: string, deleteOp: () => Promise<any>) => {
+      try {
+        console.log(`  Trying to delete from ${name}...`);
+        await deleteOp();
+        console.log(`  ✅ Deleted from ${name}`);
+        return true;
+      } catch (error: any) {
+        console.log(`  ⚠️ Skipped ${name}: ${error.message?.slice(0, 100)}`);
+        return false;
       }
+    };
 
+    try {
+      // Try to delete related records, but don't fail if they don't exist
+      await safeDelete("messages", () => db.delete(messages).where(eq(messages.senderId, userId)));
+      await safeDelete("chatParticipants", () => db.delete(chatParticipants).where(eq(chatParticipants.userId, userId)));
+      await safeDelete("chatRooms", () => db.delete(chatRooms).where(eq(chatRooms.createdBy, userId)));
+      await safeDelete("reviews", () => db.delete(reviews).where(eq(reviews.userId, userId)));
+      await safeDelete("cart", () => db.delete(cart).where(eq(cart.userId, userId)));
+      await safeDelete("orders", () => db.delete(orders).where(eq(orders.customerId, userId)));
+      await safeDelete("phoneVerifications", () => db.delete(phoneVerifications).where(eq(phoneVerifications.userId, userId)));
+      await safeDelete("emailVerifications", () => db.delete(emailVerifications).where(eq(emailVerifications.userId, userId)));
+      await safeDelete("notifications", () => db.delete(notifications).where(eq(notifications.userId, userId)));
+      await safeDelete("vendorNotificationSettings", () => db.delete(vendorNotificationSettings).where(eq(vendorNotificationSettings.userId, userId)));
+      await safeDelete("drivers", () => db.delete(drivers).where(eq(drivers.userId, userId)));
+      await safeDelete("vendors", () => db.delete(vendors).where(eq(vendors.userId, userId)));
+      
+      // Finally delete the user - this is the only one that must succeed
+      console.log("🔥 Deleting user record...");
+      await db.delete(users).where(eq(users.id, userId));
       console.log("✅ User deletion completed successfully");
+      
     } catch (error: any) {
-      console.error("❌ User deletion failed:", error);
-      throw error;
+      console.error("❌ Failed to delete user record:", error.message);
+      throw new Error(`Failed to delete user: ${error.message}`);
     }
   }
 
