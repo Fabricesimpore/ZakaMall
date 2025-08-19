@@ -591,6 +591,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid role" });
       }
 
+      // IMPORTANT: Protect admin users from losing admin role
+      const currentUser = await storage.getUser(userId);
+      if (currentUser?.role === "admin") {
+        console.log("❌ Blocked attempt to demote admin user via set-role endpoint");
+        return res.status(403).json({ message: "Cannot change admin role via this endpoint" });
+      }
+
       const updatedUser = await storage.updateUserRole(userId, role);
       res.json(updatedUser);
     } catch (error) {
@@ -649,6 +656,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating emergency admin:", error);
       res.status(500).json({ message: "Failed to create emergency admin" });
+    }
+  });
+
+  // Emergency admin restore - for when admin user lost their role
+  app.post("/api/admin/emergency-restore", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      console.log("🚨 Emergency admin restore attempt by:", { id: userId, email: user?.email, role: user?.role });
+
+      // Check if this user's email matches known admin emails
+      const adminEmails = ["fabricesimpore08@gmail.com"]; // Add your admin email here
+      
+      if (!user || !adminEmails.includes(user.email || "")) {
+        return res.status(403).json({
+          message: "Emergency restore only available for designated admin emails",
+        });
+      }
+
+      if (user.role === "admin") {
+        return res.json({
+          message: "User already has admin role",
+          user: user,
+        });
+      }
+
+      // Restore admin role
+      console.log("🔧 Restoring admin role for:", user.email);
+      const updatedUser = await storage.updateUserRole(userId, "admin");
+      
+      res.json({
+        message: "Admin role restored successfully",
+        user: updatedUser,
+      });
+    } catch (error) {
+      console.error("Error restoring admin role:", error);
+      res.status(500).json({ message: "Failed to restore admin role" });
     }
   });
 
