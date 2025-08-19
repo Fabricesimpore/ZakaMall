@@ -50,12 +50,20 @@ export function serveStaticFiles(app: Express) {
   // Serve static files
   app.use(express.static(staticPath));
 
-  // SPA fallback to index.html
-  app.use("*", (req, res) => {
+  // SPA fallback to index.html for client-side routing
+  // This should catch all non-API routes and serve the React app
+  app.get("*", (req, res) => {
+    // Don't serve index.html for API routes
+    if (req.path.startsWith("/api/")) {
+      return res.status(404).json({ error: "API endpoint not found" });
+    }
+    
     const indexPath = path.join(staticPath!, "index.html");
     if (fs.existsSync(indexPath)) {
+      console.log(`Serving index.html for client route: ${req.path}`);
       res.sendFile(indexPath);
     } else {
+      console.error(`index.html not found at: ${indexPath}`);
       res.status(404).send(`
         <html>
           <head><title>ZakaMall - File Not Found</title></head>
