@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -278,6 +279,14 @@ export default function OrderTracking() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="mb-8">
+          <div className="flex items-center mb-4">
+            <Link href="/customer">
+              <Button variant="ghost" className="mr-4">
+                <i className="fas fa-arrow-left mr-2"></i>
+                Retour au marketplace
+              </Button>
+            </Link>
+          </div>
           <h1 className="text-3xl font-bold text-zaka-dark mb-2">Suivi des commandes</h1>
           <p className="text-gray-600">Suivez vos commandes et leur statut de livraison</p>
         </div>

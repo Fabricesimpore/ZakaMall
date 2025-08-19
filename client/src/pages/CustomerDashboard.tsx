@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useSearchAnalytics } from "@/hooks/useSearchAnalytics";
+import { useLocation } from "wouter";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
 import ProductSearch from "@/components/ProductSearch";
-import Cart from "@/components/Cart";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import RecommendationSection from "@/components/RecommendationSection";
 import { Button } from "@/components/ui/button";
@@ -14,9 +14,9 @@ import { Badge } from "@/components/ui/badge";
 export default function CustomerDashboard() {
   const { isLoading: authLoading } = useAuth();
   const { trackSearch } = useSearchAnalytics();
+  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [showCart, setShowCart] = useState(false);
   const [filters, setFilters] = useState({
     minPrice: 0,
     maxPrice: 1000000,
@@ -109,7 +109,7 @@ export default function CustomerDashboard() {
         <div className="flex flex-col md:flex-row justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-zaka-dark mb-4 md:mb-0">Marketplace</h1>
           <Button
-            onClick={() => setShowCart(!showCart)}
+            onClick={() => setLocation("/cart")}
             className="bg-zaka-orange hover:bg-zaka-orange relative"
           >
             <i className="fas fa-shopping-cart mr-2"></i>
@@ -248,19 +248,13 @@ export default function CustomerDashboard() {
             )}
           </div>
 
-          {/* Cart Sidebar */}
-          {showCart && (
-            <div className="w-80 h-[calc(100vh-12rem)] sticky top-20">
-              <Cart onClose={() => setShowCart(false)} />
-            </div>
-          )}
         </div>
       </div>
 
       {/* Mobile Cart FAB */}
       <div className="fixed bottom-20 right-4 md:hidden">
         <Button
-          onClick={() => setShowCart(!showCart)}
+          onClick={() => setLocation("/cart")}
           className="w-14 h-14 rounded-full bg-zaka-orange hover:bg-zaka-orange shadow-lg relative"
         >
           <i className="fas fa-shopping-cart text-xl"></i>
@@ -272,14 +266,6 @@ export default function CustomerDashboard() {
         </Button>
       </div>
 
-      {/* Mobile Cart Modal */}
-      {showCart && (
-        <div className="fixed inset-0 z-50 md:hidden bg-black bg-opacity-50">
-          <div className="fixed inset-x-0 bottom-0 h-[85vh] bg-white rounded-t-xl">
-            <Cart onClose={() => setShowCart(false)} />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

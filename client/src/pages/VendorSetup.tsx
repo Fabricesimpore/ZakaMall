@@ -36,8 +36,8 @@ const vendorSetupSchema = z
     businessAddress: z.string().min(5, "Localisation de votre entreprise requise"),
     businessPhone: z
       .string()
-      .min(8, "Numéro de téléphone professionnel requis")
-      .regex(/^(\+226)?[0-9]{8}$/, "Format: +226XXXXXXXX ou 8 chiffres"),
+      .min(12, "Numéro de téléphone professionnel requis")
+      .regex(/^\+226 \d{2} \d{2} \d{2} \d{2}$/, "Format requis: +226 XX XX XX XX"),
     taxId: z.string().optional(),
     paymentMethod: z.enum(["bank", "orange", "moov"], {
       required_error: "Mode de paiement requis",
@@ -241,9 +241,9 @@ export default function VendorSetup() {
           isStepValid = false;
           missingFields.push("Adresse");
         }
-        if (!formValues.businessPhone || formValues.businessPhone.length < 8) {
+        if (!formValues.businessPhone || formValues.businessPhone.length < 12 || !formValues.businessPhone.match(/^\+226 \d{2} \d{2} \d{2} \d{2}$/)) {
           isStepValid = false;
-          missingFields.push("Téléphone");
+          missingFields.push("Téléphone (format: +226 XX XX XX XX)");
         }
       } else if (step === 2) {
         if (!formValues.paymentMethod) {
@@ -415,7 +415,40 @@ export default function VendorSetup() {
                         <FormItem>
                           <FormLabel>Téléphone professionnel *</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input
+                              {...field}
+                              placeholder="+226 XX XX XX XX"
+                              onChange={(e) => {
+                                let value = e.target.value.replace(/\D/g, ""); // Remove all non-digits
+                                
+                                // Limit to 8 digits after +226
+                                if (value.length > 8) {
+                                  value = value.slice(0, 8);
+                                }
+                                
+                                // Format as +226 XX XX XX XX
+                                let formatted = "+226";
+                                if (value.length >= 2) {
+                                  formatted += ` ${value.slice(0, 2)}`;
+                                }
+                                if (value.length >= 4) {
+                                  formatted += ` ${value.slice(2, 4)}`;
+                                }
+                                if (value.length >= 6) {
+                                  formatted += ` ${value.slice(4, 6)}`;
+                                }
+                                if (value.length >= 8) {
+                                  formatted += ` ${value.slice(6, 8)}`;
+                                }
+                                
+                                field.onChange(formatted);
+                              }}
+                              onFocus={(e) => {
+                                if (!e.target.value) {
+                                  field.onChange("+226 ");
+                                }
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

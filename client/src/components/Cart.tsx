@@ -23,10 +23,13 @@ export default function Cart({ onClose }: CartProps) {
     queryKey: ["/api/cart"],
   });
 
-  // Restore cart from localStorage on component mount
+  // Restore cart from localStorage only once when component first mounts
   useEffect(() => {
-    restoreCart();
-  }, [restoreCart]);
+    // Only restore if there are actually items in server cart or we haven't cleared recently
+    if (cartItems.length === 0) {
+      restoreCart();
+    }
+  }, []); // Empty dependency array to run only once
 
   const updateCartMutation = useMutation({
     mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
@@ -289,20 +292,23 @@ export default function Cart({ onClose }: CartProps) {
                 </div>
               </div>
 
-              <div className="flex space-x-2 mt-4">
+              <div className="space-y-2 mt-4">
+                <Button
+                  className="w-full bg-zaka-green hover:bg-zaka-green py-3 text-lg font-semibold"
+                  onClick={() => setShowCheckout(true)}
+                  disabled={cartItems.length === 0}
+                >
+                  <i className="fas fa-check-circle mr-2"></i>
+                  Valider ma commande
+                </Button>
                 <Button
                   variant="outline"
                   onClick={() => clearCartMutation.mutate()}
-                  disabled={clearCartMutation.isPending}
-                  className="flex-1"
+                  disabled={clearCartMutation.isPending || cartItems.length === 0}
+                  className="w-full"
                 >
-                  Vider
-                </Button>
-                <Button
-                  className="bg-zaka-green hover:bg-zaka-green flex-2"
-                  onClick={() => setShowCheckout(true)}
-                >
-                  Commander
+                  <i className="fas fa-trash mr-2"></i>
+                  Vider le panier
                 </Button>
               </div>
             </div>

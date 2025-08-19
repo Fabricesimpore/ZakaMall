@@ -82,7 +82,10 @@ export default function AdvancedSearch() {
   });
 
   const [showFilters, setShowFilters] = useState(false);
-  const [priceRange, setPriceRange] = useState([0, 100000]);
+  const [priceRange, setPriceRange] = useState([
+    filters.priceMin || 0, 
+    filters.priceMax || 100000
+  ]);
 
   // Debounced search function
   const debouncedSearch = useCallback(
@@ -138,6 +141,8 @@ export default function AdvancedSearch() {
   const clearFilters = () => {
     const clearedFilters: SearchFilters = {
       query: filters.query,
+      priceMin: undefined,
+      priceMax: undefined,
       sortBy: "relevance",
       limit: 20,
       offset: 0,
@@ -178,8 +183,29 @@ export default function AdvancedSearch() {
               placeholder="Rechercher des produits..."
               value={filters.query || ""}
               onChange={(e) => updateFilters({ query: e.target.value })}
-              className="pl-10"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  // Force immediate search without debouncing
+                  const updatedFilters = { ...filters, query: e.currentTarget.value, offset: 0 };
+                  setFilters(updatedFilters);
+                  setLocation(`/search?${new URLSearchParams(Object.entries(updatedFilters).filter(([_, value]) => value !== undefined && value !== "" && value !== false).map(([key, value]) => [key, value.toString()])).toString()}`);
+                }
+              }}
+              className="pl-10 pr-12"
             />
+            <Button
+              size="sm"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 px-3"
+              onClick={() => {
+                // Force immediate search
+                const updatedFilters = { ...filters, offset: 0 };
+                setFilters(updatedFilters);
+                setLocation(`/search?${new URLSearchParams(Object.entries(updatedFilters).filter(([_, value]) => value !== undefined && value !== "" && value !== false).map(([key, value]) => [key, value.toString()])).toString()}`);
+              }}
+            >
+              <Search className="w-4 h-4" />
+            </Button>
           </div>
 
           <div className="flex items-center gap-2">

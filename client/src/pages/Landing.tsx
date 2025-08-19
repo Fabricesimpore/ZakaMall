@@ -8,10 +8,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useAuth } from "@/hooks/useAuth";
 import SignupModal from "@/components/SignupModal";
 import LoginModal from "@/components/LoginModal";
 
 export default function Landing() {
+  const { user, isAuthenticated } = useAuth();
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isCustomerSignupOpen, setIsCustomerSignupOpen] = useState(false);
@@ -20,6 +22,10 @@ export default function Landing() {
 
   const _handleLogin = () => {
     setIsLoginOpen(true);
+  };
+
+  const handleLogout = () => {
+    window.location.href = "/api/logout";
   };
 
   return (
@@ -63,35 +69,53 @@ export default function Landing() {
                 Livraison
               </a>
               <div className="flex space-x-4">
-                <Dialog open={isSignupOpen} onOpenChange={setIsSignupOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-zaka-green text-white hover:bg-zaka-green px-4 py-2 rounded-lg transition-colors">
-                      S'inscrire
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Créer un compte ZakaMall</DialogTitle>
-                    </DialogHeader>
-                    <SignupModal onSuccess={() => setIsSignupOpen(false)} />
-                  </DialogContent>
-                </Dialog>
-                <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
-                  <DialogTrigger asChild>
+                {isAuthenticated ? (
+                  <div className="flex items-center space-x-4">
+                    <span className="text-zaka-dark">
+                      Bonjour, {user?.firstName || user?.email}
+                    </span>
                     <Button
-                      className="btn-force-visible hover:bg-zaka-orange/90 px-4 py-2 rounded-lg transition-colors font-medium"
-                      style={{ color: "white", backgroundColor: "#ff7722" }}
+                      onClick={handleLogout}
+                      variant="outline"
+                      className="px-4 py-2 rounded-lg transition-colors"
                     >
-                      Se connecter
+                      <i className="fas fa-sign-out-alt mr-2"></i>
+                      Se déconnecter
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Se connecter à ZakaMall</DialogTitle>
-                    </DialogHeader>
-                    <LoginModal onSuccess={() => setIsLoginOpen(false)} />
-                  </DialogContent>
-                </Dialog>
+                  </div>
+                ) : (
+                  <>
+                    <Dialog open={isSignupOpen} onOpenChange={setIsSignupOpen}>
+                      <DialogTrigger asChild>
+                        <Button className="bg-zaka-green text-white hover:bg-zaka-green px-4 py-2 rounded-lg transition-colors">
+                          S'inscrire
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Créer un compte ZakaMall</DialogTitle>
+                        </DialogHeader>
+                        <SignupModal onSuccess={() => setIsSignupOpen(false)} />
+                      </DialogContent>
+                    </Dialog>
+                    <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+                      <DialogTrigger asChild>
+                        <Button
+                          className="btn-force-visible hover:bg-zaka-orange/90 px-4 py-2 rounded-lg transition-colors font-medium"
+                          style={{ color: "white", backgroundColor: "#ff7722" }}
+                        >
+                          Se connecter
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Se connecter à ZakaMall</DialogTitle>
+                        </DialogHeader>
+                        <LoginModal onSuccess={() => setIsLoginOpen(false)} />
+                      </DialogContent>
+                    </Dialog>
+                  </>
+                )}
               </div>
             </div>
           </div>
