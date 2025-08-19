@@ -798,6 +798,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Direct database role check (no auth required for emergency)
+  app.post("/api/admin/check-db-role", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      // Only allow checking the protected admin email
+      if (email !== "simporefabrice15@gmail.com") {
+        return res.status(403).json({ message: "Can only check protected admin email" });
+      }
+      
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found in database" });
+      }
+      
+      res.json({
+        email: user.email,
+        role: user.role,
+        id: user.id,
+        message: `User role in database is: ${user.role}`
+      });
+    } catch (error) {
+      console.error("Error checking database role:", error);
+      res.status(500).json({ message: "Failed to check database role" });
+    }
+  });
+
+  // Direct database role update (no auth required for emergency)  
+  app.post("/api/admin/force-db-admin", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      // Only allow updating the protected admin email
+      if (email !== "simporefabrice15@gmail.com") {
+        return res.status(403).json({ message: "Can only update protected admin email" });
+      }
+      
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found in database" });
+      }
+      
+      console.log("🚨 FORCE updating user to admin:", { email: user.email, currentRole: user.role });
+      const updated = await storage.updateUserRole(user.id, "admin");
+      
+      res.json({
+        message: "User role forcefully updated to admin in database",
+        user: {
+          email: updated.email,
+          role: updated.role
+        }
+      });
+    } catch (error) {
+      console.error("Error forcing admin role:", error);
+      res.status(500).json({ message: "Failed to force admin role" });
+    }
+  });
+
   // Vendor routes
   app.post("/api/vendors", isAuthenticated, async (req: any, res) => {
     try {

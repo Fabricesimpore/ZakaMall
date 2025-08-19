@@ -102,6 +102,13 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 // Helper function to create user session
 export function createUserSession(req: any, user: any): Promise<void> {
   return new Promise((resolve, reject) => {
+    console.log("🔐 Creating user session for:", {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      isAdmin: user.role === "admin"
+    });
+    
     const userSession = {
       claims: {
         sub: user.id,
