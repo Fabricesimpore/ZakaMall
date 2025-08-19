@@ -38,7 +38,13 @@ const vendorSetupSchema = z
       .string()
       .min(12, "Numéro de téléphone professionnel requis")
       .regex(/^\+226 \d{2} \d{2} \d{2} \d{2}$/, "Format requis: +226 XX XX XX XX"),
-    taxId: z.string().optional(),
+    taxId: z.string().optional().refine((val) => {
+      if (!val) return true; // Optional field
+      // IFU format in Burkina Faso: 8 digits
+      return /^\d{8}$/.test(val);
+    }, {
+      message: "L'IFU doit contenir exactement 8 chiffres",
+    }),
     paymentMethod: z.enum(["bank", "orange", "moov"], {
       required_error: "Mode de paiement requis",
     }),
@@ -48,8 +54,16 @@ const vendorSetupSchema = z
     // Mobile money fields (conditional)
     mobileMoneyNumber: z.string().optional(),
     mobileMoneyName: z.string().optional(),
-    identityDocument: z.string().optional(),
+    identityDocument: z.string().min(1, "Le numéro de pièce d'identité est requis").refine((val) => {
+      // CNI format in Burkina Faso: 1 letter + 8 digits (e.g., B12345678)
+      // Passport format: 2 letters + 7 digits (e.g., BF1234567)
+      return /^[A-Z]\d{8}$/.test(val) || /^[A-Z]{2}\d{7}$/.test(val);
+    }, {
+      message: "Format CNI: B12345678 ou Passeport: BF1234567",
+    }),
+    identityDocumentPhoto: z.string().min(1, "La photo de la pièce d'identité est requise"),
     businessLicense: z.string().optional(),
+    businessLicensePhoto: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -113,7 +127,9 @@ export default function VendorSetup() {
       mobileMoneyNumber: "",
       mobileMoneyName: "",
       identityDocument: "",
+      identityDocumentPhoto: "",
       businessLicense: "",
+      businessLicensePhoto: "",
     },
   });
 
@@ -194,7 +210,7 @@ export default function VendorSetup() {
   };
 
   const nextStep = async () => {
-    if (step < 3) {
+    if (step <= 3) {
       // Validate current step before proceeding
       let fieldsToValidate: (keyof VendorSetupForm)[] = [];
 
@@ -214,6 +230,8 @@ export default function VendorSetup() {
         } else if (paymentMethod === "orange" || paymentMethod === "moov") {
           fieldsToValidate.push("mobileMoneyNumber", "mobileMoneyName");
         }
+      } else if (step === 3) {
+        fieldsToValidate = ["identityDocument", "identityDocumentPhoto"];
       }
 
       // Manual validation to avoid automatic form submission
@@ -267,6 +285,15 @@ export default function VendorSetup() {
             isStepValid = false;
             missingFields.push("Nom titulaire");
           }
+        }
+      } else if (step === 3) {
+        if (!formValues.identityDocument || !formValues.identityDocument.match(/^[A-Z]\d{8}$|^[A-Z]{2}\d{7}$/)) {
+          isStepValid = false;
+          missingFields.push("Numéro de pièce d'identité valide");
+        }
+        if (!formValues.identityDocumentPhoto) {
+          isStepValid = false;
+          missingFields.push("Photo de la pièce d'identité");
         }
       }
 
@@ -565,10 +592,24 @@ export default function VendorSetup() {
                       name="taxId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Numéro d'identification fiscale (IFU)</FormLabel>
+                          <FormLabel className="flex items-center">
+                            <i className="fas fa-building mr-2 text-gray-500"></i>
+                            Numéro d'identification fiscale (IFU) - Optionnel
+                          </FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input 
+                              {...field} 
+                              placeholder="Ex: 12345678 (8 chiffres)"
+                              onChange={(e) => {
+                                // Allow only digits and limit to 8
+                                const value = e.target.value.replace(/\D/g, "").slice(0, 8);
+                                field.onChange(value);
+                              }}
+                            />
                           </FormControl>
+                          <p className="text-xs text-gray-500">
+                            8 chiffres - Peut être fourni plus tard
+                          </p>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -577,20 +618,109 @@ export default function VendorSetup() {
                 )}
 
                 {step === 3 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Documents</h3>
-                    <p className="text-sm text-gray-600">
-                      Les documents peuvent être fournis plus tard ou envoyés par WhatsApp.
-                    </p>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold">Vérification d'identité</h3>
+                      <p className="text-sm text-gray-600">
+                        Pour la sécurité de la plateforme, nous devons vérifier votre identité.
+                      </p>
+                    </div>
+
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="flex items-center mb-2">
+                        <i className="fas fa-shield-alt text-blue-600 mr-2"></i>
+                        <span className="font-medium text-blue-800">Pourquoi vérifier votre identité ?</span>
+                      </div>
+                      <ul className="text-sm text-blue-700 space-y-1">
+                        <li>• Protège les clients contre la fraude</li>
+                        <li>• Augmente la confiance des acheteurs</li>
+                        <li>• Respecte la réglementation burkinabè</li>
+                      </ul>
+                    </div>
 
                     <FormField
                       control={form.control}
                       name="identityDocument"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Pièce d'identité (CNI, Passeport)</FormLabel>
+                          <FormLabel className="flex items-center">
+                            <i className="fas fa-id-card mr-2 text-zaka-orange"></i>
+                            Numéro de pièce d'identité *
+                          </FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input 
+                              {...field} 
+                              placeholder="Ex: B12345678 (CNI) ou BF1234567 (Passeport)"
+                              onChange={(e) => {
+                                // Auto-format to uppercase
+                                field.onChange(e.target.value.toUpperCase());
+                              }}
+                            />
+                          </FormControl>
+                          <p className="text-xs text-gray-500">
+                            Format accepté: CNI (B12345678) ou Passeport (BF1234567)
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="identityDocumentPhoto"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center">
+                            <i className="fas fa-camera mr-2 text-zaka-orange"></i>
+                            Photo de la pièce d'identité *
+                          </FormLabel>
+                          <FormControl>
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-zaka-orange transition-colors">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    // For now, we'll use a placeholder URL
+                                    // In production, this would upload to Cloudinary
+                                    const reader = new FileReader();
+                                    reader.onload = (event) => {
+                                      field.onChange(event.target?.result as string);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                                className="hidden"
+                                id="identity-photo"
+                              />
+                              <label htmlFor="identity-photo" className="cursor-pointer">
+                                {field.value ? (
+                                  <div className="space-y-2">
+                                    <img 
+                                      src={field.value} 
+                                      alt="Pièce d'identité" 
+                                      className="max-h-32 mx-auto rounded-lg"
+                                    />
+                                    <p className="text-green-600 font-medium">
+                                      <i className="fas fa-check-circle mr-1"></i>
+                                      Photo téléchargée
+                                    </p>
+                                    <p className="text-xs text-gray-500">Cliquez pour changer</p>
+                                  </div>
+                                ) : (
+                                  <div className="space-y-2">
+                                    <i className="fas fa-cloud-upload-alt text-4xl text-gray-400"></i>
+                                    <p className="text-gray-600 font-medium">
+                                      Cliquez pour télécharger votre pièce d'identité
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      JPG, PNG ou PDF - Max 5MB
+                                    </p>
+                                  </div>
+                                )}
+                              </label>
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -602,9 +732,63 @@ export default function VendorSetup() {
                       name="businessLicense"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Registre du commerce (optionnel)</FormLabel>
+                          <FormLabel className="flex items-center">
+                            <i className="fas fa-certificate mr-2 text-gray-500"></i>
+                            Registre du commerce (optionnel)
+                          </FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} placeholder="Numéro du registre du commerce" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="businessLicensePhoto"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center">
+                            <i className="fas fa-camera mr-2 text-gray-500"></i>
+                            Photo du registre du commerce (optionnel)
+                          </FormLabel>
+                          <FormControl>
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (event) => {
+                                      field.onChange(event.target?.result as string);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                                className="hidden"
+                                id="license-photo"
+                              />
+                              <label htmlFor="license-photo" className="cursor-pointer">
+                                {field.value ? (
+                                  <div className="space-y-2">
+                                    <img 
+                                      src={field.value} 
+                                      alt="Registre du commerce" 
+                                      className="max-h-24 mx-auto rounded-lg"
+                                    />
+                                    <p className="text-green-600 text-sm">Photo téléchargée</p>
+                                  </div>
+                                ) : (
+                                  <div className="space-y-1">
+                                    <i className="fas fa-plus text-2xl text-gray-400"></i>
+                                    <p className="text-sm text-gray-600">Ajouter une photo</p>
+                                  </div>
+                                )}
+                              </label>
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
