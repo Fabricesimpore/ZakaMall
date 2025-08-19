@@ -453,7 +453,9 @@ export class DatabaseStorage implements IStorage {
     await db.delete(notifications).where(eq(notifications.userId, userId));
 
     // 11. Delete vendor notification settings
-    await db.delete(vendorNotificationSettings).where(eq(vendorNotificationSettings.userId, userId));
+    await db
+      .delete(vendorNotificationSettings)
+      .where(eq(vendorNotificationSettings.userId, userId));
 
     // 12. Delete search logs
     await db.delete(searchLogs).where(eq(searchLogs.userId, userId));

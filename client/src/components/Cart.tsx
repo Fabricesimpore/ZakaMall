@@ -29,6 +29,7 @@ export default function Cart({ onClose }: CartProps) {
     if (cartItems.length === 0) {
       restoreCart();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array to run only once
 
   const updateCartMutation = useMutation({
