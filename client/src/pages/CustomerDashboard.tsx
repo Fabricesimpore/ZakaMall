@@ -247,7 +247,6 @@ export default function CustomerDashboard() {
               </div>
             )}
           </div>
-
         </div>
       </div>
 
@@ -265,7 +264,6 @@ export default function CustomerDashboard() {
           )}
         </Button>
       </div>
-
     </div>
   );
 }

@@ -38,13 +38,19 @@ const vendorSetupSchema = z
       .string()
       .min(12, "Numéro de téléphone professionnel requis")
       .regex(/^\+226 \d{2} \d{2} \d{2} \d{2}$/, "Format requis: +226 XX XX XX XX"),
-    taxId: z.string().optional().refine((val) => {
-      if (!val) return true; // Optional field
-      // IFU format in Burkina Faso: 8 digits
-      return /^\d{8}$/.test(val);
-    }, {
-      message: "L'IFU doit contenir exactement 8 chiffres",
-    }),
+    taxId: z
+      .string()
+      .optional()
+      .refine(
+        (val) => {
+          if (!val) return true; // Optional field
+          // IFU format in Burkina Faso: 8 digits
+          return /^\d{8}$/.test(val);
+        },
+        {
+          message: "L'IFU doit contenir exactement 8 chiffres",
+        }
+      ),
     paymentMethod: z.enum(["bank", "orange", "moov"], {
       required_error: "Mode de paiement requis",
     }),
@@ -54,13 +60,19 @@ const vendorSetupSchema = z
     // Mobile money fields (conditional)
     mobileMoneyNumber: z.string().optional(),
     mobileMoneyName: z.string().optional(),
-    identityDocument: z.string().min(1, "Le numéro de pièce d'identité est requis").refine((val) => {
-      // CNI format in Burkina Faso: 1 letter + 8 digits (e.g., B12345678)
-      // Passport format: 2 letters + 7 digits (e.g., BF1234567)
-      return /^[A-Z]\d{8}$/.test(val) || /^[A-Z]{2}\d{7}$/.test(val);
-    }, {
-      message: "Format CNI: B12345678 ou Passeport: BF1234567",
-    }),
+    identityDocument: z
+      .string()
+      .min(1, "Le numéro de pièce d'identité est requis")
+      .refine(
+        (val) => {
+          // CNI format in Burkina Faso: 1 letter + 8 digits (e.g., B12345678)
+          // Passport format: 2 letters + 7 digits (e.g., BF1234567)
+          return /^[A-Z]\d{8}$/.test(val) || /^[A-Z]{2}\d{7}$/.test(val);
+        },
+        {
+          message: "Format CNI: B12345678 ou Passeport: BF1234567",
+        }
+      ),
     identityDocumentPhoto: z.string().min(1, "La photo de la pièce d'identité est requise"),
     businessLicense: z.string().optional(),
     businessLicensePhoto: z.string().optional(),
@@ -259,7 +271,11 @@ export default function VendorSetup() {
           isStepValid = false;
           missingFields.push("Adresse");
         }
-        if (!formValues.businessPhone || formValues.businessPhone.length < 12 || !formValues.businessPhone.match(/^\+226 \d{2} \d{2} \d{2} \d{2}$/)) {
+        if (
+          !formValues.businessPhone ||
+          formValues.businessPhone.length < 12 ||
+          !formValues.businessPhone.match(/^\+226 \d{2} \d{2} \d{2} \d{2}$/)
+        ) {
           isStepValid = false;
           missingFields.push("Téléphone (format: +226 XX XX XX XX)");
         }
@@ -287,7 +303,10 @@ export default function VendorSetup() {
           }
         }
       } else if (step === 3) {
-        if (!formValues.identityDocument || !formValues.identityDocument.match(/^[A-Z]\d{8}$|^[A-Z]{2}\d{7}$/)) {
+        if (
+          !formValues.identityDocument ||
+          !formValues.identityDocument.match(/^[A-Z]\d{8}$|^[A-Z]{2}\d{7}$/)
+        ) {
           isStepValid = false;
           missingFields.push("Numéro de pièce d'identité valide");
         }
@@ -447,12 +466,12 @@ export default function VendorSetup() {
                               placeholder="+226 XX XX XX XX"
                               onChange={(e) => {
                                 let value = e.target.value.replace(/\D/g, ""); // Remove all non-digits
-                                
+
                                 // Limit to 8 digits after +226
                                 if (value.length > 8) {
                                   value = value.slice(0, 8);
                                 }
-                                
+
                                 // Format as +226 XX XX XX XX
                                 let formatted = "+226";
                                 if (value.length >= 2) {
@@ -467,7 +486,7 @@ export default function VendorSetup() {
                                 if (value.length >= 8) {
                                   formatted += ` ${value.slice(6, 8)}`;
                                 }
-                                
+
                                 field.onChange(formatted);
                               }}
                               onFocus={(e) => {
@@ -597,8 +616,8 @@ export default function VendorSetup() {
                             Numéro d'identification fiscale (IFU) - Optionnel
                           </FormLabel>
                           <FormControl>
-                            <Input 
-                              {...field} 
+                            <Input
+                              {...field}
                               placeholder="Ex: 12345678 (8 chiffres)"
                               onChange={(e) => {
                                 // Allow only digits and limit to 8
@@ -629,7 +648,9 @@ export default function VendorSetup() {
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <div className="flex items-center mb-2">
                         <i className="fas fa-shield-alt text-blue-600 mr-2"></i>
-                        <span className="font-medium text-blue-800">Pourquoi vérifier votre identité ?</span>
+                        <span className="font-medium text-blue-800">
+                          Pourquoi vérifier votre identité ?
+                        </span>
                       </div>
                       <ul className="text-sm text-blue-700 space-y-1">
                         <li>• Protège les clients contre la fraude</li>
@@ -648,8 +669,8 @@ export default function VendorSetup() {
                             Numéro de pièce d'identité *
                           </FormLabel>
                           <FormControl>
-                            <Input 
-                              {...field} 
+                            <Input
+                              {...field}
                               placeholder="Ex: B12345678 (CNI) ou BF1234567 (Passeport)"
                               onChange={(e) => {
                                 // Auto-format to uppercase
@@ -697,9 +718,9 @@ export default function VendorSetup() {
                               <label htmlFor="identity-photo" className="cursor-pointer">
                                 {field.value ? (
                                   <div className="space-y-2">
-                                    <img 
-                                      src={field.value} 
-                                      alt="Pièce d'identité" 
+                                    <img
+                                      src={field.value}
+                                      alt="Pièce d'identité"
                                       className="max-h-32 mx-auto rounded-lg"
                                     />
                                     <p className="text-green-600 font-medium">
@@ -774,9 +795,9 @@ export default function VendorSetup() {
                               <label htmlFor="license-photo" className="cursor-pointer">
                                 {field.value ? (
                                   <div className="space-y-2">
-                                    <img 
-                                      src={field.value} 
-                                      alt="Registre du commerce" 
+                                    <img
+                                      src={field.value}
+                                      alt="Registre du commerce"
                                       className="max-h-24 mx-auto rounded-lg"
                                     />
                                     <p className="text-green-600 text-sm">Photo téléchargée</p>

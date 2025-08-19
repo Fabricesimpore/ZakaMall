@@ -82,10 +82,7 @@ export default function AdvancedSearch() {
   });
 
   const [showFilters, setShowFilters] = useState(false);
-  const [priceRange, setPriceRange] = useState([
-    filters.priceMin || 0, 
-    filters.priceMax || 100000
-  ]);
+  const [priceRange, setPriceRange] = useState([filters.priceMin || 0, filters.priceMax || 100000]);
 
   // Debounced search function
   const debouncedSearch = useCallback(
@@ -189,7 +186,15 @@ export default function AdvancedSearch() {
                   // Force immediate search without debouncing
                   const updatedFilters = { ...filters, query: e.currentTarget.value, offset: 0 };
                   setFilters(updatedFilters);
-                  setLocation(`/search?${new URLSearchParams(Object.entries(updatedFilters).filter(([_, value]) => value !== undefined && value !== "" && value !== false).map(([key, value]) => [key, value.toString()])).toString()}`);
+                  setLocation(
+                    `/search?${new URLSearchParams(
+                      Object.entries(updatedFilters)
+                        .filter(
+                          ([_, value]) => value !== undefined && value !== "" && value !== false
+                        )
+                        .map(([key, value]) => [key, value.toString()])
+                    ).toString()}`
+                  );
                 }
               }}
               className="pl-10 pr-12"
@@ -201,7 +206,15 @@ export default function AdvancedSearch() {
                 // Force immediate search
                 const updatedFilters = { ...filters, offset: 0 };
                 setFilters(updatedFilters);
-                setLocation(`/search?${new URLSearchParams(Object.entries(updatedFilters).filter(([_, value]) => value !== undefined && value !== "" && value !== false).map(([key, value]) => [key, value.toString()])).toString()}`);
+                setLocation(
+                  `/search?${new URLSearchParams(
+                    Object.entries(updatedFilters)
+                      .filter(
+                        ([_, value]) => value !== undefined && value !== "" && value !== false
+                      )
+                      .map(([key, value]) => [key, value.toString()])
+                  ).toString()}`
+                );
               }}
             >
               <Search className="w-4 h-4" />
