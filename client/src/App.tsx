@@ -65,6 +65,12 @@ function Router() {
       <Route path="/create-admin" component={CreateAdmin} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/profile" component={AdminProfile} />
+      
+      {/* Setup routes - accessible during post-registration flow */}
+      <Route path="/vendor-setup" component={VendorSetup} />
+      <Route path="/driver-setup" component={DriverSetup} />
+      <Route path="/vendor-pending" component={VendorPending} />
+      <Route path="/driver-pending" component={DriverPending} />
 
       {!isAuthenticated ? (
         <Route path="/" component={Landing} />
@@ -84,10 +90,6 @@ function Router() {
           <Route path="/driver" component={DriverDashboard} />
           <Route path="/profile" component={Profile} />
           <Route path="/chat" component={Chat} />
-          <Route path="/vendor-setup" component={VendorSetup} />
-          <Route path="/driver-setup" component={DriverSetup} />
-          <Route path="/vendor-pending" component={VendorPending} />
-          <Route path="/driver-pending" component={DriverPending} />
         </>
       )}
       <Route component={NotFound} />

@@ -27,7 +27,24 @@ type UnauthorizedBehavior = "returnNull" | "throw";
 export const getQueryFn: <T>(_options: { on401: UnauthorizedBehavior }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    // Handle query parameters properly
+    let url = queryKey[0] as string;
+    if (queryKey.length > 1 && typeof queryKey[1] === 'object' && queryKey[1] !== null) {
+      const params = new URLSearchParams();
+      Object.entries(queryKey[1] as Record<string, string>).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          params.append(key, value);
+        }
+      });
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+    } else if (queryKey.length > 1) {
+      // Fallback to original behavior for non-object query keys
+      url = queryKey.join("/");
+    }
+
+    const res = await fetch(url, {
       credentials: "include",
     });
 

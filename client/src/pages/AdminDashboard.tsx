@@ -48,6 +48,12 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Debug logging
+  console.log("AdminDashboard - User:", user);
+  console.log("AdminDashboard - Auth loading:", authLoading);
+  console.log("AdminDashboard - User role:", user?.role);
+  console.log("AdminDashboard - Is admin check:", !!user && user.role === "admin");
+
   // Create user form state
   const [createUserDialogOpen, setCreateUserDialogOpen] = useState(false);
   const [createUserForm, setCreateUserForm] = useState({
@@ -79,7 +85,7 @@ export default function AdminDashboard() {
     enabled: !!user && user.role === "admin",
   });
 
-  const { data: allUsers = [], isLoading: usersLoading } = useQuery({
+  const { data: allUsers = [], isLoading: usersLoading, error: usersError } = useQuery({
     queryKey: ["/api/admin/users"],
     enabled: !!user && user.role === "admin",
   });
@@ -89,7 +95,7 @@ export default function AdminDashboard() {
     enabled: !!user && user.role === "admin",
   });
 
-  const { data: pendingVendors = [], isLoading: vendorsLoading } = useQuery({
+  const { data: pendingVendors = [], isLoading: vendorsLoading, error: vendorsError } = useQuery({
     queryKey: ["/api/vendors", { status: "pending" }],
     enabled: !!user && user.role === "admin",
   });
@@ -470,6 +476,14 @@ export default function AdminDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {vendorsError && (
+                    <div className="bg-red-50 border border-red-200 p-4 rounded-lg mb-4">
+                      <p className="text-red-600 text-sm">
+                        <i className="fas fa-exclamation-circle mr-2"></i>
+                        Erreur lors du chargement des demandes vendeurs: {(vendorsError as Error).message}
+                      </p>
+                    </div>
+                  )}
                   {vendorsLoading ? (
                     <div className="space-y-4">
                       {[...Array(3)].map((_, i) => (
@@ -1209,6 +1223,14 @@ export default function AdminDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
+                {usersError && (
+                  <div className="bg-red-50 border border-red-200 p-4 rounded-lg mb-4">
+                    <p className="text-red-600 text-sm">
+                      <i className="fas fa-exclamation-circle mr-2"></i>
+                      Erreur lors du chargement des utilisateurs: {(usersError as Error).message}
+                    </p>
+                  </div>
+                )}
                 {usersLoading ? (
                   <div className="space-y-4">
                     {[...Array(5)].map((_, i) => (

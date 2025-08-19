@@ -467,14 +467,46 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getVendors(status?: "pending" | "approved" | "rejected" | "suspended"): Promise<Vendor[]> {
+    const baseQuery = db
+      .select({
+        id: vendors.id,
+        userId: vendors.userId,
+        businessName: vendors.businessName,
+        shopName: vendors.shopName,
+        businessDescription: vendors.businessDescription,
+        businessAddress: vendors.businessAddress,
+        businessPhone: vendors.businessPhone,
+        taxId: vendors.taxId,
+        paymentMethod: vendors.paymentMethod,
+        bankAccount: vendors.bankAccount,
+        bankName: vendors.bankName,
+        mobileMoneyNumber: vendors.mobileMoneyNumber,
+        mobileMoneyName: vendors.mobileMoneyName,
+        identityDocument: vendors.identityDocument,
+        identityDocumentPhoto: vendors.identityDocumentPhoto,
+        businessLicense: vendors.businessLicense,
+        businessLicensePhoto: vendors.businessLicensePhoto,
+        status: vendors.status,
+        createdAt: vendors.createdAt,
+        updatedAt: vendors.updatedAt,
+        user: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          phone: users.phone,
+          role: users.role,
+          createdAt: users.createdAt,
+        }
+      })
+      .from(vendors)
+      .leftJoin(users, eq(vendors.userId, users.id))
+      .orderBy(desc(vendors.createdAt));
+
     if (status) {
-      return await db
-        .select()
-        .from(vendors)
-        .where(eq(vendors.status, status))
-        .orderBy(desc(vendors.createdAt));
+      return await baseQuery.where(eq(vendors.status, status));
     }
-    return await db.select().from(vendors).orderBy(desc(vendors.createdAt));
+    return await baseQuery;
   }
 
   async updateVendorStatus(
