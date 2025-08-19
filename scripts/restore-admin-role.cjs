@@ -13,7 +13,7 @@ async function restoreAdminRole() {
 
     // Find user(s) that should be admin (you can modify the email here)
     const adminEmails = [
-      'fabricesimpore08@gmail.com', // Add the correct admin email here
+      'simporefabrice15@gmail.com', // Protected admin email
       // Add more admin emails if needed
     ];
 

@@ -668,7 +668,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🚨 Emergency admin restore attempt by:", { id: userId, email: user?.email, role: user?.role });
 
       // Check if this user's email matches known admin emails
-      const adminEmails = ["fabricesimpore08@gmail.com"]; // Add your admin email here
+      const adminEmails = ["simporefabrice15@gmail.com"]; // Protected admin email
       
       if (!user || !adminEmails.includes(user.email || "")) {
         return res.status(403).json({
