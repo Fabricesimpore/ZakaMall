@@ -37,7 +37,7 @@ async function runStartupMigrations() {
   try {
     // Run the shop_name column migration
     console.log('📝 Running shop_name column migration...');
-    await runCommand('node', ['scripts/add-shop-name-column.js']);
+    await runCommand('node', ['scripts/add-shop-name-column.cjs']);
     
     console.log('🎉 All startup migrations completed successfully!');
   } catch (error) {
