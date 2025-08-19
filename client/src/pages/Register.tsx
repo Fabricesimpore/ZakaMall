@@ -95,9 +95,10 @@ export default function Register() {
       if (response.ok) {
         toast({
           title: "Inscription réussie",
-          description: "Votre compte a été créé avec succès. Connectez-vous maintenant.",
+          description: "Votre compte a été créé avec succès. Connexion automatique...",
         });
-        setLocation("/");
+        // Force page reload to refresh auth state after session creation
+        window.location.href = "/";
       } else {
         throw new Error(data.message || "Code invalide");
       }

@@ -2738,16 +2738,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Welcome email sending failed:", emailError);
       }
 
-      // Establish session for the new user (simulate login)
-      const userSession = {
-        claims: { sub: user.id },
-        isAuthenticated: true,
-      };
-
-      // Set up session similar to how Replit auth does it
-      (req as any).user = userSession;
-      if (req.session) {
-        (req.session as any).user = userSession;
+      // Create proper user session (same as login)
+      console.log("Creating session for verified user:", user.email);
+      try {
+        await createUserSession(req, user);
+        console.log("Session created successfully for verified user:", user.email);
+      } catch (sessionError) {
+        console.error("Session creation failed for verified user:", sessionError);
+        // Don't fail the verification if session creation fails
+        // User can still login manually
       }
 
       res.json({ message: "Compte créé avec succès", user: { id: user.id, email: user.email } });
