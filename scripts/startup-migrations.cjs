@@ -9,12 +9,12 @@ function runCommand(command, args = []) {
   return new Promise((resolve, reject) => {
     console.log(`🔄 Running: ${command} ${args.join(' ')}`);
     
-    const process = spawn(command, args, {
+    const childProcess = spawn(command, args, {
       stdio: 'inherit',
       env: { ...process.env }
     });
 
-    process.on('close', (code) => {
+    childProcess.on('close', (code) => {
       if (code === 0) {
         console.log(`✅ Command completed successfully: ${command}`);
         resolve();
@@ -24,7 +24,7 @@ function runCommand(command, args = []) {
       }
     });
 
-    process.on('error', (error) => {
+    childProcess.on('error', (error) => {
       console.error(`❌ Error running command: ${command}`, error);
       reject(error);
     });
