@@ -420,81 +420,53 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(userId: string): Promise<void> {
-    // Delete in correct order to handle foreign key constraints
+    try {
+      console.log("🗑️ Starting user deletion for:", userId);
+      
+      // Delete in correct order to handle foreign key constraints
+      const deletionSteps = [
+        { name: "messages", fn: () => db.delete(messages).where(eq(messages.senderId, userId)) },
+        { name: "chatParticipants", fn: () => db.delete(chatParticipants).where(eq(chatParticipants.userId, userId)) },
+        { name: "chatRooms", fn: () => db.delete(chatRooms).where(eq(chatRooms.createdBy, userId)) },
+        { name: "reviews", fn: () => db.delete(reviews).where(eq(reviews.userId, userId)) },
+        { name: "reviewVotes", fn: () => db.delete(reviewVotes).where(eq(reviewVotes.userId, userId)) },
+        { name: "cart", fn: () => db.delete(cart).where(eq(cart.userId, userId)) },
+        { name: "orders", fn: () => db.delete(orders).where(eq(orders.customerId, userId)) },
+        { name: "phoneVerifications", fn: () => db.delete(phoneVerifications).where(eq(phoneVerifications.userId, userId)) },
+        { name: "emailVerifications", fn: () => db.delete(emailVerifications).where(eq(emailVerifications.userId, userId)) },
+        { name: "notifications", fn: () => db.delete(notifications).where(eq(notifications.userId, userId)) },
+        { name: "vendorNotificationSettings", fn: () => db.delete(vendorNotificationSettings).where(eq(vendorNotificationSettings.userId, userId)) },
+        { name: "searchLogs", fn: () => db.delete(searchLogs).where(eq(searchLogs.userId, userId)) },
+        { name: "userBehavior", fn: () => db.delete(userBehavior).where(eq(userBehavior.userId, userId)) },
+        { name: "userPreferences", fn: () => db.delete(userPreferences).where(eq(userPreferences.userId, userId)) },
+        { name: "securityEvents", fn: () => db.delete(securityEvents).where(eq(securityEvents.userId, userId)) },
+        { name: "rateLimitViolations", fn: () => db.delete(rateLimitViolations).where(eq(rateLimitViolations.userId, userId)) },
+        { name: "fraudAnalysis", fn: () => db.delete(fraudAnalysis).where(eq(fraudAnalysis.userId, userId)) },
+        { name: "userVerifications", fn: () => db.delete(userVerifications).where(eq(userVerifications.userId, userId)) },
+        { name: "vendorTrustScores", fn: () => db.delete(vendorTrustScores).where(eq(vendorTrustScores.userId, userId)) },
+        { name: "suspiciousActivities", fn: () => db.delete(suspiciousActivities).where(eq(suspiciousActivities.userId, userId)) },
+        { name: "blacklist", fn: () => db.delete(blacklist).where(eq(blacklist.userId, userId)) },
+        { name: "drivers", fn: () => db.delete(drivers).where(eq(drivers.userId, userId)) },
+        { name: "vendors", fn: () => db.delete(vendors).where(eq(vendors.userId, userId)) },
+        { name: "users", fn: () => db.delete(users).where(eq(users.id, userId)) },
+      ];
 
-    // 1. Delete messages sent by this user
-    await db.delete(messages).where(eq(messages.senderId, userId));
+      for (const step of deletionSteps) {
+        try {
+          console.log(`🔥 Deleting from ${step.name}...`);
+          await step.fn();
+          console.log(`✅ Deleted from ${step.name}`);
+        } catch (error: any) {
+          console.error(`❌ Failed to delete from ${step.name}:`, error.message);
+          throw new Error(`Failed to delete from ${step.name}: ${error.message}`);
+        }
+      }
 
-    // 2. Delete chat participants
-    await db.delete(chatParticipants).where(eq(chatParticipants.userId, userId));
-
-    // 3. Delete chat rooms created by this user (messages already deleted)
-    await db.delete(chatRooms).where(eq(chatRooms.createdBy, userId));
-
-    // 4. Delete reviews by this user
-    await db.delete(reviews).where(eq(reviews.userId, userId));
-
-    // 5. Delete review votes by this user
-    await db.delete(reviewVotes).where(eq(reviewVotes.userId, userId));
-
-    // 6. Delete cart items
-    await db.delete(cart).where(eq(cart.userId, userId));
-
-    // 7. Delete orders where user is customer (order items will be handled by cascade)
-    await db.delete(orders).where(eq(orders.customerId, userId));
-
-    // 8. Delete phone verifications
-    await db.delete(phoneVerifications).where(eq(phoneVerifications.userId, userId));
-
-    // 9. Delete email verifications
-    await db.delete(emailVerifications).where(eq(emailVerifications.userId, userId));
-
-    // 10. Delete notifications
-    await db.delete(notifications).where(eq(notifications.userId, userId));
-
-    // 11. Delete vendor notification settings
-    await db
-      .delete(vendorNotificationSettings)
-      .where(eq(vendorNotificationSettings.userId, userId));
-
-    // 12. Delete search logs
-    await db.delete(searchLogs).where(eq(searchLogs.userId, userId));
-
-    // 13. Delete user behavior tracking
-    await db.delete(userBehavior).where(eq(userBehavior.userId, userId));
-
-    // 14. Delete user preferences
-    await db.delete(userPreferences).where(eq(userPreferences.userId, userId));
-
-    // 15. Delete security events
-    await db.delete(securityEvents).where(eq(securityEvents.userId, userId));
-
-    // 16. Delete rate limit violations
-    await db.delete(rateLimitViolations).where(eq(rateLimitViolations.userId, userId));
-
-    // 17. Delete fraud analysis records
-    await db.delete(fraudAnalysis).where(eq(fraudAnalysis.userId, userId));
-
-    // 18. Delete user verifications
-    await db.delete(userVerifications).where(eq(userVerifications.userId, userId));
-
-    // 19. Delete vendor trust scores
-    await db.delete(vendorTrustScores).where(eq(vendorTrustScores.userId, userId));
-
-    // 20. Delete suspicious activities
-    await db.delete(suspiciousActivities).where(eq(suspiciousActivities.userId, userId));
-
-    // 21. Delete from blacklist
-    await db.delete(blacklist).where(eq(blacklist.userId, userId));
-
-    // 22. Delete driver record if exists
-    await db.delete(drivers).where(eq(drivers.userId, userId));
-
-    // 23. Delete vendor record if exists (this might cascade to products)
-    await db.delete(vendors).where(eq(vendors.userId, userId));
-
-    // 24. Finally delete the user
-    await db.delete(users).where(eq(users.id, userId));
+      console.log("✅ User deletion completed successfully");
+    } catch (error: any) {
+      console.error("❌ User deletion failed:", error);
+      throw error;
+    }
   }
 
   // Vendor operations
