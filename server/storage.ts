@@ -458,6 +458,12 @@ export class DatabaseStorage implements IStorage {
           console.log(`✅ Deleted from ${step.name}`);
         } catch (error: any) {
           console.error(`❌ Failed to delete from ${step.name}:`, error.message);
+          // Check if it's a table not found error, in which case we can continue
+          if (error.message.includes('relation') && error.message.includes('does not exist')) {
+            console.log(`⚠️ Table ${step.name} does not exist, skipping...`);
+            continue;
+          }
+          // For other errors, still throw
           throw new Error(`Failed to delete from ${step.name}: ${error.message}`);
         }
       }
