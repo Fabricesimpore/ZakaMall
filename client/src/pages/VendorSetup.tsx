@@ -229,6 +229,7 @@ export default function VendorSetup() {
       if (step === 1) {
         fieldsToValidate = [
           "businessName",
+          "shopName",
           "businessDescription",
           "businessAddress",
           "businessPhone",
