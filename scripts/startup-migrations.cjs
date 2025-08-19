@@ -35,9 +35,9 @@ async function runStartupMigrations() {
   console.log('🚀 Starting database migrations...');
   
   try {
-    // Run the shop_name column migration
-    console.log('📝 Running shop_name column migration...');
-    await runCommand('node', ['scripts/add-shop-name-column.cjs']);
+    // Run comprehensive vendors schema sync
+    console.log('📝 Running vendors schema sync...');
+    await runCommand('node', ['scripts/sync-vendors-schema.cjs']);
     
     console.log('🎉 All startup migrations completed successfully!');
   } catch (error) {

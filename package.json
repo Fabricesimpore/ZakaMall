@@ -20,6 +20,8 @@
     "db:migrate:prod": "NODE_ENV=production node scripts/run-production-migrations.js",
     "db:add-shop-name": "node scripts/add-shop-name-column.cjs",
     "db:add-shop-name:prod": "NODE_ENV=production node scripts/add-shop-name-column.cjs",
+    "db:sync-vendors": "node scripts/sync-vendors-schema.cjs",
+    "db:sync-vendors:prod": "NODE_ENV=production node scripts/sync-vendors-schema.cjs",
     "health": "curl -f http://localhost:${PORT:-5000}/health || exit 1"
   },
   "dependencies": {
