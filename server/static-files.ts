@@ -57,7 +57,7 @@ export function serveStaticFiles(app: Express) {
     if (req.path.startsWith("/api/")) {
       return res.status(404).json({ error: "API endpoint not found" });
     }
-    
+
     const indexPath = path.join(staticPath!, "index.html");
     if (fs.existsSync(indexPath)) {
       console.log(`Serving index.html for client route: ${req.path}`);
