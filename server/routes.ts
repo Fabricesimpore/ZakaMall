@@ -697,6 +697,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug endpoint to check user role in database vs session
+  app.get("/api/admin/debug-role", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const dbUser = await storage.getUser(userId);
+      const sessionUser = (req as any).session?.user;
+      
+      res.json({
+        database: {
+          id: dbUser?.id,
+          email: dbUser?.email,
+          role: dbUser?.role
+        },
+        session: {
+          id: sessionUser?.claims?.sub,
+          role: sessionUser?.user?.role,
+          isAuthenticated: sessionUser?.isAuthenticated
+        }
+      });
+    } catch (error) {
+      console.error("Error checking role debug:", error);
+      res.status(500).json({ message: "Failed to check role debug" });
+    }
+  });
+
+  // Force refresh session with current database user data
+  app.post("/api/auth/refresh-session", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const freshUser = await storage.getUser(userId);
+      
+      if (!freshUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Update session with fresh user data
+      if ((req as any).session?.user) {
+        console.log("🔄 Force refreshing session with database user:", { email: freshUser.email, role: freshUser.role });
+        (req as any).session.user.user = freshUser;
+        
+        // Save session to ensure it's persisted
+        (req as any).session.save((err: any) => {
+          if (err) {
+            console.error("Error saving session:", err);
+          } else {
+            console.log("✅ Session saved successfully");
+          }
+        });
+      }
+      
+      res.json({
+        message: "Session refreshed successfully",
+        user: freshUser
+      });
+    } catch (error) {
+      console.error("Error refreshing session:", error);
+      res.status(500).json({ message: "Failed to refresh session" });
+    }
+  });
+
   // Vendor routes
   app.post("/api/vendors", isAuthenticated, async (req: any, res) => {
     try {
