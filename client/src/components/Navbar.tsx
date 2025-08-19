@@ -20,7 +20,7 @@ import NotificationDropdown from "@/components/NotificationDropdown";
 
 export default function Navbar() {
   const { user, isLoading } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -29,8 +29,8 @@ export default function Navbar() {
 
   const handleGlobalSearch = (term: string) => {
     if (term.trim()) {
-      // Navigate to search page with search term
-      window.location.href = `/search?q=${encodeURIComponent(term)}`;
+      // Navigate to search page with search term using wouter
+      setLocation(`/search?q=${encodeURIComponent(term)}`);
     }
   };
 

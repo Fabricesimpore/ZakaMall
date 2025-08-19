@@ -34,10 +34,20 @@ const productFormSchema = z.object({
   name: z.string().min(1, "Le nom du produit est requis"),
   description: z.string().min(10, "La description doit contenir au moins 10 caractères"),
   categoryId: z.string().min(1, "La catégorie est requise"),
-  price: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-    message: "Le prix doit être un nombre positif",
+  price: z.string().refine((val) => {
+    const price = Number(val);
+    // Price must be between 100 CFA and 10,000,000 CFA
+    return !isNaN(price) && price >= 100 && price <= 10000000;
+  }, {
+    message: "Le prix doit être entre 100 CFA et 10,000,000 CFA",
   }),
-  compareAtPrice: z.string().optional(),
+  compareAtPrice: z.string().optional().refine((val) => {
+    if (!val) return true;
+    const price = Number(val);
+    return !isNaN(price) && price >= 100 && price <= 10000000;
+  }, {
+    message: "Le prix comparé doit être entre 100 CFA et 10,000,000 CFA",
+  }),
   sku: z.string().optional(),
   quantity: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
     message: "La quantité doit être un nombre positif",

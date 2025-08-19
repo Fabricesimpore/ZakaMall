@@ -31,6 +31,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 const vendorSetupSchema = z
   .object({
     businessName: z.string().min(3, "Le nom de l'entreprise doit avoir au moins 3 caractères"),
+    shopName: z.string().min(3, "Le nom de la boutique doit avoir au moins 3 caractères"),
     businessDescription: z.string().min(10, "La description doit avoir au moins 10 caractères"),
     businessAddress: z.string().min(5, "Localisation de votre entreprise requise"),
     businessPhone: z
@@ -101,6 +102,7 @@ export default function VendorSetup() {
     resolver: zodResolver(vendorSetupSchema),
     defaultValues: {
       businessName: "",
+      shopName: "",
       businessDescription: "",
       businessAddress: "",
       businessPhone: "",
@@ -226,6 +228,10 @@ export default function VendorSetup() {
         if (!formValues.businessName || formValues.businessName.length < 3) {
           isStepValid = false;
           missingFields.push("Nom de l'entreprise");
+        }
+        if (!formValues.shopName || formValues.shopName.length < 3) {
+          isStepValid = false;
+          missingFields.push("Nom de la boutique");
         }
         if (!formValues.businessDescription || formValues.businessDescription.length < 10) {
           isStepValid = false;
@@ -354,6 +360,20 @@ export default function VendorSetup() {
                           <FormLabel>Nom de l'entreprise *</FormLabel>
                           <FormControl>
                             <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="shopName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nom de la boutique *</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Ex: Boutique Chez Marie" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

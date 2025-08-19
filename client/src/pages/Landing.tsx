@@ -14,6 +14,9 @@ import LoginModal from "@/components/LoginModal";
 export default function Landing() {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isCustomerSignupOpen, setIsCustomerSignupOpen] = useState(false);
+  const [isVendorSignupOpen, setIsVendorSignupOpen] = useState(false);
+  const [isDriverSignupOpen, setIsDriverSignupOpen] = useState(false);
 
   const _handleLogin = () => {
     setIsLoginOpen(true);
@@ -107,7 +110,7 @@ export default function Landing() {
                 Connectant vendeurs, clients et livreurs avec des solutions de paiement locales
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Dialog>
+                <Dialog open={isSignupOpen} onOpenChange={setIsSignupOpen}>
                   <DialogTrigger asChild>
                     <Button className="bg-white text-zaka-orange px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
                       S'inscrire maintenant
@@ -117,7 +120,7 @@ export default function Landing() {
                     <DialogHeader>
                       <DialogTitle>Rejoindre ZakaMall</DialogTitle>
                     </DialogHeader>
-                    <SignupModal onSuccess={() => {}} />
+                    <SignupModal onSuccess={() => setIsSignupOpen(false)} />
                   </DialogContent>
                 </Dialog>
                 <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
@@ -177,7 +180,7 @@ export default function Landing() {
                   <li>✓ Livraison rapide</li>
                   <li>✓ Support en français</li>
                 </ul>
-                <Dialog>
+                <Dialog open={isCustomerSignupOpen} onOpenChange={setIsCustomerSignupOpen}>
                   <DialogTrigger asChild>
                     <Button className="w-full bg-zaka-blue text-white py-3 rounded-lg font-semibold hover:bg-zaka-blue transition-colors">
                       Commencer les achats
@@ -187,7 +190,7 @@ export default function Landing() {
                     <DialogHeader>
                       <DialogTitle>Inscription Client</DialogTitle>
                     </DialogHeader>
-                    <SignupModal onSuccess={() => {}} />
+                    <SignupModal onSuccess={() => setIsCustomerSignupOpen(false)} />
                   </DialogContent>
                 </Dialog>
               </CardContent>
@@ -209,7 +212,7 @@ export default function Landing() {
                   <li>✓ Analytics de vente</li>
                   <li>✓ Commission compétitive</li>
                 </ul>
-                <Dialog>
+                <Dialog open={isVendorSignupOpen} onOpenChange={setIsVendorSignupOpen}>
                   <DialogTrigger asChild>
                     <Button className="w-full bg-zaka-green text-white py-3 rounded-lg font-semibold">
                       Devenir vendeur
@@ -219,7 +222,7 @@ export default function Landing() {
                     <DialogHeader>
                       <DialogTitle>Inscription Vendeur</DialogTitle>
                     </DialogHeader>
-                    <SignupModal onSuccess={() => {}} />
+                    <SignupModal onSuccess={() => setIsVendorSignupOpen(false)} />
                   </DialogContent>
                 </Dialog>
               </CardContent>
@@ -241,7 +244,7 @@ export default function Landing() {
                   <li>✓ GPS intégré</li>
                   <li>✓ Support 24/7</li>
                 </ul>
-                <Dialog>
+                <Dialog open={isDriverSignupOpen} onOpenChange={setIsDriverSignupOpen}>
                   <DialogTrigger asChild>
                     <Button className="w-full bg-zaka-orange text-white py-3 rounded-lg font-semibold hover:bg-zaka-orange transition-colors">
                       Devenir livreur
@@ -251,7 +254,7 @@ export default function Landing() {
                     <DialogHeader>
                       <DialogTitle>Inscription Livreur</DialogTitle>
                     </DialogHeader>
-                    <SignupModal onSuccess={() => {}} />
+                    <SignupModal onSuccess={() => setIsDriverSignupOpen(false)} />
                   </DialogContent>
                 </Dialog>
               </CardContent>

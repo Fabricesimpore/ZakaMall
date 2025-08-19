@@ -91,6 +91,7 @@ export const vendors = pgTable("vendors", {
     .references(() => users.id)
     .notNull(),
   businessName: varchar("business_name").notNull(),
+  shopName: varchar("shop_name"),
   businessDescription: text("business_description"),
   businessAddress: text("business_address"),
   businessPhone: varchar("business_phone"),
@@ -594,15 +595,37 @@ export const insertProductSchema = createInsertSchema(products)
     updatedAt: true,
   })
   .extend({
-    // Transform number inputs to strings for decimal fields
-    price: z.union([z.string(), z.number()]).transform((val) => String(val)),
+    // Transform number inputs to strings for decimal fields with validation
+    price: z.union([z.string(), z.number()])
+      .refine((val) => {
+        const price = Number(val);
+        // Price must be between 100 CFA and 10,000,000 CFA
+        return !isNaN(price) && price >= 100 && price <= 10000000;
+      }, {
+        message: "Le prix doit être entre 100 CFA et 10,000,000 CFA",
+      })
+      .transform((val) => String(val)),
     compareAtPrice: z
       .union([z.string(), z.number(), z.null()])
+      .refine((val) => {
+        if (val === null || val === undefined) return true;
+        const price = Number(val);
+        return !isNaN(price) && price >= 100 && price <= 10000000;
+      }, {
+        message: "Le prix comparé doit être entre 100 CFA et 10,000,000 CFA",
+      })
       .transform((val) => (val === null ? null : String(val)))
       .optional()
       .nullable(),
     cost: z
       .union([z.string(), z.number(), z.null()])
+      .refine((val) => {
+        if (val === null || val === undefined) return true;
+        const cost = Number(val);
+        return !isNaN(cost) && cost >= 0 && cost <= 10000000;
+      }, {
+        message: "Le coût doit être entre 0 CFA et 10,000,000 CFA",
+      })
       .transform((val) => (val === null ? null : String(val)))
       .optional()
       .nullable(),
