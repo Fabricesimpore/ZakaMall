@@ -757,6 +757,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Nuclear option: Logout, restore admin role, and return login instructions
+  app.post("/api/admin/nuclear-restore", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      console.log("🚨 Nuclear admin restore for:", { email: user?.email, currentRole: user?.role });
+
+      // Check if this user's email matches protected admin email
+      if (!user || user.email !== "simporefabrice15@gmail.com") {
+        return res.status(403).json({
+          message: "Nuclear restore only available for protected admin email",
+        });
+      }
+
+      // Force update role to admin in database
+      console.log("🔧 Force updating role to admin in database");
+      await storage.updateUserRole(userId, "admin");
+
+      // Destroy the session completely
+      req.session?.destroy((err: any) => {
+        if (err) {
+          console.error("Session destruction error:", err);
+        } else {
+          console.log("💥 Session destroyed successfully");
+        }
+      });
+
+      // Clear the session cookie
+      res.clearCookie("connect.sid");
+      
+      res.json({
+        message: "Admin role restored and session cleared. Please log in again.",
+        action: "redirect_to_login"
+      });
+    } catch (error) {
+      console.error("Error in nuclear restore:", error);
+      res.status(500).json({ message: "Failed to perform nuclear restore" });
+    }
+  });
+
   // Vendor routes
   app.post("/api/vendors", isAuthenticated, async (req: any, res) => {
     try {
