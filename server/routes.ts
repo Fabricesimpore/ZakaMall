@@ -726,6 +726,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Simple session debug - no auth required
+  app.get("/api/debug/session-simple", (req: any, res) => {
+    const sessionUser = (req as any).session?.user;
+    res.json({
+      hasSession: !!sessionUser,
+      isAuthenticated: sessionUser?.isAuthenticated,
+      sessionUserId: sessionUser?.claims?.sub,
+      sessionRole: sessionUser?.user?.role,
+      sessionEmail: sessionUser?.user?.email,
+      fullSessionUser: sessionUser
+    });
+  });
+
   // Force refresh session with current database user data
   app.post("/api/auth/refresh-session", isAuthenticated, async (req: any, res) => {
     try {
