@@ -735,7 +735,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       sessionUserId: sessionUser?.claims?.sub,
       sessionRole: sessionUser?.user?.role,
       sessionEmail: sessionUser?.user?.email,
-      fullSessionUser: sessionUser
+      fullSessionUser: sessionUser,
     });
   });
 
