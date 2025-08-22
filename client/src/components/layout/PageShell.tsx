@@ -18,11 +18,7 @@ export default function PageShell({
   fullWidth = false,
 }: PageShellProps) {
   if (fullWidth) {
-    return (
-      <div className={cn("min-h-screen w-full overflow-x-hidden", className)}>
-        {children}
-      </div>
-    );
+    return <div className={cn("min-h-screen w-full overflow-x-hidden", className)}>{children}</div>;
   }
 
   return (

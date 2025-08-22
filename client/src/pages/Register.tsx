@@ -9,7 +9,7 @@ import PasswordInput from "@/components/PasswordInput";
 import { getPasswordStrength } from "@/lib/passwordValidation";
 
 export default function Register() {
-  const [, setLocation] = useLocation();
+  const [, _setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

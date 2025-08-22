@@ -4,17 +4,17 @@
  */
 
 export function detectOverflow(enable = true) {
-  if (!enable || process.env.NODE_ENV !== 'development') {
+  if (!enable || process.env.NODE_ENV !== "development") {
     return;
   }
 
   const checkElement = (element: Element) => {
     const rect = element.getBoundingClientRect();
     const isOverflowing = rect.right > window.innerWidth || rect.left < 0;
-    
+
     if (isOverflowing) {
       const styles = window.getComputedStyle(element);
-      console.warn('🚨 Overflow detected:', {
+      console.warn("🚨 Overflow detected:", {
         element,
         tag: element.tagName,
         class: element.className,
@@ -27,23 +27,23 @@ export function detectOverflow(enable = true) {
         overflow: styles.overflow,
         overflowX: styles.overflowX,
       });
-      
+
       // Visual indicator in development
-      (element as HTMLElement).style.outline = '2px solid red';
-      (element as HTMLElement).style.outlineOffset = '-2px';
+      (element as HTMLElement).style.outline = "2px solid red";
+      (element as HTMLElement).style.outlineOffset = "-2px";
     }
   };
 
   // Check all elements on page
   const checkAllElements = () => {
     // Reset previous outlines
-    document.querySelectorAll('[data-overflow-marked]').forEach(el => {
-      (el as HTMLElement).style.outline = '';
-      el.removeAttribute('data-overflow-marked');
+    document.querySelectorAll("[data-overflow-marked]").forEach((el) => {
+      (el as HTMLElement).style.outline = "";
+      el.removeAttribute("data-overflow-marked");
     });
 
     // Check each element
-    document.querySelectorAll('*').forEach(element => {
+    document.querySelectorAll("*").forEach((element) => {
       checkElement(element);
     });
   };
@@ -52,8 +52,8 @@ export function detectOverflow(enable = true) {
   setTimeout(checkAllElements, 1000);
 
   // Re-check on resize
-  let resizeTimeout: NodeJS.Timeout;
-  window.addEventListener('resize', () => {
+  let resizeTimeout: number;
+  window.addEventListener("resize", () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(checkAllElements, 250);
   });
@@ -70,21 +70,21 @@ export function detectOverflow(enable = true) {
 
   // Expose for manual debugging
   (window as any).checkOverflow = checkAllElements;
-  
-  console.log('🔍 Overflow detector enabled. Elements causing overflow will be outlined in red.');
-  console.log('   Run window.checkOverflow() to manually check.');
+
+  console.log("🔍 Overflow detector enabled. Elements causing overflow will be outlined in red.");
+  console.log("   Run window.checkOverflow() to manually check.");
 }
 
 // Helper to get all overflowing elements
 export function getOverflowingElements(): Element[] {
   const overflowing: Element[] = [];
-  
-  document.querySelectorAll('*').forEach(element => {
+
+  document.querySelectorAll("*").forEach((element) => {
     const rect = element.getBoundingClientRect();
     if (rect.right > window.innerWidth || rect.left < 0) {
       overflowing.push(element);
     }
   });
-  
+
   return overflowing;
 }

@@ -1,6 +1,6 @@
+import React, { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
-import { useEffect } from "react";
 
 interface RoleRedirectProps {
   allowedRoles: string[];
