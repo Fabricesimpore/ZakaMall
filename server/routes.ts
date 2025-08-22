@@ -972,6 +972,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { status } = req.body;
 
       const vendor = await storage.updateVendorStatus(id, status);
+      
+      // Sync all vendor products to search index when vendor status changes
+      try {
+        const { syncHooks } = await import("./services/product-sync");
+        await syncHooks.onVendorStatusChanged(id);
+      } catch (syncError) {
+        console.warn("⚠️ Failed to sync vendor products to search index:", syncError);
+      }
+
       res.json(vendor);
     } catch (error) {
       console.error("Error updating vendor status:", error);
@@ -1130,6 +1139,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const product = await storage.createProduct(productData);
       console.log("✅ Product created successfully:", product.id);
 
+      // Sync to search index
+      try {
+        const { syncHooks } = await import("./services/product-sync");
+        await syncHooks.onProductCreated(product.id);
+      } catch (syncError) {
+        console.warn("⚠️ Failed to sync product to search index:", syncError);
+      }
+
       res.json(product);
     } catch (error) {
       console.error("❌ Error creating product:");
@@ -1281,6 +1298,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const product = await storage.updateProduct(id, req.body);
+      
+      // Sync to search index
+      try {
+        const { syncHooks } = await import("./services/product-sync");
+        await syncHooks.onProductUpdated(id);
+      } catch (syncError) {
+        console.warn("⚠️ Failed to sync product to search index:", syncError);
+      }
+
       res.json(product);
     } catch (error) {
       console.error("Error updating product:", error);
@@ -1617,67 +1643,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Advanced Search API
+  // Meilisearch-based Search API
   app.get("/api/search", async (req, res) => {
-    try {
-      const {
-        q: query,
-        categoryId,
-        vendorId,
-        priceMin,
-        priceMax,
-        rating,
-        inStock,
-        isFeatured,
-        hasImages,
-        tags,
-        sortBy = "relevance",
-        limit = 20,
-        offset = 0,
-      } = req.query;
-
-      const filters: any = {
-        query: query as string,
-        categoryId: categoryId as string,
-        vendorId: vendorId as string,
-        priceMin: priceMin ? parseFloat(priceMin as string) : undefined,
-        priceMax: priceMax ? parseFloat(priceMax as string) : undefined,
-        rating: rating ? parseFloat(rating as string) : undefined,
-        inStock: inStock === "true",
-        isFeatured: isFeatured === "true",
-        hasImages: hasImages === "true",
-        tags: tags ? (Array.isArray(tags) ? tags : [tags]) : undefined,
-        sortBy: sortBy as any,
-        limit: parseInt(limit as string),
-        offset: parseInt(offset as string),
-      };
-
-      const result = await storage.searchProducts(filters);
-
-      // Log the search for analytics (if user is authenticated or has session)
-      try {
-        const sessionId = req.sessionID;
-        const userAgent = req.get("User-Agent");
-        const ipAddress = req.ip;
-
-        await storage.logSearch({
-          userId: req.session?.user?.id || null,
-          query: (query as string) || "",
-          resultsCount: result.total,
-          sessionId,
-          ipAddress,
-          userAgent,
-          filters: filters,
-        });
-      } catch (logError) {
-        console.warn("Failed to log search:", logError);
-      }
-
-      res.json(result);
-    } catch (error) {
-      console.error("Error performing search:", error);
-      res.status(500).json({ message: "Search failed" });
-    }
+    const { searchProducts } = await import("./api/search");
+    await searchProducts(req, res);
   });
 
   app.get("/api/search/facets", async (req, res) => {
@@ -1732,47 +1701,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Meilisearch-based autocomplete
   app.get("/api/search/suggestions", async (req, res) => {
-    try {
-      const { q } = req.query;
-
-      if (!q || typeof q !== "string" || q.length < 2) {
-        return res.json([]);
-      }
-
-      // Search for product names and categories that match the query
-      const productSuggestions = await storage.getProducts({
-        search: q,
-        limit: 5,
-      });
-
-      const categorySuggestions = await storage.getCategories();
-      const matchingCategories = categorySuggestions
-        .filter((cat: any) => cat.name.toLowerCase().includes(q.toLowerCase()))
-        .slice(0, 3);
-
-      const suggestions = [
-        ...productSuggestions.items.map((product: any) => ({
-          type: "product",
-          id: product.id,
-          name: product.name,
-          category: product.categoryId,
-          price: product.price,
-          images: product.images,
-        })),
-        ...matchingCategories.map((category: any) => ({
-          type: "category",
-          id: category.id,
-          name: category.name,
-          description: category.description,
-        })),
-      ].slice(0, 8);
-
-      res.json(suggestions);
-    } catch (error) {
-      console.error("Error fetching search suggestions:", error);
-      res.status(500).json({ message: "Failed to fetch suggestions" });
-    }
+    const { autocomplete } = await import("./api/search");
+    await autocomplete(req, res);
   });
 
   app.get("/api/search/popular", async (req, res) => {
@@ -2295,6 +2227,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedProduct = await storage.updateProductStock(id, quantity, reason);
+      
+      // Sync stock changes to search index
+      try {
+        const { syncHooks } = await import("./services/product-sync");
+        await syncHooks.onStockUpdated(id);
+      } catch (syncError) {
+        console.warn("⚠️ Failed to sync stock update to search index:", syncError);
+      }
+
       res.json(updatedProduct);
     } catch (error) {
       console.error("Error updating product stock:", error);
@@ -3129,6 +3070,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const productData = insertProductSchema.parse({ ...req.body, vendorId: vendor.id });
       const product = await storage.createProduct(productData);
 
+      // Sync to search index
+      try {
+        const { syncHooks } = await import("./services/product-sync");
+        await syncHooks.onProductCreated(product.id);
+      } catch (syncError) {
+        console.warn("⚠️ Failed to sync product to search index:", syncError);
+      }
+
       res.json(product);
     } catch (error) {
       console.error("Error creating vendor product:", error);
@@ -3197,6 +3146,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedProduct = await storage.updateProduct(id, req.body);
+      
+      // Sync to search index
+      try {
+        const { syncHooks } = await import("./services/product-sync");
+        await syncHooks.onProductUpdated(id);
+      } catch (syncError) {
+        console.warn("⚠️ Failed to sync product to search index:", syncError);
+      }
+
       res.json(updatedProduct);
     } catch (error) {
       console.error("Error updating vendor product:", error);
@@ -3220,6 +3178,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedProduct = await storage.updateProduct(id, req.body);
+      
+      // Sync to search index
+      try {
+        const { syncHooks } = await import("./services/product-sync");
+        await syncHooks.onProductUpdated(id);
+      } catch (syncError) {
+        console.warn("⚠️ Failed to sync product to search index:", syncError);
+      }
+
       res.json(updatedProduct);
     } catch (error) {
       console.error("Error updating vendor product:", error);
@@ -3243,6 +3210,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       await storage.deleteProduct(id);
+      
+      // Remove from search index
+      try {
+        const { syncHooks } = await import("./services/product-sync");
+        await syncHooks.onProductDeleted(id);
+      } catch (syncError) {
+        console.warn("⚠️ Failed to remove product from search index:", syncError);
+      }
+
       res.json({ message: "Product deleted successfully" });
     } catch (error) {
       console.error("Error deleting vendor product:", error);
