@@ -33,6 +33,23 @@ import {
   adminProtection,
 } from "./security/SecurityMiddleware";
 
+// Helper function to ensure admin access with protection for simporefabrice15@gmail.com
+async function ensureAdminAccess(userId: string, storage: Storage): Promise<{ isAdmin: boolean; user: any }> {
+  const user = await storage.getUser(userId);
+  
+  // ADMIN PROTECTION: Force admin role for protected email
+  if (user?.email === "simporefabrice15@gmail.com" && user?.role !== "admin") {
+    console.log("🛡️ ADMIN PROTECTION: Auto-fixing admin role for simporefabrice15@gmail.com");
+    await storage.updateUserRole(user.id, "admin");
+    user.role = "admin";
+  }
+  
+  return {
+    isAdmin: user?.role === "admin",
+    user
+  };
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Security middleware - apply to all routes
   app.use(securityMiddleware);
@@ -3526,9 +3543,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/users", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const { isAdmin, user } = await ensureAdminAccess(userId, storage);
 
-      if (user?.role !== "admin") {
+      if (!isAdmin) {
+        console.log("❌ Admin access denied:", { userId, email: user?.email, role: user?.role });
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -3543,9 +3561,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/admins", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const { isAdmin } = await ensureAdminAccess(userId, storage);
 
-      if (user?.role !== "admin") {
+      if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -3562,9 +3580,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { role } = req.body;
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const { isAdmin } = await ensureAdminAccess(userId, storage);
 
-      if (user?.role !== "admin") {
+      if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -3584,7 +3602,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const { isAdmin, user } = await ensureAdminAccess(userId, storage);
 
       console.log("🗑️ Delete user attempt:", {
         targetUserId: id,
@@ -3592,7 +3610,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         adminRole: user?.role,
       });
 
-      if (user?.role !== "admin") {
+      if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
