@@ -83,6 +83,10 @@ export default function AdminDashboard() {
 
   const { data: adminStats = {}, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/admin/dashboard"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/admin/dashboard");
+      return await response.json();
+    },
     enabled: !!user && user.role === "admin",
   });
 
@@ -92,11 +96,19 @@ export default function AdminDashboard() {
     error: usersError,
   } = useQuery({
     queryKey: ["/api/admin/users"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/admin/users");
+      return await response.json();
+    },
     enabled: !!user && user.role === "admin",
   });
 
   const { data: admins = [], isLoading: adminsLoading } = useQuery({
     queryKey: ["/api/admin/admins"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/admin/admins");
+      return await response.json();
+    },
     enabled: !!user && user.role === "admin",
   });
 
@@ -106,21 +118,39 @@ export default function AdminDashboard() {
     error: vendorsError,
   } = useQuery({
     queryKey: ["/api/vendors", { status: "pending" }],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/vendors?status=pending");
+      const data = await response.json();
+      return data.vendors || data || [];
+    },
     enabled: !!user && user.role === "admin",
   });
 
   const { data: allVendors = [], isLoading: allVendorsLoading } = useQuery({
     queryKey: ["/api/vendors"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/vendors");
+      const data = await response.json();
+      return data.vendors || data || [];
+    },
     enabled: !!user && user.role === "admin",
   });
 
   const { data: pendingDrivers = [], isLoading: driversLoading } = useQuery({
     queryKey: ["/api/drivers", { status: "pending" }],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/drivers?status=pending");
+      return await response.json();
+    },
     enabled: !!user && user.role === "admin",
   });
 
   const { data: allDrivers = [], isLoading: allDriversLoading } = useQuery({
     queryKey: ["/api/drivers"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/drivers");
+      return await response.json();
+    },
     enabled: !!user && user.role === "admin",
   });
 

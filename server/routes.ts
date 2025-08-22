@@ -1012,6 +1012,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     await getVendorsForReview(req, res);
   });
 
+  app.get("/api/admin/vendors/pending", isAuthenticated, adminProtection, async (req, res) => {
+    try {
+      const { getVendorsForReview } = await import("./api/vendor-registration");
+      // Force status to pending for this endpoint
+      req.query.status = "pending";
+      await getVendorsForReview(req, res);
+    } catch (error) {
+      console.error("Error fetching pending vendors:", error);
+      res.status(500).json({ error: "Failed to fetch pending vendors" });
+    }
+  });
+
   app.post("/api/admin/vendors/:id/approve", isAuthenticated, adminProtection, async (req, res) => {
     const { approveVendor } = await import("./api/vendor-registration");
     await approveVendor(req, res);

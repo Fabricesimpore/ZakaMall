@@ -42,16 +42,35 @@ export default function AdminDashboard() {
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/admin/dashboard"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/admin/dashboard");
+      return await response.json();
+    },
   });
 
   const typedStats = (stats || {}) as AdminStats;
 
   const { data: pendingVendors = [] as Vendor[], isLoading: vendorsLoading } = useQuery({
     queryKey: ["/api/admin/vendors/pending"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/admin/vendors/pending");
+      const data = await response.json();
+      return data.vendors || [];
+    },
   });
 
   const { data: transactionsData, isLoading: transactionsLoading } = useQuery({
     queryKey: ["/api/admin/transactions", transactionFilters],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (transactionFilters.status) params.set('status', transactionFilters.status);
+      if (transactionFilters.startDate) params.set('startDate', transactionFilters.startDate);
+      if (transactionFilters.endDate) params.set('endDate', transactionFilters.endDate);
+      
+      const url = `/api/admin/transactions${params.toString() ? '?' + params.toString() : ''}`;
+      const response = await apiRequest("GET", url);
+      return await response.json();
+    },
   });
 
   const typedTransactions = (transactionsData || { transactions: [], total: 0 }) as TransactionData;
