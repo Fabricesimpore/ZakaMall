@@ -91,8 +91,10 @@ export function createSearchDoc(product: any, vendor: any): SearchDoc {
     product.description,
     vendor.name,
     ...(product.categories || []),
-    ...(product.tags || [])
-  ].filter(Boolean).join(" ");
+    ...(product.tags || []),
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return {
     id: product.id,
@@ -114,7 +116,7 @@ export function createSearchDoc(product: any, vendor: any): SearchDoc {
     updated_at: new Date(product.updated_at || product.updatedAt || Date.now()).getTime(),
     popularity_score: product.popularity_score || product.popularityScore || 0,
     search_text: searchText,
-    tags: product.tags || []
+    tags: product.tags || [],
   };
 }
 
@@ -122,9 +124,5 @@ export function createSearchDoc(product: any, vendor: any): SearchDoc {
  * Check if a product should be visible in search (published + approved + vendor approved)
  */
 export function isProductVisible(product: any, vendor: any): boolean {
-  return Boolean(
-    product.published &&
-    product.approved &&
-    vendor.status === "approved"
-  );
+  return Boolean(product.published && product.approved && vendor.status === "approved");
 }
