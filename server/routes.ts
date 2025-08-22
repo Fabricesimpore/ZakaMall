@@ -34,19 +34,22 @@ import {
 } from "./security/SecurityMiddleware";
 
 // Helper function to ensure admin access with protection for simporefabrice15@gmail.com
-async function ensureAdminAccess(userId: string, storage: Storage): Promise<{ isAdmin: boolean; user: any }> {
+async function ensureAdminAccess(
+  userId: string,
+  storage: Storage
+): Promise<{ isAdmin: boolean; user: any }> {
   const user = await storage.getUser(userId);
-  
+
   // ADMIN PROTECTION: Force admin role for protected email
   if (user?.email === "simporefabrice15@gmail.com" && user?.role !== "admin") {
     console.log("🛡️ ADMIN PROTECTION: Auto-fixing admin role for simporefabrice15@gmail.com");
     await storage.updateUserRole(user.id, "admin");
     user.role = "admin";
   }
-  
+
   return {
     isAdmin: user?.role === "admin",
-    user
+    user,
   };
 }
 
@@ -548,14 +551,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (user.email === "simporefabrice15@gmail.com" && user.role !== "admin") {
         console.log("🛡️ EMERGENCY: Admin user detected with wrong role, forcing update!");
         console.log("🛡️ Before fix:", { email: user.email, role: user.role });
-        
+
         // Force update in database
         await storage.updateUserRole(user.id, "admin");
-        
+
         // Fetch the corrected user
         const correctedUser = await storage.getUser(userId);
         console.log("🛡️ After fix:", { email: correctedUser?.email, role: correctedUser?.role });
-        
+
         if (correctedUser) {
           user.role = "admin";
         }
@@ -563,7 +566,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update session with fresh user data
       if ((req as any).session?.user) {
-        console.log("🔄 Updating session with fresh user data:", { id: user.id, email: user.email, role: user.role });
+        console.log("🔄 Updating session with fresh user data:", {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+        });
         (req as any).session.user.user = user;
       }
 
@@ -575,7 +582,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         roleData = await storage.getDriverByUserId(userId);
       }
 
-      console.log("🔍 Final user data being returned:", { id: user.id, email: user.email, role: user.role });
+      console.log("🔍 Final user data being returned:", {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      });
       res.json({ ...user, roleData });
     } catch (error) {
       console.error("Error fetching user:", error);

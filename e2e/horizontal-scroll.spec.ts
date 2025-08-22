@@ -73,7 +73,7 @@ test.describe("Horizontal Scroll Prevention", () => {
             document.querySelectorAll("*").forEach((element) => {
               const rect = element.getBoundingClientRect();
               if (rect.right > viewportWidth || rect.left < 0) {
-                const styles = window.getComputedStyle(element);
+                const _styles = window.getComputedStyle(element);
                 elements.push({
                   tag: element.tagName,
                   class: element.className,
