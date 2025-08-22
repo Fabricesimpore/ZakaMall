@@ -206,6 +206,30 @@ body {
     border-bottom: 1px solid #374151 !important;
   }
 
+  /* Force footer styling */
+  footer {
+    background-color: hsl(210 11% 24%) !important;
+    color: white !important;
+  }
+
+  .dark footer {
+    background-color: hsl(210 11% 15%) !important;
+    color: white !important;
+  }
+
+  footer * {
+    color: inherit !important;
+  }
+
+  footer a {
+    color: rgb(209, 213, 219) !important;
+    transition: color 0.2s ease !important;
+  }
+
+  footer a:hover {
+    color: hsl(18 100% 60%) !important;
+  }
+
   /* Ensure text is visible */
   .text-zaka-orange {
     color: hsl(18 100% 60%) !important;
@@ -227,9 +251,34 @@ body {
     color: hsl(210 9% 65%) !important;
   }
 
+  /* Force background colors */
+  .bg-zaka-orange {
+    background-color: hsl(18 100% 60%) !important;
+  }
+
+  .bg-zaka-dark {
+    background-color: hsl(210 11% 24%) !important;
+  }
+
+  .dark .bg-zaka-dark {
+    background-color: hsl(210 11% 15%) !important;
+  }
+
+  .bg-zaka-light {
+    background-color: hsl(210 17% 98%) !important;
+  }
+
+  .dark .bg-zaka-light {
+    background-color: hsl(210 17% 8%) !important;
+  }
+
   /* Force button visibility */
   button {
     color: inherit !important;
+  }
+
+  .bg-zaka-orange button {
+    color: white !important;
   }
 
   /* Ensure dropdown menus are visible */
@@ -241,5 +290,41 @@ body {
   .dark [data-radix-dropdown-content] {
     background-color: rgb(24, 24, 27) !important;
     border: 1px solid #374151 !important;
+  }
+
+  /* Force card backgrounds */
+  .bg-background {
+    background-color: white !important;
+  }
+
+  .dark .bg-background {
+    background-color: rgb(24, 24, 27) !important;
+  }
+
+  /* Ensure all white text is visible */
+  .text-white {
+    color: white !important;
+  }
+
+  /* Force gray text colors */
+  .text-gray-300 {
+    color: rgb(209, 213, 219) !important;
+  }
+
+  .text-gray-600 {
+    color: rgb(75, 85, 99) !important;
+  }
+
+  .dark .text-gray-600 {
+    color: rgb(156, 163, 175) !important;
+  }
+
+  /* Ensure borders are visible */
+  .border-gray-600 {
+    border-color: rgb(75, 85, 99) !important;
+  }
+
+  .dark .border-gray-600 {
+    border-color: rgb(75, 85, 99) !important;
   }
 }
