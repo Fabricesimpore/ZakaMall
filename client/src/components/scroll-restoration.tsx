@@ -8,7 +8,7 @@ export function ScrollRestoration() {
   // Scroll to top on route changes (but keep hash behavior)
   useEffect(() => {
     if (!window.location.hash) {
-      window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+      window.scrollTo({ top: 0, behavior: "instant" });
     }
   }, [location]);
 

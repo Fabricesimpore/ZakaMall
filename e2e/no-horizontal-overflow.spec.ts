@@ -13,7 +13,7 @@ for (const width of viewportSizes) {
           waitUntil: "networkidle",
           timeout: 10000,
         });
-      } catch (error) {
+      } catch (_error) {
         console.log(`Route ${route} not accessible, skipping test`);
         test.skip();
       }
