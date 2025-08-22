@@ -3,6 +3,57 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Responsive baseline - Prevent horizontal scrolling */
+@layer base {
+  html {
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    overflow-x: hidden;
+    min-width: 320px;
+  }
+  
+  /* Prevent all elements from causing overflow */
+  * {
+    max-width: 100%;
+  }
+  
+  /* Images and media should be responsive by default */
+  img,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Tables need special handling */
+  table {
+    min-width: initial !important;
+  }
+  
+  /* Long text should break */
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+  
+  /* Prevent fixed width elements from breaking layout */
+  [style*="width"] {
+    max-width: 100% !important;
+  }
+}
+
 /* Mobile scrolling fixes */
 html,
 body {
