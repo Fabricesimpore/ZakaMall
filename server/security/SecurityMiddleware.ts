@@ -2,6 +2,15 @@ import { Request, Response, NextFunction } from "express";
 import { SecurityService } from "./SecurityService";
 import { storage } from "../storage";
 
+// Defensive security logging helper
+async function safeLogSecurityEvent(eventData: any) {
+  try {
+    await safeLogSecurityEvent(eventData);
+  } catch (error: any) {
+    console.warn("⚠️ Security logging failed (tables may not exist yet):", error?.message || error);
+  }
+}
+
 // Initialize security service with configuration
 const securityConfig = {
   rateLimiting: {
@@ -31,7 +40,7 @@ export const securityMiddleware = async (req: Request, res: Response, next: Next
     // Check if IP is blacklisted
     const blacklistCheck = await securityService.checkBlacklist(ip);
     if (blacklistCheck.isBlacklisted) {
-      await securityService.logSecurityEvent({
+      await safeLogSecurityEvent({
         incidentType: "blacklist_access_attempt",
         severity: "high",
         ipAddress: ip,
@@ -92,7 +101,7 @@ export const fraudDetectionMiddleware = async (req: Request, res: Response, next
 
     // Block high-risk orders
     if (fraudResult.status === "blocked") {
-      await securityService.logSecurityEvent({
+      await safeLogSecurityEvent({
         incidentType: "fraudulent_order",
         severity: "critical",
         userId,
@@ -121,7 +130,7 @@ export const fraudDetectionMiddleware = async (req: Request, res: Response, next
 
     // Flag for manual review
     if (fraudResult.status === "manual_review") {
-      await securityService.logSecurityEvent({
+      await safeLogSecurityEvent({
         incidentType: "fraudulent_order",
         severity: "medium",
         userId,
@@ -224,7 +233,7 @@ export const suspiciousActivityMiddleware = async (
 
       // Block if risk is very high
       if (riskScore >= 0.8) {
-        await securityService.logSecurityEvent({
+        await safeLogSecurityEvent({
           incidentType: getIncidentType(anomalyFactors),
           severity: "high",
           userId,
@@ -297,7 +306,7 @@ export const adminProtection = [
 
     const user = await storage.getUser(userId);
     if (!user || user.role !== "admin") {
-      await securityService.logSecurityEvent({
+      await safeLogSecurityEvent({
         incidentType: "unauthorized_admin_access",
         severity: "high",
         userId,
