@@ -21,6 +21,8 @@ interface ProductCardProps {
     quantity: number;
     rating: string;
     vendorId: string;
+    vendorDisplayName?: string;
+    vendorSlug?: string;
   };
 }
 
@@ -132,7 +134,11 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <>
-      <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={handleCardClick}>
+      <Card 
+        className="hover:shadow-lg transition-shadow cursor-pointer" 
+        onClick={handleCardClick}
+        data-testid="product-card"
+      >
         <CardContent className="p-0">
           <div className="relative">
             {getFirstImage() ? (
@@ -162,7 +168,25 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           <div className="p-4">
             <h3 className="font-semibold text-zaka-dark mb-2 line-clamp-2">{product.name}</h3>
-            <p className="text-sm text-zaka-gray mb-3 line-clamp-2">{product.description}</p>
+            <p className="text-sm text-zaka-gray mb-2 line-clamp-2">{product.description}</p>
+            
+            {/* Vendor info */}
+            {product.vendorDisplayName && (
+              <div className="text-xs text-muted-foreground mb-3">
+                Par{" "}
+                {product.vendorSlug ? (
+                  <a 
+                    href={`/store/${product.vendorSlug}`} 
+                    className="underline hover:no-underline text-zaka-orange"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {product.vendorDisplayName}
+                  </a>
+                ) : (
+                  <span className="text-zaka-orange">{product.vendorDisplayName}</span>
+                )}
+              </div>
+            )}
 
             <div className="flex justify-between items-center mb-3">
               <span className="text-lg font-bold text-zaka-orange">

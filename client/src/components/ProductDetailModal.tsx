@@ -27,9 +27,13 @@ interface ProductDetails {
   quantity: number;
   rating: string;
   vendorId: string;
+  vendorDisplayName?: string;
+  vendorSlug?: string;
   vendor?: {
     businessName: string;
     businessPhone: string | null;
+    storeName?: string;
+    storeSlug?: string;
   };
 }
 
@@ -254,13 +258,30 @@ export default function ProductDetailModal({
                     </div>
 
                     {/* Vendor Info */}
-                    {product.vendor && (
+                    {(product.vendor || product.vendorDisplayName) && (
                       <Card>
                         <CardContent className="p-4">
-                          <h4 className="font-semibold text-zaka-dark mb-2">Vendeur</h4>
+                          <h4 className="font-semibold text-zaka-dark mb-2">Vendu par</h4>
                           <div className="flex items-center justify-between">
-                            <span className="text-zaka-gray">{product.vendor.businessName}</span>
-                            {product.vendor.businessPhone && (
+                            <div className="text-sm">
+                              {product.vendorSlug ? (
+                                <a 
+                                  href={`/store/${product.vendorSlug}`}
+                                  className="font-medium underline hover:no-underline text-zaka-orange"
+                                >
+                                  {product.vendorDisplayName || product.vendor?.storeName || product.vendor?.businessName}
+                                </a>
+                              ) : (
+                                <span className="font-medium text-zaka-orange">
+                                  {product.vendorDisplayName || product.vendor?.storeName || product.vendor?.businessName}
+                                </span>
+                              )}
+                              {/* Optional verified badge if vendor is approved */}
+                              <span className="ml-2 text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">
+                                Vérifié
+                              </span>
+                            </div>
+                            {product.vendor?.businessPhone && (
                               <Button variant="outline" size="sm">
                                 <i className="fas fa-phone mr-2"></i>
                                 Contacter
@@ -351,7 +372,7 @@ export default function ProductDetailModal({
                 <EnhancedReviewsList
                   productId={product.id}
                   vendorId={product.vendorId}
-                  vendorName={product.vendor?.businessName}
+                  vendorName={product.vendorDisplayName || product.vendor?.storeName || product.vendor?.businessName}
                 />
               </TabsContent>
 
