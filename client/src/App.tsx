@@ -1,10 +1,12 @@
 import { Switch, Route } from "wouter";
+import { useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import DarkModeProvider from "@/components/DarkModeProvider";
+import { detectOverflow } from "@/utils/overflow-detector";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import Home from "@/pages/Home";
@@ -34,6 +36,13 @@ import SearchPage from "@/pages/SearchPage";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
+
+  // Enable overflow detector in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      detectOverflow(true);
+    }
+  }, []);
 
   // Show loading while auth is being determined to prevent 404 flash
   // This includes initial load and when user data is being fetched
