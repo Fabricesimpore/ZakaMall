@@ -150,6 +150,13 @@
   --zaka-dark: hsl(210 11% 24%);
   --zaka-gray: hsl(210 9% 43%);
   --zaka-light: hsl(210 17% 98%);
+  
+  /* Consistent status colors */
+  --status-success: hsl(145 63% 49%);
+  --status-warning: hsl(45 96% 56%);
+  --status-error: hsl(0 84% 60%);
+  --status-info: hsl(204 78% 55%);
+  --status-pending: hsl(45 96% 56%);
 }
 
 .dark {
@@ -200,6 +207,13 @@
   --zaka-dark: hsl(210 11% 85%);
   --zaka-gray: hsl(210 9% 65%);
   --zaka-light: hsl(210 17% 8%);
+  
+  /* Consistent status colors for dark mode */
+  --status-success: hsl(145 63% 49%);
+  --status-warning: hsl(45 96% 56%);
+  --status-error: hsl(0 84% 60%);
+  --status-info: hsl(204 78% 55%);
+  --status-pending: hsl(45 96% 56%);
 }
 
 @layer base {
@@ -256,74 +270,54 @@
   .bg-zaka-light {
     background-color: var(--zaka-light);
   }
-
-  /* Force button text visibility */
-  .btn-force-visible {
-    color: white !important;
-    background-color: var(--zaka-orange) !important;
+  
+  /* Status color utilities */
+  .text-status-success {
+    color: var(--status-success);
+  }
+  .bg-status-success {
+    background-color: var(--status-success);
+  }
+  .text-status-warning {
+    color: var(--status-warning);
+  }
+  .bg-status-warning {
+    background-color: var(--status-warning);
+  }
+  .text-status-error {
+    color: var(--status-error);
+  }
+  .bg-status-error {
+    background-color: var(--status-error);
+  }
+  .text-status-info {
+    color: var(--status-info);
+  }
+  .bg-status-info {
+    background-color: var(--status-info);
+  }
+  .text-status-pending {
+    color: var(--status-pending);
+  }
+  .bg-status-pending {
+    background-color: var(--status-pending);
   }
 
-  .btn-force-visible:hover {
-    color: white !important;
-    background-color: var(--zaka-orange-hover) !important;
-  }
-
-  .btn-outline-force-visible {
-    color: white !important;
-    border-color: white !important;
-    background-color: transparent !important;
-  }
-
-  .btn-outline-force-visible:hover {
-    color: var(--zaka-orange) !important;
-    background-color: white !important;
-  }
-
-  /* Fix specific login buttons - ULTRA AGGRESSIVE */
-  button[style*="background-color: #ff7722"],
-  button[style*="backgroundColor: #ff7722"],
-  button[style*="background-color:#ff7722"],
-  button[style*="backgroundColor:#ff7722"] {
-    color: white !important;
-    background-color: #ff7722 !important;
-  }
-
-  button[style*="background-color: #ff7722"]:hover,
-  button[style*="backgroundColor: #ff7722"]:hover,
-  button[style*="background-color:#ff7722"]:hover,
-  button[style*="backgroundColor:#ff7722"]:hover {
-    color: white !important;
-    background-color: #e6631a !important;
-  }
-
-  /* NUCLEAR OPTION - Force ALL orange button text to be white */
-  .bg-zaka-orange,
-  .bg-zaka-orange *,
-  button.bg-zaka-orange,
-  button.bg-zaka-orange *,
-  [style*="background-color: #ff7722"],
-  [style*="background-color: #ff7722"] *,
-  [style*="backgroundColor: #ff7722"],
-  [style*="backgroundColor: #ff7722"] *,
-  button[class*="btn-force-visible"],
-  button[class*="btn-force-visible"] * {
+  /* Clean button styling */
+  .bg-zaka-orange {
     color: white !important;
   }
 
-  .bg-zaka-orange:hover,
-  .bg-zaka-orange:hover *,
-  button.bg-zaka-orange:hover,
-  button.bg-zaka-orange:hover * {
+  .bg-zaka-orange:hover {
     color: white !important;
   }
 
-  /* Target the exact button that's causing issues */
-  button.btn-force-visible,
-  button.btn-force-visible *,
-  .btn-force-visible,
-  .btn-force-visible * {
+  button.bg-zaka-orange {
     color: white !important;
-    text-shadow: none !important;
+  }
+
+  button.bg-zaka-orange:hover {
+    color: white !important;
   }
 
   /* Force critical styling for navbar and main elements */
@@ -459,31 +453,4 @@
     border-color: rgb(75, 85, 99) !important;
   }
 
-  /* EMERGENCY FIX - Override EVERYTHING for Se connecter button */
-  html body .btn-force-visible,
-  html body button[style*="#ff7722"],
-  html body [style*="background-color: #ff7722"],
-  html body button[class*="force-visible"] {
-    color: white !important;
-  }
-
-  /* Ultra specific targeting for the login button */
-  section div div button.btn-force-visible {
-    color: white !important;
-    background-color: #ff7722 !important;
-  }
-
-  /* In case there's a span or other element inside */
-  section div div button.btn-force-visible span,
-  section div div button.btn-force-visible div,
-  section div div button.btn-force-visible * {
-    color: white !important;
-  }
-
-  /* Force override any Tailwind or component library styles */
-  button[style*="backgroundColor"][style*="#ff7722"],
-  button[style*="background-color"][style*="#ff7722"] {
-    color: white !important;
-    font-weight: 500 !important;
-  }
 }

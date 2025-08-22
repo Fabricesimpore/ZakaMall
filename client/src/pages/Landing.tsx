@@ -100,15 +100,8 @@ export default function Landing() {
                     </Dialog>
                     <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
                       <DialogTrigger asChild>
-                        <Button
-                          className="btn-force-visible hover:bg-zaka-orange/90 px-4 py-2 rounded-lg transition-colors font-medium"
-                          style={{
-                            color: "white !important",
-                            backgroundColor: "#ff7722",
-                            border: "none",
-                          }}
-                        >
-                          <span style={{ color: "white !important" }}>Se connecter</span>
+                        <Button className="bg-zaka-orange hover:bg-zaka-orange/90 text-white px-4 py-2 rounded-lg transition-colors font-medium">
+                          Se connecter
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-md">
