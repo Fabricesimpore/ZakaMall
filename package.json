@@ -24,7 +24,10 @@
     "db:sync-vendors:prod": "NODE_ENV=production node scripts/sync-vendors-schema.cjs",
     "db:restore-admin": "node scripts/restore-admin-role.cjs",
     "db:restore-admin:prod": "NODE_ENV=production node scripts/restore-admin-role.cjs",
-    "health": "curl -f http://localhost:${PORT:-5000}/health || exit 1"
+    "health": "curl -f http://localhost:${PORT:-5000}/health || exit 1",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:horizontal-scroll": "playwright test horizontal-scroll.spec.ts"
   },
   "dependencies": {
     "@eslint/js": "^9.32.0",
