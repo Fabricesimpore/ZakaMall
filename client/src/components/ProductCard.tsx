@@ -134,8 +134,8 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <>
-      <Card 
-        className="hover:shadow-lg transition-shadow cursor-pointer" 
+      <Card
+        className="hover:shadow-lg transition-shadow cursor-pointer"
         onClick={handleCardClick}
         data-testid="product-card"
       >
@@ -169,14 +169,14 @@ export default function ProductCard({ product }: ProductCardProps) {
           <div className="p-4">
             <h3 className="font-semibold text-zaka-dark mb-2 line-clamp-2">{product.name}</h3>
             <p className="text-sm text-zaka-gray mb-2 line-clamp-2">{product.description}</p>
-            
+
             {/* Vendor info */}
             {product.vendorDisplayName && (
               <div className="text-xs text-muted-foreground mb-3">
                 Par{" "}
                 {product.vendorSlug ? (
-                  <a 
-                    href={`/store/${product.vendorSlug}`} 
+                  <a
+                    href={`/store/${product.vendorSlug}`}
                     className="underline hover:no-underline text-zaka-orange"
                     onClick={(e) => e.stopPropagation()}
                   >

@@ -265,15 +265,19 @@ export default function ProductDetailModal({
                           <div className="flex items-center justify-between">
                             <div className="text-sm">
                               {product.vendorSlug ? (
-                                <a 
+                                <a
                                   href={`/store/${product.vendorSlug}`}
                                   className="font-medium underline hover:no-underline text-zaka-orange"
                                 >
-                                  {product.vendorDisplayName || product.vendor?.storeName || product.vendor?.businessName}
+                                  {product.vendorDisplayName ||
+                                    product.vendor?.storeName ||
+                                    product.vendor?.businessName}
                                 </a>
                               ) : (
                                 <span className="font-medium text-zaka-orange">
-                                  {product.vendorDisplayName || product.vendor?.storeName || product.vendor?.businessName}
+                                  {product.vendorDisplayName ||
+                                    product.vendor?.storeName ||
+                                    product.vendor?.businessName}
                                 </span>
                               )}
                               {/* Optional verified badge if vendor is approved */}
@@ -372,7 +376,11 @@ export default function ProductDetailModal({
                 <EnhancedReviewsList
                   productId={product.id}
                   vendorId={product.vendorId}
-                  vendorName={product.vendorDisplayName || product.vendor?.storeName || product.vendor?.businessName}
+                  vendorName={
+                    product.vendorDisplayName ||
+                    product.vendor?.storeName ||
+                    product.vendor?.businessName
+                  }
                 />
               </TabsContent>
 
