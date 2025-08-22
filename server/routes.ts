@@ -16,6 +16,8 @@ import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import CloudinaryService, { upload } from "./cloudinaryStorage";
 import { ObjectPermission } from "./objectAcl";
 import { PaymentServiceFactory } from "./paymentService";
+import { healthz } from "./healthz";
+import { withRequestTimeout } from "./timeouts";
 import {
   insertVendorSchema,
   insertDriverSchema,
@@ -56,6 +58,12 @@ async function ensureAdminAccess(
 export async function registerRoutes(app: Express): Promise<Server> {
   // Security middleware - apply to all routes
   app.use(securityMiddleware);
+
+  // Health check routes (before auth)
+  app.use(healthz);
+
+  // Timeout middleware for admin routes
+  app.use("/api/admin", withRequestTimeout(15000));
 
   // Auth middleware
   try {

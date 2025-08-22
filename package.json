@@ -27,7 +27,10 @@
     "health": "curl -f http://localhost:${PORT:-5000}/health || exit 1",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:horizontal-scroll": "playwright test horizontal-scroll.spec.ts"
+    "test:horizontal-scroll": "playwright test horizontal-scroll.spec.ts",
+    "test:search": "node scripts/test-search-comprehensive.js",
+    "test:search:basic": "node scripts/test-search.js",
+    "test:search:e2e": "playwright test search-comprehensive.spec.ts"
   },
   "dependencies": {
     "@eslint/js": "^9.32.0",
