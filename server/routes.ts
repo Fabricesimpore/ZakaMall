@@ -952,20 +952,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/vendors", isAuthenticated, async (req: any, res) => {
+  app.get("/api/vendors", isAuthenticated, adminProtection, async (req: any, res) => {
     try {
-      console.log("🔍 GET /api/vendors - Auth check");
-      console.log("User ID from session:", req.user?.claims?.sub);
-      const user = await storage.getUser(req.user.claims.sub);
-      console.log("User from database:", { id: user?.id, role: user?.role, email: user?.email });
-
-      if (user?.role !== "admin") {
-        console.log("❌ Access denied - user role:", user?.role, "required: admin");
-        return res.status(403).json({ message: "Unauthorized" });
-      }
-
-      console.log("✅ Admin access granted");
-
+      console.log("🔍 GET /api/vendors - Admin access granted");
       const { status } = req.query;
       const vendors = await storage.getVendors(status as any);
       res.json(vendors);
@@ -975,12 +964,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/vendors/:id/status", isAuthenticated, async (req: any, res) => {
+  app.patch("/api/vendors/:id/status", isAuthenticated, adminProtection, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Unauthorized" });
-      }
 
       const { id } = req.params;
       const { status } = req.body;
@@ -994,12 +979,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin driver management routes
-  app.get("/api/drivers", isAuthenticated, async (req: any, res) => {
+  app.get("/api/drivers", isAuthenticated, adminProtection, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Unauthorized" });
-      }
 
       const { status } = req.query;
       const drivers = await storage.getDrivers(status as any);
@@ -1010,12 +991,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/drivers/:id/approval-status", isAuthenticated, async (req: any, res) => {
+  app.patch("/api/drivers/:id/approval-status", isAuthenticated, adminProtection, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Unauthorized" });
-      }
 
       const { id } = req.params;
       const { status } = req.body;
