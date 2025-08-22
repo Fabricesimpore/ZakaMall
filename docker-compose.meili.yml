@@ -6,7 +6,7 @@ services:
       - MEILI_ENV=development
       - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-development_master_key_for_local}
       - MEILI_DB_PATH=/meili_data
-    ports: 
+    ports:
       - "7700:7700"
     volumes:
       - ./meili_data:/meili_data

@@ -1,15 +1,15 @@
-const { Client } = require('pg');
+const { Client } = require("pg");
 
 async function addShopNameColumn() {
-  console.log('🔄 Adding shop_name column to vendors table...');
-  
+  console.log("🔄 Adding shop_name column to vendors table...");
+
   const client = new Client({
     connectionString: process.env.DATABASE_URL,
   });
 
   try {
     await client.connect();
-    console.log('✅ Connected to database');
+    console.log("✅ Connected to database");
 
     // Check if column already exists
     const checkResult = await client.query(`
@@ -19,7 +19,7 @@ async function addShopNameColumn() {
     `);
 
     if (checkResult.rows.length > 0) {
-      console.log('ℹ️  shop_name column already exists');
+      console.log("ℹ️  shop_name column already exists");
       return;
     }
 
@@ -29,7 +29,7 @@ async function addShopNameColumn() {
       ADD COLUMN shop_name VARCHAR;
     `);
 
-    console.log('✅ Successfully added shop_name column to vendors table');
+    console.log("✅ Successfully added shop_name column to vendors table");
 
     // Verify the column was added
     const verifyResult = await client.query(`
@@ -39,17 +39,16 @@ async function addShopNameColumn() {
     `);
 
     if (verifyResult.rows.length > 0) {
-      console.log('✅ Column verified successfully');
+      console.log("✅ Column verified successfully");
     } else {
-      console.error('❌ Column verification failed');
+      console.error("❌ Column verification failed");
     }
-
   } catch (error) {
-    console.error('❌ Error adding shop_name column:', error);
+    console.error("❌ Error adding shop_name column:", error);
     throw error;
   } finally {
     await client.end();
-    console.log('🔌 Database connection closed');
+    console.log("🔌 Database connection closed");
   }
 }
 
@@ -57,11 +56,11 @@ async function addShopNameColumn() {
 if (require.main === module) {
   addShopNameColumn()
     .then(() => {
-      console.log('🎉 Migration completed successfully');
+      console.log("🎉 Migration completed successfully");
       process.exit(0);
     })
     .catch((error) => {
-      console.error('💥 Migration failed:', error);
+      console.error("💥 Migration failed:", error);
       process.exit(1);
     });
 }

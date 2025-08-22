@@ -150,7 +150,7 @@
   --zaka-dark: hsl(210 11% 24%);
   --zaka-gray: hsl(210 9% 43%);
   --zaka-light: hsl(210 17% 98%);
-  
+
   /* Consistent status colors */
   --status-success: hsl(145 63% 49%);
   --status-warning: hsl(45 96% 56%);
@@ -207,7 +207,7 @@
   --zaka-dark: hsl(210 11% 85%);
   --zaka-gray: hsl(210 9% 65%);
   --zaka-light: hsl(210 17% 8%);
-  
+
   /* Consistent status colors for dark mode */
   --status-success: hsl(145 63% 49%);
   --status-warning: hsl(45 96% 56%);
@@ -270,7 +270,7 @@
   .bg-zaka-light {
     background-color: var(--zaka-light);
   }
-  
+
   /* Status color utilities */
   .text-status-success {
     color: var(--status-success);
@@ -452,5 +452,4 @@
   .dark .border-gray-600 {
     border-color: rgb(75, 85, 99) !important;
   }
-
 }
