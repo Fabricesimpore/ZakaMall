@@ -12,14 +12,14 @@ interface LazyImageProps {
   priority?: boolean;
 }
 
-export function LazyImage({ 
-  src, 
-  alt, 
-  className, 
-  aspectRatio = "auto", 
-  width, 
+export function LazyImage({
+  src,
+  alt,
+  className,
+  aspectRatio = "auto",
+  width,
   height,
-  priority = false 
+  priority = false,
 }: LazyImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isInView, setIsInView] = useState(priority);
@@ -48,7 +48,7 @@ export function LazyImage({
   const aspectClass = {
     square: "aspect-square",
     video: "aspect-video",
-    auto: ""
+    auto: "",
   }[aspectRatio];
 
   return (

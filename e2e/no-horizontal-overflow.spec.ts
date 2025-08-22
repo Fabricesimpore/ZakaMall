@@ -7,11 +7,11 @@ for (const width of viewportSizes) {
   for (const route of routes) {
     test(`no horizontal overflow on ${route} @ ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
-      
+
       try {
         await page.goto(`http://localhost:3000${route}`, {
-          waitUntil: 'networkidle',
-          timeout: 10000
+          waitUntil: "networkidle",
+          timeout: 10000,
         });
       } catch (error) {
         console.log(`Route ${route} not accessible, skipping test`);
@@ -26,13 +26,15 @@ for (const width of viewportSizes) {
         return document.body.scrollWidth > document.body.clientWidth;
       });
 
-      expect(hasOverflow).toBeFalsy(`Horizontal overflow detected on ${route} at ${width}px viewport`);
+      expect(hasOverflow).toBeFalsy(
+        `Horizontal overflow detected on ${route} at ${width}px viewport`
+      );
 
       // Additional check for elements exceeding viewport width
       const overflowingElements = await page.evaluate((viewportWidth) => {
-        const elements = Array.from(document.querySelectorAll('*'));
+        const elements = Array.from(document.querySelectorAll("*"));
         const overflowing = [];
-        
+
         for (const element of elements) {
           const rect = element.getBoundingClientRect();
           if (rect.right > viewportWidth) {
@@ -41,16 +43,19 @@ for (const width of viewportSizes) {
               className: element.className,
               id: element.id,
               right: rect.right,
-              width: rect.width
+              width: rect.width,
             });
           }
         }
-        
+
         return overflowing;
       }, width);
 
       if (overflowingElements.length > 0) {
-        console.log(`Overflowing elements on ${route} @ ${width}px:`, overflowingElements.slice(0, 5));
+        console.log(
+          `Overflowing elements on ${route} @ ${width}px:`,
+          overflowingElements.slice(0, 5)
+        );
       }
 
       expect(overflowingElements.length).toBe(0);

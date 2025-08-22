@@ -6,7 +6,9 @@
 /* Enhanced scrolling and stability */
 @layer base {
   /* Predictable box model + stable scrollbars */
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     box-sizing: border-box;
   }
 
@@ -35,12 +37,15 @@
   }
 
   /* Media reserve space to prevent CLS */
-  img, svg, video, canvas {
+  img,
+  svg,
+  video,
+  canvas {
     max-width: 100%;
     height: auto;
     display: block;
   }
-  
+
   img[width][height] {
     height: auto;
   }
@@ -56,7 +61,13 @@
   }
 
   /* Long text should break */
-  p, h1, h2, h3, h4, h5, h6 {
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     overflow-wrap: break-word;
     word-wrap: break-word;
     hyphens: auto;

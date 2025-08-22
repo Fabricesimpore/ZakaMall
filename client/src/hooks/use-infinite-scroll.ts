@@ -12,24 +12,24 @@ export function useInfiniteScroll({
   hasNextPage,
   isLoading,
   onLoadMore,
-  threshold = 200
+  threshold = 200,
 }: UseInfiniteScrollProps) {
   const onScroll = useMemo(() => {
     let ticking = false;
-    
+
     return () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
           const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
           const windowHeight = window.innerHeight;
           const documentHeight = document.documentElement.scrollHeight;
-          
+
           const isNearBottom = scrollTop + windowHeight >= documentHeight - threshold;
-          
+
           if (isNearBottom && hasNextPage && !isLoading) {
             onLoadMore();
           }
-          
+
           ticking = false;
         });
         ticking = true;

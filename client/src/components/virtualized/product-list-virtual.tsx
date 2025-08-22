@@ -17,14 +17,14 @@ interface ProductListVirtualProps {
   containerHeight?: string;
 }
 
-export function ProductListVirtual({ 
-  items, 
-  renderItem, 
-  itemHeight = 120, 
-  containerHeight = "70vh" 
+export function ProductListVirtual({
+  items,
+  renderItem,
+  itemHeight = 120,
+  containerHeight = "70vh",
 }: ProductListVirtualProps) {
   const parentRef = useRef<HTMLDivElement>(null);
-  
+
   const rowVirtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => parentRef.current,
@@ -33,12 +33,12 @@ export function ProductListVirtual({
   });
 
   return (
-    <div 
-      ref={parentRef} 
+    <div
+      ref={parentRef}
       className="scroll-area-touch overflow-auto"
       style={{ height: containerHeight }}
     >
-      <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
+      <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: "relative" }}>
         {rowVirtualizer.getVirtualItems().map((virtualItem) => {
           const item = items[virtualItem.index];
           return (

@@ -12,6 +12,6 @@ export function AnchorFocus() {
       }
     }
   }, []);
-  
+
   return null;
 }
