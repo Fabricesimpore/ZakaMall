@@ -10,6 +10,7 @@ import { serveStaticFiles } from "./static-files";
 import { requestLogger, errorLogger, logInfo } from "./logger";
 import { validateEnvironment, getNumericEnv } from "./envValidator";
 import { runStartupMigrations } from "./startup-migrations";
+import { emergencyDatabaseFix } from "./emergency-db-fix";
 
 // Validate environment variables on startup
 validateEnvironment();
@@ -99,6 +100,9 @@ app.get("/api/health", (_req, res) => {
 (async () => {
   // Run startup migrations before registering routes
   await runStartupMigrations();
+  
+  // Run emergency database fix if needed
+  await emergencyDatabaseFix();
 
   const server = await registerRoutes(app);
 
