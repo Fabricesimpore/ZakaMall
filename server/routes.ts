@@ -3587,19 +3587,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/admin/users", isAuthenticated, async (req: any, res) => {
     try {
+      console.log("🔍 GET /api/admin/users - Starting request");
       const userId = req.user.claims.sub;
-      const { isAdmin, user } = await ensureAdminAccess(userId, storage);
-
-      if (!isAdmin) {
+      console.log("🔍 User ID:", userId);
+      
+      // Test basic user lookup first
+      const user = await storage.getUser(userId);
+      console.log("🔍 User found:", { id: user?.id, email: user?.email, role: user?.role });
+      
+      if (!user || user.role !== "admin") {
         console.log("❌ Admin access denied:", { userId, email: user?.email, role: user?.role });
         return res.status(403).json({ message: "Admin access required" });
       }
 
+      console.log("🔍 Fetching all users...");
       const allUsers = await storage.getAllUsers();
+      console.log("🔍 Found users:", allUsers.length);
+      
       res.json(allUsers);
     } catch (error) {
-      console.error("Error fetching users:", error);
-      res.status(500).json({ message: "Failed to fetch users" });
+      console.error("❌ Error fetching users:", error);
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack?.split('\n').slice(0, 5),
+      });
+      res.status(500).json({ message: "Failed to fetch users", error: error.message });
     }
   });
 
