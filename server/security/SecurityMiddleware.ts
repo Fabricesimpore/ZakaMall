@@ -5,7 +5,7 @@ import { storage } from "../storage";
 // Defensive security logging helper
 async function safeLogSecurityEvent(eventData: any) {
   try {
-    await safeLogSecurityEvent(eventData);
+    await securityService.logSecurityEvent(eventData);
   } catch (error: any) {
     console.warn("⚠️ Security logging failed (tables may not exist yet):", error?.message || error);
   }
