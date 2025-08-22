@@ -63,11 +63,11 @@ export default function AdminDashboard() {
     queryKey: ["/api/admin/transactions", transactionFilters],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (transactionFilters.status) params.set('status', transactionFilters.status);
-      if (transactionFilters.startDate) params.set('startDate', transactionFilters.startDate);
-      if (transactionFilters.endDate) params.set('endDate', transactionFilters.endDate);
-      
-      const url = `/api/admin/transactions${params.toString() ? '?' + params.toString() : ''}`;
+      if (transactionFilters.status) params.set("status", transactionFilters.status);
+      if (transactionFilters.startDate) params.set("startDate", transactionFilters.startDate);
+      if (transactionFilters.endDate) params.set("endDate", transactionFilters.endDate);
+
+      const url = `/api/admin/transactions${params.toString() ? "?" + params.toString() : ""}`;
       const response = await apiRequest("GET", url);
       return await response.json();
     },
