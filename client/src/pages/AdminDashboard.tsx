@@ -95,9 +95,9 @@ export default function AdminDashboard() {
     isLoading: usersLoading,
     error: usersError,
   } = useQuery({
-    queryKey: ["/api/admin/users"],
+    queryKey: ["/api/admin/users-fixed"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/admin/users");
+      const response = await apiRequest("GET", "/api/admin/users-fixed");
       return await response.json();
     },
     enabled: !!user && user.role === "admin",
@@ -159,7 +159,7 @@ export default function AdminDashboard() {
       return await apiRequest("PATCH", `/api/admin/users/${userId}/role`, { role });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users-fixed"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/admins"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard"] });
       toast({
@@ -192,7 +192,7 @@ export default function AdminDashboard() {
       return await apiRequest("DELETE", `/api/admin/users/${userId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users-fixed"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/admins"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard"] });
       toast({
@@ -214,7 +214,7 @@ export default function AdminDashboard() {
       return await apiRequest("POST", "/api/admin/users", userData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users-fixed"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/admins"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard"] });
       setCreateUserDialogOpen(false);
