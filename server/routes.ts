@@ -972,7 +972,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { status } = req.body;
 
       const vendor = await storage.updateVendorStatus(id, status);
-      
+
       // Sync all vendor products to search index when vendor status changes
       try {
         const { syncHooks } = await import("./services/product-sync");
@@ -1298,7 +1298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const product = await storage.updateProduct(id, req.body);
-      
+
       // Sync to search index
       try {
         const { syncHooks } = await import("./services/product-sync");
@@ -2227,7 +2227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedProduct = await storage.updateProductStock(id, quantity, reason);
-      
+
       // Sync stock changes to search index
       try {
         const { syncHooks } = await import("./services/product-sync");
@@ -3146,7 +3146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedProduct = await storage.updateProduct(id, req.body);
-      
+
       // Sync to search index
       try {
         const { syncHooks } = await import("./services/product-sync");
@@ -3178,7 +3178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedProduct = await storage.updateProduct(id, req.body);
-      
+
       // Sync to search index
       try {
         const { syncHooks } = await import("./services/product-sync");
@@ -3210,7 +3210,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       await storage.deleteProduct(id);
-      
+
       // Remove from search index
       try {
         const { syncHooks } = await import("./services/product-sync");

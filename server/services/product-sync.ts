@@ -1,4 +1,9 @@
-import { indexProducts, removeProducts, createSearchDoc, isProductVisible } from "../../scripts/search-indexer";
+import {
+  indexProducts,
+  removeProducts,
+  createSearchDoc,
+  isProductVisible,
+} from "../../scripts/search-indexer";
 import { storage } from "../storage";
 import type { SearchDoc } from "@shared/search-types";
 
@@ -8,7 +13,7 @@ import type { SearchDoc } from "@shared/search-types";
 export async function reindexProduct(productId: string): Promise<void> {
   try {
     console.log(`🔄 Reindexing product: ${productId}`);
-    
+
     // Get product and vendor data from database
     const product = await storage.getProduct(productId);
     if (!product) {
@@ -26,7 +31,7 @@ export async function reindexProduct(productId: string): Promise<void> {
 
     // Check if product should be visible in search
     const visible = isProductVisible(product, vendor);
-    
+
     if (visible) {
       // Create search document and index it
       const searchDoc = createSearchDoc(product, vendor);
@@ -49,7 +54,7 @@ export async function reindexProduct(productId: string): Promise<void> {
 export async function reindexVendorProducts(vendorId: string): Promise<void> {
   try {
     console.log(`🔄 Reindexing all products for vendor: ${vendorId}`);
-    
+
     const vendor = await storage.getVendor(vendorId);
     if (!vendor) {
       console.log(`⚠️  Vendor ${vendorId} not found`);
@@ -65,7 +70,7 @@ export async function reindexVendorProducts(vendorId: string): Promise<void> {
 
     for (const product of products) {
       const visible = isProductVisible(product, vendor);
-      
+
       if (visible) {
         const searchDoc = createSearchDoc(product, vendor);
         toIndex.push(searchDoc);
@@ -79,12 +84,11 @@ export async function reindexVendorProducts(vendorId: string): Promise<void> {
       await indexProducts(toIndex);
       console.log(`✅ Indexed ${toIndex.length} products for vendor ${vendorId}`);
     }
-    
+
     if (toRemove.length > 0) {
       await removeProducts(toRemove);
       console.log(`🗑️  Removed ${toRemove.length} products for vendor ${vendorId}`);
     }
-
   } catch (error) {
     console.error(`❌ Error reindexing vendor products ${vendorId}:`, error);
     throw error;
@@ -97,7 +101,7 @@ export async function reindexVendorProducts(vendorId: string): Promise<void> {
 export async function fullReindex(): Promise<void> {
   try {
     console.log("🔄 Starting full reindex of all products...");
-    
+
     // Get all approved vendors
     const vendors = await storage.getVendors("approved");
     console.log(`👥 Found ${vendors.length} approved vendors`);
@@ -110,7 +114,7 @@ export async function fullReindex(): Promise<void> {
 
       for (const product of products) {
         const visible = isProductVisible(product, vendor);
-        
+
         if (visible) {
           const searchDoc = createSearchDoc(product, vendor);
           toIndex.push(searchDoc);
@@ -123,19 +127,20 @@ export async function fullReindex(): Promise<void> {
     // Clear existing index and add all products
     const { clearIndex } = await import("../../scripts/search-indexer");
     await clearIndex();
-    
+
     if (toIndex.length > 0) {
       // Index in batches to avoid overwhelming Meilisearch
       const batchSize = 100;
       for (let i = 0; i < toIndex.length; i += batchSize) {
         const batch = toIndex.slice(i, i + batchSize);
         await indexProducts(batch);
-        console.log(`✅ Indexed batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(toIndex.length / batchSize)}`);
+        console.log(
+          `✅ Indexed batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(toIndex.length / batchSize)}`
+        );
       }
     }
 
     console.log("🚀 Full reindex completed successfully!");
-    
   } catch (error) {
     console.error("❌ Error during full reindex:", error);
     throw error;
