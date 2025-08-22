@@ -9,17 +9,17 @@
     overflow-x: hidden;
     scroll-behavior: smooth;
   }
-  
+
   body {
     overflow-x: hidden;
     min-width: 320px;
   }
-  
+
   /* Prevent all elements from causing overflow */
   * {
     max-width: 100%;
   }
-  
+
   /* Images and media should be responsive by default */
   img,
   video,
@@ -29,12 +29,12 @@
     max-width: 100%;
     height: auto;
   }
-  
+
   /* Tables need special handling */
   table {
     min-width: initial !important;
   }
-  
+
   /* Long text should break */
   p,
   h1,
@@ -47,7 +47,7 @@
     word-wrap: break-word;
     hyphens: auto;
   }
-  
+
   /* Prevent fixed width elements from breaking layout */
   [style*="width"] {
     max-width: 100% !important;
