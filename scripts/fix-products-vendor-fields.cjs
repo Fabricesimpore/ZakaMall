@@ -16,7 +16,7 @@ if (!connectionString) {
 
 async function runFix() {
   const pool = new Pool({ connectionString });
-  
+
   try {
     console.log("🔧 Starting emergency products table fix...");
 
@@ -27,7 +27,7 @@ async function runFix() {
       WHERE table_name = 'products' 
         AND column_name IN ('vendor_display_name', 'vendor_slug')
     `;
-    
+
     const { rows: existingColumns } = await pool.query(checkColumnsQuery);
     console.log(`📊 Found ${existingColumns.length} existing vendor columns`);
 
@@ -39,30 +39,36 @@ async function runFix() {
     // Read and execute the migration
     const fs = require("fs");
     const path = require("path");
-    const migrationPath = path.join(__dirname, "..", "migrations", "0003_add_vendor_denormalized_fields.sql");
-    
+    const migrationPath = path.join(
+      __dirname,
+      "..",
+      "migrations",
+      "0003_add_vendor_denormalized_fields.sql"
+    );
+
     if (!fs.existsSync(migrationPath)) {
       console.error("❌ Migration file not found:", migrationPath);
       process.exit(1);
     }
 
     const migrationSQL = fs.readFileSync(migrationPath, "utf8");
-    
+
     console.log("🚀 Applying vendor fields migration...");
     await pool.query(migrationSQL);
-    
+
     // Verify the fix
     const { rows: updatedColumns } = await pool.query(checkColumnsQuery);
     console.log(`✅ Now have ${updatedColumns.length} vendor columns in products table`);
 
     // Check how many products were updated
-    const { rows: [{ count }] } = await pool.query(
+    const {
+      rows: [{ count }],
+    } = await pool.query(
       "SELECT COUNT(*) as count FROM products WHERE vendor_display_name IS NOT NULL"
     );
     console.log(`📦 Updated ${count} products with vendor display names`);
 
     console.log("🎉 Emergency fix completed successfully!");
-
   } catch (error) {
     console.error("❌ Emergency fix failed:", error.message);
     console.error("Full error:", error);

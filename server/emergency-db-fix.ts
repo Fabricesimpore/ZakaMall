@@ -53,7 +53,7 @@ export async function emergencyDatabaseFix() {
         WHERE products.vendor_id = vendors.id
           AND (products.vendor_display_name IS NULL OR products.vendor_slug IS NULL);
       `);
-    } catch (error: any) {
+    } catch (_error: any) {
       // Fallback for older schema that might not have store_name
       console.log("🔄 Trying fallback update with legacy column names...");
       await db.execute(sql`
@@ -78,8 +78,9 @@ export async function emergencyDatabaseFix() {
 
     const stats = verificationResult.rows[0] as any;
     console.log("✅ Emergency database fix completed successfully!");
-    console.log(`📦 Products: ${stats.total_products} total, ${stats.products_with_vendor_name} with vendor names, ${stats.products_with_vendor_slug} with vendor slugs`);
-
+    console.log(
+      `📦 Products: ${stats.total_products} total, ${stats.products_with_vendor_name} with vendor names, ${stats.products_with_vendor_slug} with vendor slugs`
+    );
   } catch (error) {
     console.error("❌ Emergency database fix failed:", error);
     // Don't throw - let the app continue with degraded functionality

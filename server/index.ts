@@ -100,7 +100,7 @@ app.get("/api/health", (_req, res) => {
 (async () => {
   // Run startup migrations before registering routes
   await runStartupMigrations();
-  
+
   // Run emergency database fix if needed
   await emergencyDatabaseFix();
 
