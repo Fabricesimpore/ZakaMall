@@ -7,6 +7,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import DarkModeProvider from "@/components/DarkModeProvider";
 import { detectOverflow } from "@/utils/overflow-detector";
+import { SkipToContent } from "@/components/a11y/skip-to-content";
+import { ScrollRestoration } from "@/components/scroll-restoration";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import Home from "@/pages/Home";
@@ -62,49 +64,54 @@ function Router() {
   }
 
   return (
-    <Switch>
-      {/* Public routes accessible to all users */}
-      <Route path="/products" component={Products} />
-      <Route path="/search" component={SearchPage} />
-      <Route path="/cart" component={CartPage} />
-      <Route path="/orders" component={OrderTracking} />
-      <Route path="/test-payment" component={TestPayment} />
-      <Route path="/payment-test" component={PaymentTest} />
-      <Route path="/register" component={Register} />
-      <Route path="/create-admin" component={CreateAdmin} />
+    <>
+      <ScrollRestoration />
+      <main id="main" tabIndex={-1}>
+        <Switch>
+          {/* Public routes accessible to all users */}
+          <Route path="/products" component={Products} />
+          <Route path="/search" component={SearchPage} />
+          <Route path="/cart" component={CartPage} />
+          <Route path="/orders" component={OrderTracking} />
+          <Route path="/test-payment" component={TestPayment} />
+          <Route path="/payment-test" component={PaymentTest} />
+          <Route path="/register" component={Register} />
+          <Route path="/create-admin" component={CreateAdmin} />
 
-      {/* Setup routes - accessible during post-registration flow */}
-      <Route path="/vendor-setup" component={VendorSetup} />
-      <Route path="/driver-setup" component={DriverSetup} />
-      <Route path="/vendor-pending" component={VendorPending} />
-      <Route path="/driver-pending" component={DriverPending} />
+          {/* Setup routes - accessible during post-registration flow */}
+          <Route path="/vendor-setup" component={VendorSetup} />
+          <Route path="/driver-setup" component={DriverSetup} />
+          <Route path="/vendor-pending" component={VendorPending} />
+          <Route path="/driver-pending" component={DriverPending} />
 
-      {/* Admin routes - these will handle their own authentication internally */}
-      <Route path="/admin" component={AdminDashboard} />
-      <Route path="/admin/profile" component={AdminProfile} />
+          {/* Admin routes - these will handle their own authentication internally */}
+          <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin/profile" component={AdminProfile} />
 
-      {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/customer" component={CustomerDashboard} />
-          <Route path="/vendor" component={VendorDashboard} />
-          <Route path="/vendor/dashboard" component={VendorDashboard} />
-          <Route path="/vendor/products/new" component={() => <ProductForm />} />
-          <Route path="/vendor/products/:id/edit">
-            {(params) => <ProductForm productId={params.id} />}
-          </Route>
-          <Route path="/vendor/inventory" component={VendorInventoryPage} />
-          <Route path="/vendor/orders" component={VendorOrdersPage} />
-          <Route path="/vendor/analytics" component={VendorAnalyticsPage} />
-          <Route path="/driver" component={DriverDashboard} />
-          <Route path="/profile" component={Profile} />
-          <Route path="/chat" component={Chat} />
-        </>
-      )}
-      <Route component={NotFound} />
-    </Switch>
+          {!isAuthenticated ? (
+            <Route path="/" component={Landing} />
+          ) : (
+            <>
+              <Route path="/" component={Home} />
+              <Route path="/customer" component={CustomerDashboard} />
+              <Route path="/vendor" component={VendorDashboard} />
+              <Route path="/vendor/dashboard" component={VendorDashboard} />
+              <Route path="/vendor/products/new" component={() => <ProductForm />} />
+              <Route path="/vendor/products/:id/edit">
+                {(params) => <ProductForm productId={params.id} />}
+              </Route>
+              <Route path="/vendor/inventory" component={VendorInventoryPage} />
+              <Route path="/vendor/orders" component={VendorOrdersPage} />
+              <Route path="/vendor/analytics" component={VendorAnalyticsPage} />
+              <Route path="/driver" component={DriverDashboard} />
+              <Route path="/profile" component={Profile} />
+              <Route path="/chat" component={Chat} />
+            </>
+          )}
+          <Route component={NotFound} />
+        </Switch>
+      </main>
+    </>
   );
 }
 
@@ -113,6 +120,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <DarkModeProvider>
         <TooltipProvider>
+          <SkipToContent />
           <Toaster />
           <Router />
         </TooltipProvider>
