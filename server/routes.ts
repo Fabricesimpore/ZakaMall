@@ -3590,11 +3590,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🔍 GET /api/admin/users - Starting request");
       const userId = req.user.claims.sub;
       console.log("🔍 User ID:", userId);
-      
+
       // Test basic user lookup first
       const user = await storage.getUser(userId);
       console.log("🔍 User found:", { id: user?.id, email: user?.email, role: user?.role });
-      
+
       if (!user || user.role !== "admin") {
         console.log("❌ Admin access denied:", { userId, email: user?.email, role: user?.role });
         return res.status(403).json({ message: "Admin access required" });
@@ -3603,13 +3603,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🔍 Fetching all users...");
       const allUsers = await storage.getAllUsers();
       console.log("🔍 Found users:", allUsers.length);
-      
+
       res.json(allUsers);
     } catch (error) {
       console.error("❌ Error fetching users:", error);
       console.error("Error details:", {
         message: error.message,
-        stack: error.stack?.split('\n').slice(0, 5),
+        stack: error.stack?.split("\n").slice(0, 5),
       });
       res.status(500).json({ message: "Failed to fetch users", error: error.message });
     }
@@ -4365,14 +4365,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const startTime = Date.now();
       const allUsers = await storage.getAllUsers();
       const endTime = Date.now();
-      console.log(`🐛 DEBUG: getAllUsers completed in ${endTime - startTime}ms, returned ${allUsers.length} users`);
+      console.log(
+        `🐛 DEBUG: getAllUsers completed in ${endTime - startTime}ms, returned ${allUsers.length} users`
+      );
       res.json({ success: true, count: allUsers.length, users: allUsers });
     } catch (error) {
       console.error("🐛 DEBUG: getAllUsers failed:", error);
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         error: error.message,
-        stack: error.stack?.split('\n').slice(0, 5)
+        stack: error.stack?.split("\n").slice(0, 5),
       });
     }
   });
@@ -4384,43 +4386,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🔧 Request object:", {
         hasUser: !!req.user,
         hasClaims: !!req.user?.claims,
-        claimsKeys: req.user?.claims ? Object.keys(req.user.claims) : 'none'
+        claimsKeys: req.user?.claims ? Object.keys(req.user.claims) : "none",
       });
-      
+
       // Defensive: Check if req.user and claims exist
       if (!req.user || !req.user.claims || !req.user.claims.sub) {
         console.log("❌ Invalid request user structure:", req.user);
         return res.status(401).json({ message: "Authentication required" });
       }
-      
+
       const userId = req.user.claims.sub;
       console.log("🔧 User ID:", userId);
-      
+
       // Defensive: Ensure userId is valid before querying
-      if (!userId || typeof userId !== 'string') {
+      if (!userId || typeof userId !== "string") {
         console.log("❌ Invalid user ID:", { userId, type: typeof userId });
         return res.status(400).json({ message: "Invalid user ID" });
       }
-      
+
       // Test basic user lookup first
       console.log("🔧 Calling storage.getUser...");
       const user = await storage.getUser(userId);
       console.log("🔧 User found:", { id: user?.id, email: user?.email, role: user?.role });
-      
+
       if (!user) {
         console.log("❌ User not found in database:", userId);
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       if (user.role !== "admin") {
         console.log("❌ Admin access denied:", { userId, email: user?.email, role: user?.role });
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       console.log("🔧 Fetching all users...");
       const allUsers = await storage.getAllUsers();
       console.log("🔧 Found users:", allUsers.length);
-      
+
       res.json(allUsers);
     } catch (error) {
       console.error("❌ Error fetching users (fixed endpoint):", error);
@@ -4428,7 +4430,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: error.message,
         name: error.name,
         code: error.code,
-        stack: error.stack?.split('\n').slice(0, 8),
+        stack: error.stack?.split("\n").slice(0, 8),
       });
       res.status(500).json({ message: "Failed to fetch users", error: error.message });
     }
