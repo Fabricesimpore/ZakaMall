@@ -189,10 +189,44 @@ body {
     background-color: var(--zaka-orange) !important;
   }
 
+  .btn-force-visible:hover {
+    color: white !important;
+    background-color: var(--zaka-orange-hover) !important;
+  }
+
   .btn-outline-force-visible {
     color: white !important;
     border-color: white !important;
     background-color: transparent !important;
+  }
+
+  .btn-outline-force-visible:hover {
+    color: var(--zaka-orange) !important;
+    background-color: white !important;
+  }
+
+  /* Fix specific login buttons */
+  button[style*="background-color: #ff7722"] {
+    color: white !important;
+    background-color: #ff7722 !important;
+  }
+
+  button[style*="background-color: #ff7722"]:hover {
+    color: white !important;
+    background-color: #e6631a !important;
+  }
+
+  /* Ensure orange buttons always have white text */
+  .bg-zaka-orange,
+  button.bg-zaka-orange,
+  [style*="background-color: #ff7722"],
+  [style*="backgroundColor: #ff7722"] {
+    color: white !important;
+  }
+
+  .bg-zaka-orange:hover,
+  button.bg-zaka-orange:hover {
+    color: white !important;
   }
 
   /* Force critical styling for navbar and main elements */
