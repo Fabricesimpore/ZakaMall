@@ -101,7 +101,7 @@ export default function Navbar() {
                   <i className="fas fa-bars text-xl text-zaka-gray"></i>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <SheetContent side="right" className="w-full max-w-[300px] sm:max-w-[400px]">
                 <div className="flex flex-col h-full">
                   <div className="flex items-center mb-4">
                     <h2 className="text-xl font-bold text-zaka-orange">Menu</h2>
