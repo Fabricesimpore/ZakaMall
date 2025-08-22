@@ -194,4 +194,52 @@ body {
     border-color: white !important;
     background-color: transparent !important;
   }
+
+  /* Force critical styling for navbar and main elements */
+  nav {
+    background-color: white !important;
+    border-bottom: 1px solid #e5e7eb !important;
+  }
+
+  .dark nav {
+    background-color: rgb(24, 24, 27) !important;
+    border-bottom: 1px solid #374151 !important;
+  }
+
+  /* Ensure text is visible */
+  .text-zaka-orange {
+    color: hsl(18 100% 60%) !important;
+  }
+
+  .text-zaka-dark {
+    color: hsl(210 11% 24%) !important;
+  }
+
+  .dark .text-zaka-dark {
+    color: hsl(210 11% 85%) !important;
+  }
+
+  .text-zaka-gray {
+    color: hsl(210 9% 43%) !important;
+  }
+
+  .dark .text-zaka-gray {
+    color: hsl(210 9% 65%) !important;
+  }
+
+  /* Force button visibility */
+  button {
+    color: inherit !important;
+  }
+
+  /* Ensure dropdown menus are visible */
+  [data-radix-dropdown-content] {
+    background-color: white !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  .dark [data-radix-dropdown-content] {
+    background-color: rgb(24, 24, 27) !important;
+    border: 1px solid #374151 !important;
+  }
 }
