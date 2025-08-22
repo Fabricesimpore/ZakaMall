@@ -1330,13 +1330,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get vendor information for the product
       const vendor = await storage.getVendor(product.vendorId);
 
-      // Include basic vendor info in the response
+      // Include vendor info in the response, using denormalized fields when available
       const productWithVendor = {
         ...product,
+        vendorDisplayName: product.vendorDisplayName || vendor?.storeName || vendor?.businessName,
+        vendorSlug: product.vendorSlug || vendor?.storeSlug,
         vendor: vendor
           ? {
               businessName: vendor.businessName,
               businessPhone: vendor.businessPhone,
+              storeName: vendor.storeName,
+              storeSlug: vendor.storeSlug,
             }
           : null,
       };
