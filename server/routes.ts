@@ -954,19 +954,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/vendors", isAuthenticated, adminProtection, async (req: any, res) => {
     try {
-      console.log("🔍 GET /api/vendors - Admin access granted");
+      console.log("🔍 GET /api/vendors - Admin access granted for user:", req.user?.claims?.sub);
       const { status } = req.query;
+      console.log("🔍 Fetching vendors with status:", status);
       const vendors = await storage.getVendors(status as any);
+      console.log("✅ Found vendors:", vendors.length);
       res.json(vendors);
     } catch (error) {
-      console.error("Error fetching vendors:", error);
+      console.error("❌ Error fetching vendors:", error);
       res.status(500).json({ message: "Failed to fetch vendors" });
     }
   });
 
   app.patch("/api/vendors/:id/status", isAuthenticated, adminProtection, async (req: any, res) => {
     try {
-
       const { id } = req.params;
       const { status } = req.body;
 
@@ -981,7 +982,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin driver management routes
   app.get("/api/drivers", isAuthenticated, adminProtection, async (req: any, res) => {
     try {
-
       const { status } = req.query;
       const drivers = await storage.getDrivers(status as any);
       res.json(drivers);
@@ -991,19 +991,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/drivers/:id/approval-status", isAuthenticated, adminProtection, async (req: any, res) => {
-    try {
+  app.patch(
+    "/api/drivers/:id/approval-status",
+    isAuthenticated,
+    adminProtection,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
+        const { status } = req.body;
 
-      const { id } = req.params;
-      const { status } = req.body;
-
-      const driver = await storage.updateDriverApprovalStatus(id, status);
-      res.json(driver);
-    } catch (error) {
-      console.error("Error updating driver approval status:", error);
-      res.status(500).json({ message: "Failed to update driver approval status" });
+        const driver = await storage.updateDriverApprovalStatus(id, status);
+        res.json(driver);
+      } catch (error) {
+        console.error("Error updating driver approval status:", error);
+        res.status(500).json({ message: "Failed to update driver approval status" });
+      }
     }
-  });
+  );
 
   // Driver routes
   app.post("/api/drivers", isAuthenticated, async (req: any, res) => {
