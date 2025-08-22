@@ -41,16 +41,31 @@ export async function emergencyDatabaseFix() {
       CREATE INDEX IF NOT EXISTS idx_products_vendor_slug ON products(vendor_slug);
     `);
 
-    await db.execute(sql`
-      -- Update existing products with vendor display names and slugs
-      UPDATE products 
-      SET 
-        vendor_display_name = vendors.store_name,
-        vendor_slug = vendors.store_slug
-      FROM vendors
-      WHERE products.vendor_id = vendors.id
-        AND (products.vendor_display_name IS NULL OR products.vendor_slug IS NULL);
-    `);
+    // Update existing products with vendor display names and slugs
+    // Handle both old (shop_name) and new (store_name) column names
+    try {
+      await db.execute(sql`
+        UPDATE products 
+        SET 
+          vendor_display_name = COALESCE(vendors.store_name, vendors.shop_name, vendors.business_name),
+          vendor_slug = vendors.store_slug
+        FROM vendors
+        WHERE products.vendor_id = vendors.id
+          AND (products.vendor_display_name IS NULL OR products.vendor_slug IS NULL);
+      `);
+    } catch (error: any) {
+      // Fallback for older schema that might not have store_name
+      console.log("🔄 Trying fallback update with legacy column names...");
+      await db.execute(sql`
+        UPDATE products 
+        SET 
+          vendor_display_name = COALESCE(vendors.shop_name, vendors.business_name),
+          vendor_slug = vendors.store_slug
+        FROM vendors
+        WHERE products.vendor_id = vendors.id
+          AND (products.vendor_display_name IS NULL OR products.vendor_slug IS NULL);
+      `);
+    }
 
     // Verify the fix
     const verificationResult = await db.execute(sql`
