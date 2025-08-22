@@ -356,6 +356,15 @@ export class DatabaseStorage implements IStorage {
     userId: string,
     role: "customer" | "vendor" | "driver" | "admin"
   ): Promise<User> {
+    // PROTECTION: Check if this is the protected admin account
+    const targetUser = await this.getUser(userId);
+    if (targetUser?.email === "simporefabrice15@gmail.com") {
+      console.log("🛡️ BLOCKED: Attempt to change protected admin role");
+      console.log(`  Attempted to change from ${targetUser.role} to ${role}`);
+      // Return the unchanged user - silently fail the role change
+      return targetUser;
+    }
+    
     // Update user role
     const [user] = await db
       .update(users)
@@ -403,6 +412,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUser(userId: string, updates: Partial<User>): Promise<User> {
+    // PROTECTION: Check if this is the protected admin account
+    const targetUser = await this.getUser(userId);
+    if (targetUser?.email === "simporefabrice15@gmail.com") {
+      // Only allow the admin to update their own non-critical fields
+      const allowedUpdates = ['firstName', 'lastName', 'phone', 'profileImageUrl'];
+      const filteredUpdates: any = {};
+      
+      for (const key of allowedUpdates) {
+        if (key in updates) {
+          filteredUpdates[key] = updates[key as keyof User];
+        }
+      }
+      
+      // Never allow role or email changes
+      delete filteredUpdates.role;
+      delete filteredUpdates.email;
+      
+      console.log("🛡️ Protected admin update - filtered updates:", filteredUpdates);
+      
+      const [user] = await db
+        .update(users)
+        .set({ ...filteredUpdates, updatedAt: new Date() })
+        .where(eq(users.id, userId))
+        .returning();
+      return user;
+    }
+    
     const [user] = await db
       .update(users)
       .set({ ...updates, updatedAt: new Date() })
@@ -421,6 +457,13 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUser(userId: string): Promise<void> {
     console.log("🗑️ Starting simplified user deletion for:", userId);
+    
+    // PROTECTION: Check if this is the protected admin account
+    const targetUser = await this.getUser(userId);
+    if (targetUser?.email === "simporefabrice15@gmail.com") {
+      console.log("🛡️ BLOCKED: Attempt to delete protected admin account");
+      throw new Error("Cannot delete protected admin account");
+    }
 
     // Helper function to safely delete from a table
     const safeDelete = async (name: string, deleteOp: () => Promise<any>) => {
