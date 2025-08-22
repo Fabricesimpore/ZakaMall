@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
@@ -90,10 +90,11 @@ export default function SearchView({
   ]);
 
   // Debounced search function
-  const debouncedSearch = useCallback(
-    debounce((newFilters: SearchFilters) => {
-      setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
-    }, 300),
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((newFilters: SearchFilters) => {
+        setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
+      }, 300),
     []
   );
 

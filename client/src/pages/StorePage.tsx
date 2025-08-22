@@ -25,7 +25,11 @@ export default function StorePage() {
   const storeSlug = params?.slug;
 
   // Fetch vendor info
-  const { data: vendor, isLoading: vendorLoading, error: vendorError } = useQuery({
+  const {
+    data: vendor,
+    isLoading: vendorLoading,
+    error: vendorError,
+  } = useQuery({
     queryKey: ["vendor", storeSlug],
     queryFn: async (): Promise<Vendor> => {
       const response = await apiRequest("GET", `/api/vendors/by-slug/${storeSlug}`);
@@ -40,7 +44,6 @@ export default function StorePage() {
     enabled: !!storeSlug,
   });
 
-
   if (!match) {
     return null;
   }
@@ -52,9 +55,7 @@ export default function StorePage() {
         <p className="text-gray-600 mb-4">
           La boutique que vous recherchez n'existe pas ou a été supprimée.
         </p>
-        <Button onClick={() => (window.location.href = "/")}>
-          Retour à l'accueil
-        </Button>
+        <Button onClick={() => (window.location.href = "/")}>Retour à l'accueil</Button>
       </div>
     );
   }
@@ -121,11 +122,9 @@ export default function StorePage() {
                 <h1 className="text-3xl font-bold text-gray-800">{vendor.storeName}</h1>
                 <Badge className="bg-green-100 text-green-600">Vérifié</Badge>
               </div>
-              
+
               {vendor.businessDescription && (
-                <p className="text-gray-600 mb-4 leading-relaxed">
-                  {vendor.businessDescription}
-                </p>
+                <p className="text-gray-600 mb-4 leading-relaxed">{vendor.businessDescription}</p>
               )}
 
               <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -156,9 +155,8 @@ export default function StorePage() {
         </div>
       </div>
 
-      
       {/* Products Section - Using SearchView with pre-filtered vendor */}
-      <SearchView 
+      <SearchView
         initialFilters={{ vendor_id: vendor.id }}
         showSearch={true}
         title={`Produits de ${vendor.storeName}`}
