@@ -89,7 +89,8 @@ export function createSearchDoc(product: any, vendor: any): SearchDoc {
     product.title,
     product.brand,
     product.description,
-    vendor.name,
+    vendor.storeName || vendor.name, // Use store name for search
+    vendor.legalName, // Also include legal name for search
     ...(product.categories || []),
     ...(product.tags || []),
   ]
@@ -99,8 +100,8 @@ export function createSearchDoc(product: any, vendor: any): SearchDoc {
   return {
     id: product.id,
     vendor_id: product.vendor_id || product.vendorId,
-    vendor_name: vendor.name,
-    vendor_slug: vendor.slug,
+    vendor_name: vendor.storeName || vendor.name, // Use new storeName field
+    vendor_slug: vendor.storeSlug || vendor.slug,
     title: product.title || "",
     brand: product.brand || "",
     categories: product.categories || [],

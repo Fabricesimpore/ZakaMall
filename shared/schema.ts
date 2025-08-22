@@ -90,26 +90,76 @@ export const vendors = pgTable("vendors", {
   userId: varchar("user_id")
     .references(() => users.id)
     .notNull(),
-  businessName: varchar("business_name").notNull(),
-  shopName: varchar("shop_name"),
+  
+  // Public store information
+  storeName: varchar("store_name", { length: 120 }).notNull(),
+  storeSlug: varchar("store_slug", { length: 140 }).notNull().unique(),
+  logoUrl: text("logo_url"),
+  bannerUrl: text("banner_url"),
+  
+  // Contact information
+  contactEmail: varchar("contact_email", { length: 160 }).notNull(),
+  contactPhone: varchar("contact_phone", { length: 40 }),
+  countryCode: varchar("country_code", { length: 2 }),
+  
+  // Legal/business information (optional initially)
+  legalName: varchar("legal_name", { length: 200 }),
+  businessName: varchar("business_name"), // keeping for backward compatibility
+  shopName: varchar("shop_name"), // keeping for backward compatibility
   businessDescription: text("business_description"),
   businessAddress: text("business_address"),
-  businessPhone: varchar("business_phone"),
+  businessPhone: varchar("business_phone"), // keeping for backward compatibility
   taxId: varchar("tax_id"),
+  
+  // Payment information
   bankAccount: varchar("bank_account"),
   bankName: varchar("bank_name"),
+  mobileMoneyNumber: varchar("mobile_money_number"),
+  mobileMoneyName: varchar("mobile_money_name"),
+  paymentMethod: varchar("payment_method"),
+  
+  // Documents
   identityDocument: varchar("identity_document"),
   identityDocumentPhoto: text("identity_document_photo"),
   businessLicense: varchar("business_license"),
   businessLicensePhoto: text("business_license_photo"),
-  mobileMoneyNumber: varchar("mobile_money_number"),
-  mobileMoneyName: varchar("mobile_money_name"),
-  paymentMethod: varchar("payment_method"),
+  
+  // Status and admin
   status: vendorStatusEnum("status").default("pending"),
-  adminNotes: text("admin_notes"),
+  reviewNotes: text("review_notes"),
+  adminNotes: text("admin_notes"), // keeping for backward compatibility
   commissionRate: decimal("commission_rate", { precision: 5, scale: 2 }).default("5.00"),
+  
+  // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Vendor audit log table
+export const vendorAuditLog = pgTable("vendor_audit_log", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  vendorId: varchar("vendor_id")
+    .references(() => vendors.id, { onDelete: "cascade" })
+    .notNull(),
+  action: varchar("action", { length: 40 }).notNull(), // created|submitted|approved|rejected|suspended|updated
+  actorId: varchar("actor_id").references(() => users.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Store slug redirects table for handling renames
+export const storeSlugRedirects = pgTable("store_slug_redirects", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  oldSlug: varchar("old_slug", { length: 140 }).notNull().unique(),
+  newSlug: varchar("new_slug", { length: 140 }).notNull(),
+  vendorId: varchar("vendor_id")
+    .references(() => vendors.id, { onDelete: "cascade" })
+    .notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Drivers table
@@ -184,6 +234,11 @@ export const products = pgTable("products", {
   tags: text("tags").array(),
   seoTitle: varchar("seo_title"),
   seoDescription: text("seo_description"),
+  
+  // Denormalized vendor fields for quick access and search indexing
+  vendorDisplayName: varchar("vendor_display_name", { length: 120 }),
+  vendorSlug: varchar("vendor_slug", { length: 140 }),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -576,10 +631,31 @@ export const upsertUserSchema = createInsertSchema(users).pick({
   profileImageUrl: true,
 });
 
+// Vendor registration schema (minimal required fields)
+export const vendorRegistrationSchema = z.object({
+  storeName: z.string().min(3).max(120).regex(/^[A-Za-zÀ-ÿ0-9 .,'&-]+$/, "Invalid characters in store name"),
+  contactEmail: z.string().email().max(160),
+  contactPhone: z.string().min(8).max(40).optional(),
+  countryCode: z.string().length(2).optional(),
+  legalName: z.string().min(3).max(200).optional(),
+});
+
+// Full vendor schema for updates
 export const insertVendorSchema = createInsertSchema(vendors).omit({
   id: true,
+  storeSlug: true, // Generated automatically
   createdAt: true,
   updatedAt: true,
+});
+
+// Admin vendor approval schema
+export const vendorApprovalSchema = z.object({
+  notes: z.string().optional(),
+});
+
+// Store name availability check
+export const storeNameCheckSchema = z.object({
+  name: z.string().min(3).max(120),
 });
 
 export const insertDriverSchema = createInsertSchema(drivers).omit({

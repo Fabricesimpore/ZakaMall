@@ -988,6 +988,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // New vendor registration and approval routes
+  app.post("/api/vendors/register", async (req, res) => {
+    const { registerVendor } = await import("./api/vendor-registration");
+    await registerVendor(req, res);
+  });
+
+  app.get("/api/vendors/check-store-name", async (req, res) => {
+    const { checkStoreNameAvailability } = await import("./api/vendor-registration");
+    await checkStoreNameAvailability(req, res);
+  });
+
+  app.get("/api/admin/vendors", isAuthenticated, adminProtection, async (req, res) => {
+    const { getVendorsForReview } = await import("./api/vendor-registration");
+    await getVendorsForReview(req, res);
+  });
+
+  app.post("/api/admin/vendors/:id/approve", isAuthenticated, adminProtection, async (req, res) => {
+    const { approveVendor } = await import("./api/vendor-registration");
+    await approveVendor(req, res);
+  });
+
+  app.post("/api/admin/vendors/:id/reject", isAuthenticated, adminProtection, async (req, res) => {
+    const { rejectVendor } = await import("./api/vendor-registration");
+    await rejectVendor(req, res);
+  });
+
+  app.post("/api/admin/vendors/:id/suspend", isAuthenticated, adminProtection, async (req, res) => {
+    const { suspendVendor } = await import("./api/vendor-registration");
+    await suspendVendor(req, res);
+  });
+
   // Admin driver management routes
   app.get("/api/drivers", isAuthenticated, adminProtection, async (req: any, res) => {
     try {

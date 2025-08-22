@@ -28,6 +28,8 @@ import {
   vendorTrustScores,
   suspiciousActivities,
   blacklist,
+  vendorAuditLog,
+  storeSlugRedirects,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -131,11 +133,14 @@ export interface IStorage {
   createVendor(vendor: InsertVendor): Promise<Vendor>;
   getVendor(id: string): Promise<Vendor | undefined>;
   getVendorByUserId(userId: string): Promise<Vendor | undefined>;
+  getVendorBySlug(slug: string): Promise<Vendor | undefined>;
   getVendors(status?: "pending" | "approved" | "rejected" | "suspended"): Promise<Vendor[]>;
+  checkStoreNameAvailability(storeName: string): Promise<boolean>;
   updateVendorStatus(
     id: string,
     status: "pending" | "approved" | "rejected" | "suspended"
   ): Promise<Vendor>;
+  logVendorAction(vendorId: string, action: string, actorId?: string, notes?: string): Promise<void>;
 
   // Driver operations
   createDriver(driver: InsertDriver): Promise<Driver>;
@@ -529,6 +534,28 @@ export class DatabaseStorage implements IStorage {
   async getVendorByUserId(userId: string): Promise<Vendor | undefined> {
     const [vendor] = await db.select().from(vendors).where(eq(vendors.userId, userId));
     return vendor;
+  }
+
+  async getVendorBySlug(slug: string): Promise<Vendor | undefined> {
+    const [vendor] = await db.select().from(vendors).where(eq(vendors.storeSlug, slug));
+    return vendor;
+  }
+
+  async checkStoreNameAvailability(storeName: string): Promise<boolean> {
+    const [existing] = await db
+      .select({ id: vendors.id })
+      .from(vendors)
+      .where(sql`LOWER(${vendors.storeName}) = ${storeName.toLowerCase()}`);
+    return !existing;
+  }
+
+  async logVendorAction(vendorId: string, action: string, actorId?: string, notes?: string): Promise<void> {
+    await db.insert(vendorAuditLog).values({
+      vendorId,
+      action,
+      actorId,
+      notes,
+    });
   }
 
   async getVendors(status?: "pending" | "approved" | "rejected" | "suspended"): Promise<Vendor[]> {
