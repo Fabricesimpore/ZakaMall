@@ -102,9 +102,13 @@ export default function Landing() {
                       <DialogTrigger asChild>
                         <Button
                           className="btn-force-visible hover:bg-zaka-orange/90 px-4 py-2 rounded-lg transition-colors font-medium"
-                          style={{ color: "white", backgroundColor: "#ff7722" }}
+                          style={{ 
+                            color: "white !important", 
+                            backgroundColor: "#ff7722",
+                            border: "none"
+                          }}
                         >
-                          Se connecter
+                          <span style={{ color: "white !important" }}>Se connecter</span>
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-md">

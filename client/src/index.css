@@ -205,28 +205,51 @@ body {
     background-color: white !important;
   }
 
-  /* Fix specific login buttons */
-  button[style*="background-color: #ff7722"] {
+  /* Fix specific login buttons - ULTRA AGGRESSIVE */
+  button[style*="background-color: #ff7722"],
+  button[style*="backgroundColor: #ff7722"],
+  button[style*="background-color:#ff7722"],
+  button[style*="backgroundColor:#ff7722"] {
     color: white !important;
     background-color: #ff7722 !important;
   }
 
-  button[style*="background-color: #ff7722"]:hover {
+  button[style*="background-color: #ff7722"]:hover,
+  button[style*="backgroundColor: #ff7722"]:hover,
+  button[style*="background-color:#ff7722"]:hover,
+  button[style*="backgroundColor:#ff7722"]:hover {
     color: white !important;
     background-color: #e6631a !important;
   }
 
-  /* Ensure orange buttons always have white text */
+  /* NUCLEAR OPTION - Force ALL orange button text to be white */
   .bg-zaka-orange,
+  .bg-zaka-orange *,
   button.bg-zaka-orange,
+  button.bg-zaka-orange *,
   [style*="background-color: #ff7722"],
-  [style*="backgroundColor: #ff7722"] {
+  [style*="background-color: #ff7722"] *,
+  [style*="backgroundColor: #ff7722"],
+  [style*="backgroundColor: #ff7722"] *,
+  button[class*="btn-force-visible"],
+  button[class*="btn-force-visible"] * {
     color: white !important;
   }
 
   .bg-zaka-orange:hover,
-  button.bg-zaka-orange:hover {
+  .bg-zaka-orange:hover *,
+  button.bg-zaka-orange:hover,
+  button.bg-zaka-orange:hover * {
     color: white !important;
+  }
+
+  /* Target the exact button that's causing issues */
+  button.btn-force-visible,
+  button.btn-force-visible *,
+  .btn-force-visible,
+  .btn-force-visible * {
+    color: white !important;
+    text-shadow: none !important;
   }
 
   /* Force critical styling for navbar and main elements */
@@ -360,5 +383,33 @@ body {
 
   .dark .border-gray-600 {
     border-color: rgb(75, 85, 99) !important;
+  }
+
+  /* EMERGENCY FIX - Override EVERYTHING for Se connecter button */
+  html body .btn-force-visible,
+  html body button[style*="#ff7722"],
+  html body [style*="background-color: #ff7722"],
+  html body button[class*="force-visible"] {
+    color: white !important;
+  }
+
+  /* Ultra specific targeting for the login button */
+  section div div button.btn-force-visible {
+    color: white !important;
+    background-color: #ff7722 !important;
+  }
+
+  /* In case there's a span or other element inside */
+  section div div button.btn-force-visible span,
+  section div div button.btn-force-visible div,
+  section div div button.btn-force-visible * {
+    color: white !important;
+  }
+
+  /* Force override any Tailwind or component library styles */
+  button[style*="backgroundColor"][style*="#ff7722"],
+  button[style*="background-color"][style*="#ff7722"] {
+    color: white !important;
+    font-weight: 500 !important;
   }
 }
