@@ -90,18 +90,18 @@ export const vendors = pgTable("vendors", {
   userId: varchar("user_id")
     .references(() => users.id)
     .notNull(),
-  
+
   // Public store information
   storeName: varchar("store_name", { length: 120 }).notNull(),
   storeSlug: varchar("store_slug", { length: 140 }).notNull().unique(),
   logoUrl: text("logo_url"),
   bannerUrl: text("banner_url"),
-  
+
   // Contact information
   contactEmail: varchar("contact_email", { length: 160 }).notNull(),
   contactPhone: varchar("contact_phone", { length: 40 }),
   countryCode: varchar("country_code", { length: 2 }),
-  
+
   // Legal/business information (optional initially)
   legalName: varchar("legal_name", { length: 200 }),
   businessName: varchar("business_name"), // keeping for backward compatibility
@@ -110,26 +110,26 @@ export const vendors = pgTable("vendors", {
   businessAddress: text("business_address"),
   businessPhone: varchar("business_phone"), // keeping for backward compatibility
   taxId: varchar("tax_id"),
-  
+
   // Payment information
   bankAccount: varchar("bank_account"),
   bankName: varchar("bank_name"),
   mobileMoneyNumber: varchar("mobile_money_number"),
   mobileMoneyName: varchar("mobile_money_name"),
   paymentMethod: varchar("payment_method"),
-  
+
   // Documents
   identityDocument: varchar("identity_document"),
   identityDocumentPhoto: text("identity_document_photo"),
   businessLicense: varchar("business_license"),
   businessLicensePhoto: text("business_license_photo"),
-  
+
   // Status and admin
   status: vendorStatusEnum("status").default("pending"),
   reviewNotes: text("review_notes"),
   adminNotes: text("admin_notes"), // keeping for backward compatibility
   commissionRate: decimal("commission_rate", { precision: 5, scale: 2 }).default("5.00"),
-  
+
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -234,11 +234,11 @@ export const products = pgTable("products", {
   tags: text("tags").array(),
   seoTitle: varchar("seo_title"),
   seoDescription: text("seo_description"),
-  
+
   // Denormalized vendor fields for quick access and search indexing
   vendorDisplayName: varchar("vendor_display_name", { length: 120 }),
   vendorSlug: varchar("vendor_slug", { length: 140 }),
-  
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -633,7 +633,11 @@ export const upsertUserSchema = createInsertSchema(users).pick({
 
 // Vendor registration schema (minimal required fields)
 export const vendorRegistrationSchema = z.object({
-  storeName: z.string().min(3).max(120).regex(/^[A-Za-zÀ-ÿ0-9 .,'&-]+$/, "Invalid characters in store name"),
+  storeName: z
+    .string()
+    .min(3)
+    .max(120)
+    .regex(/^[A-Za-zÀ-ÿ0-9 .,'&-]+$/, "Invalid characters in store name"),
   contactEmail: z.string().email().max(160),
   contactPhone: z.string().min(8).max(40).optional(),
   countryCode: z.string().length(2).optional(),

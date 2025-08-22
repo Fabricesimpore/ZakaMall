@@ -140,7 +140,12 @@ export interface IStorage {
     id: string,
     status: "pending" | "approved" | "rejected" | "suspended"
   ): Promise<Vendor>;
-  logVendorAction(vendorId: string, action: string, actorId?: string, notes?: string): Promise<void>;
+  logVendorAction(
+    vendorId: string,
+    action: string,
+    actorId?: string,
+    notes?: string
+  ): Promise<void>;
 
   // Driver operations
   createDriver(driver: InsertDriver): Promise<Driver>;
@@ -549,7 +554,12 @@ export class DatabaseStorage implements IStorage {
     return !existing;
   }
 
-  async logVendorAction(vendorId: string, action: string, actorId?: string, notes?: string): Promise<void> {
+  async logVendorAction(
+    vendorId: string,
+    action: string,
+    actorId?: string,
+    notes?: string
+  ): Promise<void> {
     await db.insert(vendorAuditLog).values({
       vendorId,
       action,

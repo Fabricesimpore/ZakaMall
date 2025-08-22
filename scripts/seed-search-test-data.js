@@ -27,10 +27,10 @@ const TEST_PRODUCTS = [
     published: true,
     popularity_score: 95,
     created_at: Date.now() - 86400000, // 1 day ago
-    updated_at: Date.now()
+    updated_at: Date.now(),
   },
   {
-    id: "test-phone-2", 
+    id: "test-phone-2",
     title: "Samsung Galaxy S24 Ultra",
     brand: "Samsung",
     description: "Premium Android smartphone with S Pen",
@@ -45,7 +45,7 @@ const TEST_PRODUCTS = [
     published: true,
     popularity_score: 92,
     created_at: Date.now() - 86400000,
-    updated_at: Date.now()
+    updated_at: Date.now(),
   },
   {
     id: "test-laptop-1",
@@ -63,7 +63,7 @@ const TEST_PRODUCTS = [
     published: true,
     popularity_score: 88,
     created_at: Date.now() - 172800000, // 2 days ago
-    updated_at: Date.now()
+    updated_at: Date.now(),
   },
   {
     id: "test-laptop-2",
@@ -73,7 +73,7 @@ const TEST_PRODUCTS = [
     price_cents: 189900,
     currency: "CFA",
     categories: ["Electronics", "Laptops"],
-    vendor_id: "test-vendor-2", 
+    vendor_id: "test-vendor-2",
     vendor_name: "Computer World",
     vendor_slug: "computer-world",
     in_stock: true,
@@ -81,7 +81,7 @@ const TEST_PRODUCTS = [
     published: true,
     popularity_score: 85,
     created_at: Date.now() - 172800000,
-    updated_at: Date.now()
+    updated_at: Date.now(),
   },
   {
     id: "test-headphones-1",
@@ -99,7 +99,7 @@ const TEST_PRODUCTS = [
     published: true,
     popularity_score: 90,
     created_at: Date.now() - 259200000, // 3 days ago
-    updated_at: Date.now()
+    updated_at: Date.now(),
   },
   {
     id: "test-out-of-stock",
@@ -110,14 +110,14 @@ const TEST_PRODUCTS = [
     currency: "CFA",
     categories: ["Electronics", "Tablets"],
     vendor_id: "test-vendor-1",
-    vendor_name: "TechStore BF", 
+    vendor_name: "TechStore BF",
     vendor_slug: "techstore-bf",
     in_stock: false, // Out of stock for testing
     approved: true,
     published: true,
     popularity_score: 87,
     created_at: Date.now() - 345600000, // 4 days ago
-    updated_at: Date.now()
+    updated_at: Date.now(),
   },
   {
     id: "test-android-tablet",
@@ -129,14 +129,14 @@ const TEST_PRODUCTS = [
     categories: ["Electronics", "Tablets"],
     vendor_id: "test-vendor-2",
     vendor_name: "Computer World",
-    vendor_slug: "computer-world", 
+    vendor_slug: "computer-world",
     in_stock: true,
     approved: true,
     published: true,
     popularity_score: 83,
     created_at: Date.now() - 432000000, // 5 days ago
-    updated_at: Date.now()
-  }
+    updated_at: Date.now(),
+  },
 ];
 
 async function seedTestData() {
@@ -166,56 +166,45 @@ async function seedTestData() {
 
     // Update search settings for optimal typo tolerance
     console.log("⚙️ Configuring search settings...");
-    
+
     await index.updateSettings({
-      searchableAttributes: [
-        "title",
-        "brand", 
-        "description",
-        "categories",
-        "vendor_name"
-      ],
+      searchableAttributes: ["title", "brand", "description", "categories", "vendor_name"],
       filterableAttributes: [
         "approved",
-        "published", 
+        "published",
         "in_stock",
         "categories",
         "brand",
         "vendor_id",
         "vendor_name",
         "currency",
-        "price_cents"
-      ],
-      sortableAttributes: [
         "price_cents",
-        "popularity_score",
-        "created_at",
-        "updated_at"
       ],
+      sortableAttributes: ["price_cents", "popularity_score", "created_at", "updated_at"],
       rankingRules: [
         "words",
         "typo",
-        "proximity", 
+        "proximity",
         "attribute",
         "sort",
         "exactness",
-        "popularity_score:desc"
+        "popularity_score:desc",
       ],
       typoTolerance: {
         enabled: true,
         minWordSizeForTypos: {
           oneTypo: 3,
-          twoTypos: 7
+          twoTypos: 7,
         },
         disableOnWords: ["apple", "samsung", "sony", "dell"],
-        disableOnAttributes: ["brand"]
+        disableOnAttributes: ["brand"],
       },
       faceting: {
-        maxValuesPerFacet: 100
+        maxValuesPerFacet: 100,
       },
       pagination: {
-        maxTotalHits: 1000
-      }
+        maxTotalHits: 1000,
+      },
     });
 
     // Verify data
@@ -232,11 +221,12 @@ async function seedTestData() {
     console.log(`🔤 Search "phon" (typo): ${typoResult.totalHits} results`);
 
     console.log("🎉 Test data seeding completed successfully!");
-    
   } catch (error) {
     console.error("❌ Failed to seed test data:", error.message);
     if (error.code === "ECONNREFUSED") {
-      console.log("💡 Make sure Meilisearch is running: docker-compose -f docker-compose.meili.yml up -d");
+      console.log(
+        "💡 Make sure Meilisearch is running: docker-compose -f docker-compose.meili.yml up -d"
+      );
     }
     process.exit(1);
   }
@@ -252,16 +242,15 @@ async function cleanTestData() {
     });
 
     const index = client.index("products");
-    
+
     // Delete test documents
-    const testIds = TEST_PRODUCTS.map(p => p.id);
+    const testIds = TEST_PRODUCTS.map((p) => p.id);
     const task = await index.deleteDocuments(testIds);
-    
+
     console.log(`🗑️ Deleted ${testIds.length} test products (Task: ${task.taskUid})`);
     await client.waitForTask(task.taskUid);
 
     console.log("✅ Test data cleaned successfully!");
-    
   } catch (error) {
     console.error("❌ Failed to clean test data:", error.message);
     process.exit(1);

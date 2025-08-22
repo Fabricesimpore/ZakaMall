@@ -8,17 +8,17 @@ healthz.get("/health", async (req, res) => {
   try {
     // Quick database health check with timeout
     await db.execute(sql`SELECT 1`);
-    res.json({ 
-      status: "healthy", 
+    res.json({
+      status: "healthy",
       timestamp: new Date().toISOString(),
-      uptime: process.uptime()
+      uptime: process.uptime(),
     });
   } catch (error: any) {
     console.error("Health check failed:", error);
-    res.status(500).json({ 
-      status: "unhealthy", 
+    res.status(500).json({
+      status: "unhealthy",
       error: error?.message || "database_error",
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 });

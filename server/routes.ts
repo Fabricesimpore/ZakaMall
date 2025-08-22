@@ -1032,16 +1032,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { slug } = req.params;
       const vendor = await storage.getVendorBySlug(slug);
-      
+
       if (!vendor) {
         return res.status(404).json({ error: "Store not found" });
       }
-      
+
       // Only return approved vendors for public access
       if (vendor.status !== "approved") {
         return res.status(404).json({ error: "Store not available" });
       }
-      
+
       res.json(vendor);
     } catch (error) {
       console.error("Error fetching vendor by slug:", error);
