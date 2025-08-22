@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
 import Navbar from "@/components/Navbar";
+import PageShell from "@/components/layout/PageShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -9,9 +10,9 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <PageShell className="flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-zaka-orange"></div>
-      </div>
+      </PageShell>
     );
   }
 
@@ -29,15 +30,15 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-zaka-light">
+    <PageShell className="bg-zaka-light">
       <Navbar />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-zaka-dark mb-4">
+      <div className="py-12">
+        <div className="text-center mb-12 min-w-0">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zaka-dark mb-4 break-words">
             Bienvenue, {user?.firstName || "Utilisateur"} !
           </h1>
-          <p className="text-xl text-zaka-gray mb-8">
+          <p className="text-lg sm:text-xl text-zaka-gray mb-8 break-words">
             Votre rôle:{" "}
             <span className="font-semibold text-zaka-orange capitalize">{user?.role}</span>
           </p>
@@ -221,6 +222,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }
