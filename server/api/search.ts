@@ -8,7 +8,10 @@ function getClient() {
   if (!client) {
     client = new MeiliSearch({
       host: process.env.MEILI_HOST || "http://localhost:7700",
-      apiKey: process.env.MEILI_SEARCH_KEY || process.env.MEILI_MASTER_KEY || "development_master_key_for_local",
+      apiKey:
+        process.env.MEILI_SEARCH_KEY ||
+        process.env.MEILI_MASTER_KEY ||
+        "development_master_key_for_local",
     });
   }
   return client;
@@ -24,7 +27,7 @@ function getIndex() {
 function parseSearchParams(req: Request): SearchParams {
   const {
     q = "",
-    page = "1", 
+    page = "1",
     limit = "24",
     sort = "popularity_score:desc",
     vendor_id,
@@ -35,12 +38,12 @@ function parseSearchParams(req: Request): SearchParams {
     in_stock,
     currency,
     brand,
-    brands
+    brands,
   } = req.query;
 
   // Parse filters
   const filters: SearchFilters = {};
-  
+
   if (vendor_id) filters.vendor_id = vendor_id as string;
   if (currency) filters.currency = currency as string;
   if (in_stock !== undefined) filters.in_stock = in_stock === "true";
@@ -53,14 +56,14 @@ function parseSearchParams(req: Request): SearchParams {
   const categoryList: string[] = [];
   if (category) {
     if (Array.isArray(category)) {
-      categoryList.push(...category as string[]);
+      categoryList.push(...(category as string[]));
     } else {
       categoryList.push(category as string);
     }
   }
   if (categories) {
     if (Array.isArray(categories)) {
-      categoryList.push(...categories as string[]);
+      categoryList.push(...(categories as string[]));
     } else {
       categoryList.push(categories as string);
     }
@@ -71,14 +74,14 @@ function parseSearchParams(req: Request): SearchParams {
   const brandList: string[] = [];
   if (brand) {
     if (Array.isArray(brand)) {
-      brandList.push(...brand as string[]);
+      brandList.push(...(brand as string[]));
     } else {
       brandList.push(brand as string);
     }
   }
   if (brands) {
     if (Array.isArray(brands)) {
-      brandList.push(...brands as string[]);
+      brandList.push(...(brands as string[]));
     } else {
       brandList.push(brands as string);
     }
@@ -90,7 +93,7 @@ function parseSearchParams(req: Request): SearchParams {
     page: Math.max(1, Number(page)),
     limit: Math.min(Math.max(1, Number(limit)), 60), // Cap at 60 items per page
     sort: String(sort),
-    filters
+    filters,
   };
 }
 
@@ -98,10 +101,7 @@ function parseSearchParams(req: Request): SearchParams {
  * Build Meilisearch filter string from filters object
  */
 function buildFilterString(filters: SearchFilters): string {
-  const filterParts: string[] = [
-    "approved = true",
-    "published = true"
-  ];
+  const filterParts: string[] = ["approved = true", "published = true"];
 
   if (filters.vendor_id) {
     filterParts.push(`vendor_id = "${filters.vendor_id}"`);
@@ -124,12 +124,12 @@ function buildFilterString(filters: SearchFilters): string {
   }
 
   if (filters.categories && filters.categories.length > 0) {
-    const categoryFilters = filters.categories.map(c => `categories = "${c}"`);
+    const categoryFilters = filters.categories.map((c) => `categories = "${c}"`);
     filterParts.push(`(${categoryFilters.join(" OR ")})`);
   }
 
   if (filters.brands && filters.brands.length > 0) {
-    const brandFilters = filters.brands.map(b => `brand = "${b}"`);
+    const brandFilters = filters.brands.map((b) => `brand = "${b}"`);
     filterParts.push(`(${brandFilters.join(" OR ")})`);
   }
 
@@ -149,24 +149,18 @@ export async function searchProducts(req: Request, res: Response) {
       page: params.page,
       limit: params.limit,
       sort: params.sort,
-      filters: params.filters
+      filters: params.filters,
     });
 
     const filterString = buildFilterString(params.filters || {});
-    
+
     const searchParams: any = {
       filter: filterString,
       sort: [params.sort],
       attributesToHighlight: ["title", "description", "brand"],
       hitsPerPage: params.limit,
       page: params.page,
-      facets: [
-        "vendor_name",
-        "categories", 
-        "brand",
-        "currency",
-        "in_stock"
-      ]
+      facets: ["vendor_name", "categories", "brand", "currency", "in_stock"],
     };
 
     // Perform the search
@@ -181,18 +175,17 @@ export async function searchProducts(req: Request, res: Response) {
       page: result.page || params.page || 1,
       totalPages: result.totalPages || 0,
       totalHits: result.totalHits || 0,
-      facetDistribution: result.facetDistribution
+      facetDistribution: result.facetDistribution,
     };
 
     console.log(`✅ Search completed: ${result.totalHits} results in ${result.processingTimeMs}ms`);
 
     res.json(searchResult);
-
   } catch (error) {
     console.error("❌ Search error:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Search failed",
-      message: error instanceof Error ? error.message : "Unknown error"
+      message: error instanceof Error ? error.message : "Unknown error",
     });
   }
 }
@@ -215,26 +208,25 @@ export async function autocomplete(req: Request, res: Response) {
       limit: 8,
       filter: "approved = true AND published = true",
       attributesToRetrieve: ["id", "title", "brand", "categories"],
-      attributesToHighlight: []
+      attributesToHighlight: [],
     });
 
     // Extract unique suggestions from the results
-    const suggestions = Array.from(new Set(
-      result.hits.map((hit: any) => hit.title).filter(Boolean)
-    )).slice(0, 8);
+    const suggestions = Array.from(
+      new Set(result.hits.map((hit: any) => hit.title).filter(Boolean))
+    ).slice(0, 8);
 
     res.json({
       suggestions,
       query,
-      processingTimeMs: result.processingTimeMs
+      processingTimeMs: result.processingTimeMs,
     });
-
   } catch (error) {
     console.error("❌ Autocomplete error:", error);
     res.status(500).json({
       suggestions: [],
       query: req.query.q || "",
-      processingTimeMs: 0
+      processingTimeMs: 0,
     });
   }
 }
