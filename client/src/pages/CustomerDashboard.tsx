@@ -191,9 +191,6 @@ export default function CustomerDashboard() {
                   >
                     {category.name}
                   </p>
-                  {category.id === "restaurant" && (
-                    <p className="text-xs text-orange-100 mt-1">🎥 Vidéos TikTok</p>
-                  )}
                 </div>
               ));
             })()}
