@@ -13,7 +13,7 @@ import {
   createUserSession,
 } from "./auth";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
-import CloudinaryService, { upload } from "./cloudinaryStorage";
+import CloudinaryService, { upload, videoUpload } from "./cloudinaryStorage";
 import { ObjectPermission } from "./objectAcl";
 import { PaymentServiceFactory } from "./paymentService";
 import { healthz } from "./healthz";
@@ -2874,6 +2874,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.sendStatus(404);
       }
       return res.sendStatus(500);
+    }
+  });
+
+  // Video upload endpoint
+  app.post("/api/upload/video", isAuthenticated, videoUpload.single("video"), async (req: any, res) => {
+    try {
+      console.log("🎥 Video upload request received");
+      console.log("Session user:", req.session?.user?.id);
+      console.log(
+        "File received:",
+        req.file ? `${req.file.originalname} (${req.file.size} bytes)` : "No file"
+      );
+
+      if (!req.file) {
+        console.error("❌ No file in request");
+        return res.status(400).json({ error: "No video file provided" });
+      }
+
+      // Check if Cloudinary is configured
+      if (!CloudinaryService.isConfigured()) {
+        console.error("❌ Cloudinary not configured");
+        return res.status(500).json({
+          error: "Video storage not configured. Please set CLOUDINARY environment variables.",
+        });
+      }
+
+      console.log(`🎬 Uploading video to Cloudinary: ${req.file.originalname}`);
+
+      // Upload to Cloudinary
+      const result = await CloudinaryService.uploadVideo(req.file.buffer, {
+        folder: "zakamall/restaurant-videos",
+      });
+
+      console.log("✅ Video uploaded successfully to Cloudinary:", result.secure_url);
+
+      res.json({
+        success: true,
+        url: result.secure_url,
+        publicId: result.public_id,
+        width: result.width,
+        height: result.height,
+      });
+    } catch (error: any) {
+      console.error("Video upload error:", error);
+      res.status(500).json({
+        error: "Failed to upload video",
+        details: error.message,
+      });
     }
   });
 

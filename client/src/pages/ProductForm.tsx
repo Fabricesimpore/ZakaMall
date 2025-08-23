@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import ProductImageUploaderForm from "@/components/ProductImageUploaderForm";
+import ProductVideoUploaderForm from "@/components/ProductVideoUploaderForm";
 
 import {
   Select,
@@ -409,61 +410,14 @@ export default function ProductForm({ productId }: ProductFormProps) {
                   </p>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {videoUrls.map((url, index) => (
-                      <div key={index} className="flex items-center gap-2 p-3 border rounded-lg">
-                        <div className="flex-1">
-                          <video src={url} className="w-full h-32 object-cover rounded" controls />
-                          <p className="text-xs text-gray-500 mt-1 truncate">{url}</p>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => {
-                            const newVideos = videoUrls.filter((_, i) => i !== index);
-                            setVideoUrls(newVideos);
-                            form.setValue("videos", newVideos);
-                          }}
-                        >
-                          <i className="fas fa-trash-alt"></i>
-                        </Button>
-                      </div>
-                    ))}
-
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                      <input
-                        type="url"
-                        placeholder="URL de la vidéo (YouTube, Vimeo, fichier direct...)"
-                        className="w-full p-2 border rounded"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            const input = e.target as HTMLInputElement;
-                            const url = input.value.trim();
-                            if (url) {
-                              const newVideos = [...videoUrls, url];
-                              setVideoUrls(newVideos);
-                              form.setValue("videos", newVideos);
-                              input.value = "";
-                            }
-                          }
-                        }}
-                      />
-                      <p className="text-xs text-gray-500 mt-2">
-                        Appuyez sur Entrée pour ajouter la vidéo
-                      </p>
-                      <div className="mt-3 text-xs text-gray-400">
-                        <p>💡 Conseils pour les vidéos :</p>
-                        <ul className="mt-1 space-y-1 text-left max-w-md mx-auto">
-                          <li>• Courtes et engageantes (15-60 secondes)</li>
-                          <li>• Montrent le plat en préparation ou fini</li>
-                          <li>• Bonne qualité vidéo et audio</li>
-                          <li>• Orientées verticalement pour mobile</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
+                  <ProductVideoUploaderForm
+                    onVideosChange={(videos) => {
+                      setVideoUrls(videos);
+                      form.setValue("videos", videos);
+                    }}
+                    currentVideos={videoUrls}
+                    maxVideos={3}
+                  />
                 </CardContent>
               </Card>
             )}
