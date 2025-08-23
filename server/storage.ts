@@ -505,12 +505,19 @@ export class DatabaseStorage implements IStorage {
       await safeDelete("reviews", () => db.delete(reviews).where(eq(reviews.userId, userId)));
       await safeDelete("cart", () => db.delete(cart).where(eq(cart.userId, userId)));
       await safeDelete("orders", () => db.delete(orders).where(eq(orders.customerId, userId)));
-      await safeDelete("phoneVerifications", () =>
-        db.delete(phoneVerifications).where(eq(phoneVerifications.userId, userId))
-      );
-      await safeDelete("emailVerifications", () =>
-        db.delete(emailVerifications).where(eq(emailVerifications.userId, userId))
-      );
+      // Delete phone verifications by user's phone number (if exists)
+      if (targetUser?.phone) {
+        await safeDelete("phoneVerifications", () =>
+          db.delete(phoneVerifications).where(eq(phoneVerifications.phone, targetUser.phone!))
+        );
+      }
+      
+      // Delete email verifications by user's email (if exists)  
+      if (targetUser?.email) {
+        await safeDelete("emailVerifications", () =>
+          db.delete(emailVerifications).where(eq(emailVerifications.email, targetUser.email!))
+        );
+      }
       await safeDelete("notifications", () =>
         db.delete(notifications).where(eq(notifications.userId, userId))
       );
