@@ -1,4 +1,16 @@
 <svg width="220" height="36" viewBox="0 0 220 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <text x="0" y="24" fill="#FF7722" font-family="Inter, sans-serif" font-size="20" font-weight="700">ZakaMall</text>
-  <text x="0" y="34" fill="#6B7280" font-family="Inter, sans-serif" font-size="8">Marketplace du Burkina</text>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700&amp;display=swap');
+    .brand-text { 
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .subtitle-text {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 400;
+    }
+  </style>
+  <text x="0" y="24" fill="#FF7722" class="brand-text" font-size="28">ZakaMall</text>
+  <text x="0" y="34" fill="#6B7280" class="subtitle-text" font-size="8">Marketplace du Burkina</text>
 </svg>

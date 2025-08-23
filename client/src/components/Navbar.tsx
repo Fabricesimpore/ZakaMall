@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
 import DarkModeToggle from "@/components/DarkModeToggle";
 import WhatsAppSupport from "@/components/WhatsAppSupport";
+import BrandLogo from "@/components/BrandLogo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,7 +61,7 @@ export default function Navbar() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <h1 className="text-2xl font-bold text-zaka-orange">ZakaMall</h1>
+                <BrandLogo size="md" showSubtitle={false} />
                 <p className="text-xs text-zaka-gray">Marketplace du Burkina</p>
               </div>
             </div>
@@ -78,7 +79,7 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link href="/">
               <div className="flex-shrink-0 cursor-pointer">
-                <h1 className="text-2xl font-bold text-zaka-orange">ZakaMall</h1>
+                <BrandLogo size="md" showSubtitle={false} />
                 <p className="text-xs text-zaka-gray">Marketplace du Burkina</p>
               </div>
             </Link>

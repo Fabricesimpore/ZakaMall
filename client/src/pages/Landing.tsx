@@ -36,7 +36,7 @@ export default function Landing() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <h1 className="text-2xl font-bold text-zaka-orange">ZakaMall</h1>
+                <h1 className="text-2xl font-bold text-zaka-orange whitespace-nowrap">ZakaMall</h1>
                 <p className="text-xs text-zaka-gray">Marketplace du Burkina</p>
               </div>
             </div>
@@ -289,7 +289,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-xl font-bold text-zaka-orange mb-4">ZakaMall</h3>
+              <h3 className="text-xl font-bold text-zaka-orange mb-4 whitespace-nowrap">ZakaMall</h3>
               <p className="text-gray-300 mb-4">
                 Le marketplace #1 du Burkina Faso. Connectant vendeurs, clients et livreurs.
               </p>
