@@ -1033,8 +1033,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(products.isActive, true),
-          eq(products.categoryId, 'restaurant'),
-          eq(vendors.status, 'approved')
+          eq(products.categoryId, "restaurant"),
+          eq(vendors.status, "approved")
         )
       )
       .orderBy(desc(products.createdAt))

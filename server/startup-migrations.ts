@@ -434,7 +434,7 @@ async function addRestaurantCategoryMigration() {
     const existingCategory = await db.execute(sql`
       SELECT id FROM categories WHERE name ILIKE 'Restaurant%' OR id = 'restaurant'
     `);
-    
+
     if (existingCategory.length > 0) {
       console.log("✅ Restaurant category already exists, skipping...");
       return;
@@ -473,7 +473,7 @@ async function addVideoSupportToProducts() {
       FROM information_schema.columns 
       WHERE table_name = 'products' AND column_name = 'videos'
     `);
-    
+
     if (columnExists.length > 0) {
       console.log("✅ Videos column already exists, skipping...");
       return;

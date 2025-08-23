@@ -157,37 +157,41 @@ export default function CustomerDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
             {(() => {
               // Prioritize restaurant category and show first 4
-              const restaurantCategory = categories.find((cat: any) => cat.id === 'restaurant');
-              const otherCategories = categories.filter((cat: any) => cat.id !== 'restaurant');
-              const displayCategories = restaurantCategory 
+              const restaurantCategory = categories.find((cat: any) => cat.id === "restaurant");
+              const otherCategories = categories.filter((cat: any) => cat.id !== "restaurant");
+              const displayCategories = restaurantCategory
                 ? [restaurantCategory, ...otherCategories].slice(0, 4)
                 : categories.slice(0, 4);
-              
+
               return displayCategories.map((category: any) => (
                 <div
                   key={category.id}
                   className={`p-6 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer text-center ${
-                    category.id === 'restaurant' 
-                      ? 'bg-gradient-to-br from-orange-500 to-red-600 text-white' 
-                      : 'bg-white'
+                    category.id === "restaurant"
+                      ? "bg-gradient-to-br from-orange-500 to-red-600 text-white"
+                      : "bg-white"
                   }`}
                   onClick={() => {
-                    if (category.id === 'restaurant') {
-                      window.location.href = '/restaurants';
+                    if (category.id === "restaurant") {
+                      window.location.href = "/restaurants";
                     } else {
                       setSelectedCategory(category.id);
                     }
                   }}
                 >
-                  <i className={`fas fa-${category.icon || "cube"} text-3xl mb-3 ${
-                    category.id === 'restaurant' ? 'text-white' : 'text-zaka-blue'
-                  }`}></i>
-                  <p className={`font-medium ${
-                    category.id === 'restaurant' ? 'text-white' : 'text-zaka-dark'
-                  }`}>
+                  <i
+                    className={`fas fa-${category.icon || "cube"} text-3xl mb-3 ${
+                      category.id === "restaurant" ? "text-white" : "text-zaka-blue"
+                    }`}
+                  ></i>
+                  <p
+                    className={`font-medium ${
+                      category.id === "restaurant" ? "text-white" : "text-zaka-dark"
+                    }`}
+                  >
                     {category.name}
                   </p>
-                  {category.id === 'restaurant' && (
+                  {category.id === "restaurant" && (
                     <p className="text-xs text-orange-100 mt-1">🎥 Vidéos TikTok</p>
                   )}
                 </div>

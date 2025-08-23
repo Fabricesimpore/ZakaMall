@@ -66,7 +66,7 @@ function VideoPlayer({ src, isActive, product }: VideoPlayerProps) {
 
   const handleLike = () => {
     setLiked(!liked);
-    setLikesCount(prev => liked ? prev - 1 : prev + 1);
+    setLikesCount((prev) => (liked ? prev - 1 : prev + 1));
   };
 
   const handleShare = async () => {
@@ -78,12 +78,12 @@ function VideoPlayer({ src, isActive, product }: VideoPlayerProps) {
           url: window.location.href,
         });
       } catch (error) {
-        console.log('Partage annulé');
+        console.log("Partage annulé");
       }
     } else {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href);
-      alert('Lien copié dans le presse-papier!');
+      alert("Lien copié dans le presse-papier!");
     }
   };
 
@@ -102,7 +102,7 @@ function VideoPlayer({ src, isActive, product }: VideoPlayerProps) {
 
       {/* Play/Pause overlay */}
       {!isPlaying && (
-        <div 
+        <div
           className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30"
           onClick={togglePlay}
         >
@@ -131,10 +131,10 @@ function VideoPlayer({ src, isActive, product }: VideoPlayerProps) {
             size="icon"
             onClick={handleLike}
             className={`bg-black bg-opacity-50 text-white hover:bg-opacity-70 ${
-              liked ? 'text-red-500' : ''
+              liked ? "text-red-500" : ""
             }`}
           >
-            <Heart className={`h-6 w-6 ${liked ? 'fill-current' : ''}`} />
+            <Heart className={`h-6 w-6 ${liked ? "fill-current" : ""}`} />
           </Button>
           <span className="text-white text-sm mt-1">{likesCount}</span>
         </div>
@@ -167,9 +167,7 @@ function VideoPlayer({ src, isActive, product }: VideoPlayerProps) {
         <div className="text-white">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-10 h-10 bg-zaka-orange rounded-full flex items-center justify-center">
-              <span className="text-sm font-bold text-white">
-                {product.vendorName.charAt(0)}
-              </span>
+              <span className="text-sm font-bold text-white">{product.vendorName.charAt(0)}</span>
             </div>
             <div>
               <p className="font-semibold">{product.vendorName}</p>
@@ -188,10 +186,10 @@ function VideoPlayer({ src, isActive, product }: VideoPlayerProps) {
               </div>
             </div>
           </div>
-          
+
           <h3 className="text-lg font-bold mb-2">{product.name}</h3>
           <p className="text-sm text-gray-200 mb-3 line-clamp-2">{product.description}</p>
-          
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Badge className="bg-zaka-green text-white">
@@ -201,11 +199,11 @@ function VideoPlayer({ src, isActive, product }: VideoPlayerProps) {
                 🍽️ Restaurant
               </Badge>
             </div>
-            
-            <Button 
-              size="sm" 
+
+            <Button
+              size="sm"
               className="bg-zaka-orange hover:bg-zaka-orange/90"
-              onClick={() => window.open(`/store/${product.vendorId}`, '_blank')}
+              onClick={() => window.open(`/store/${product.vendorId}`, "_blank")}
             >
               Commander
             </Button>
@@ -221,7 +219,11 @@ export default function RestaurantFeed() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch restaurant products with videos
-  const { data: products = [], isLoading, error } = useQuery<RestaurantProduct[]>({
+  const {
+    data: products = [],
+    isLoading,
+    error,
+  } = useQuery<RestaurantProduct[]>({
     queryKey: ["/api/products/restaurants"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/products/restaurants");
@@ -258,32 +260,32 @@ export default function RestaurantFeed() {
 
       if (deltaY > threshold && currentIndex < products.length - 1) {
         // Swipe up - next video
-        setCurrentIndex(prev => prev + 1);
+        setCurrentIndex((prev) => prev + 1);
       } else if (deltaY < -threshold && currentIndex > 0) {
         // Swipe down - previous video
-        setCurrentIndex(prev => prev - 1);
+        setCurrentIndex((prev) => prev - 1);
       }
     };
 
     // Keyboard navigation
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowDown' && currentIndex < products.length - 1) {
-        setCurrentIndex(prev => prev + 1);
-      } else if (e.key === 'ArrowUp' && currentIndex > 0) {
-        setCurrentIndex(prev => prev - 1);
+      if (e.key === "ArrowDown" && currentIndex < products.length - 1) {
+        setCurrentIndex((prev) => prev + 1);
+      } else if (e.key === "ArrowUp" && currentIndex > 0) {
+        setCurrentIndex((prev) => prev - 1);
       }
     };
 
-    container.addEventListener('touchstart', handleTouchStart);
-    container.addEventListener('touchmove', handleTouchMove);
-    container.addEventListener('touchend', handleTouchEnd);
-    document.addEventListener('keydown', handleKeyDown);
+    container.addEventListener("touchstart", handleTouchStart);
+    container.addEventListener("touchmove", handleTouchMove);
+    container.addEventListener("touchend", handleTouchEnd);
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      container.removeEventListener('touchend', handleTouchEnd);
-      document.removeEventListener('keydown', handleKeyDown);
+      container.removeEventListener("touchstart", handleTouchStart);
+      container.removeEventListener("touchmove", handleTouchMove);
+      container.removeEventListener("touchend", handleTouchEnd);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [currentIndex, products.length]);
 
@@ -305,9 +307,9 @@ export default function RestaurantFeed() {
           <i className="fas fa-utensils text-4xl mb-4 text-gray-400"></i>
           <h2 className="text-xl font-bold mb-2">Aucune vidéo disponible</h2>
           <p className="text-gray-400 mb-4">Les restaurants n'ont pas encore ajouté de vidéos.</p>
-          <Button 
+          <Button
             variant="outline"
-            onClick={() => window.location.href = '/'}
+            onClick={() => (window.location.href = "/")}
             className="text-white border-white hover:bg-white hover:text-black"
           >
             Retour à l'accueil
@@ -320,20 +322,23 @@ export default function RestaurantFeed() {
   return (
     <div className="h-screen overflow-hidden bg-black" ref={containerRef}>
       <Navbar />
-      
+
       {/* Video Feed */}
       <div className="relative h-full">
         {products.map((product, index) => (
           <div
             key={product.id}
             className={`absolute inset-0 transition-transform duration-300 ${
-              index === currentIndex ? 'translate-y-0' : 
-              index < currentIndex ? '-translate-y-full' : 'translate-y-full'
+              index === currentIndex
+                ? "translate-y-0"
+                : index < currentIndex
+                  ? "-translate-y-full"
+                  : "translate-y-full"
             }`}
           >
             {product.videos && product.videos.length > 0 ? (
-              <VideoPlayer 
-                src={product.videos[0]} 
+              <VideoPlayer
+                src={product.videos[0]}
                 isActive={index === currentIndex}
                 product={product}
               />
@@ -341,8 +346,8 @@ export default function RestaurantFeed() {
               // Fallback for products without videos - show image with overlay
               <div className="relative w-full h-full bg-black flex items-center justify-center">
                 {product.images && product.images.length > 0 ? (
-                  <img 
-                    src={product.images[0]} 
+                  <img
+                    src={product.images[0]}
                     alt={product.name}
                     className="w-full h-full object-cover"
                   />
@@ -351,7 +356,7 @@ export default function RestaurantFeed() {
                     <i className="fas fa-utensils text-6xl text-gray-600"></i>
                   </div>
                 )}
-                
+
                 {/* Same UI as video but without video controls */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent">
                   <div className="text-white">
@@ -365,18 +370,18 @@ export default function RestaurantFeed() {
                         <p className="font-semibold">{product.vendorName}</p>
                       </div>
                     </div>
-                    
+
                     <h3 className="text-lg font-bold mb-2">{product.name}</h3>
                     <p className="text-sm text-gray-200 mb-3">{product.description}</p>
-                    
+
                     <div className="flex items-center justify-between">
                       <Badge className="bg-zaka-green text-white">
                         {parseFloat(product.price).toLocaleString()} CFA
                       </Badge>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         className="bg-zaka-orange hover:bg-zaka-orange/90"
-                        onClick={() => window.open(`/store/${product.vendorId}`, '_blank')}
+                        onClick={() => window.open(`/store/${product.vendorId}`, "_blank")}
                       >
                         Commander
                       </Button>
@@ -396,7 +401,7 @@ export default function RestaurantFeed() {
             key={index}
             onClick={() => setCurrentIndex(index)}
             className={`w-2 h-2 rounded-full transition-colors ${
-              index === currentIndex ? 'bg-white' : 'bg-gray-500'
+              index === currentIndex ? "bg-white" : "bg-gray-500"
             }`}
           />
         ))}
