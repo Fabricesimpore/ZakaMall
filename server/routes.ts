@@ -1238,6 +1238,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get restaurant products with videos for the feed
+  app.get("/api/products/restaurants", async (req, res) => {
+    try {
+      const products = await storage.getRestaurantProducts();
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching restaurant products:", error);
+      res.status(500).json({ message: "Failed to fetch restaurant products" });
+    }
+  });
+
   app.get("/api/products", async (req, res) => {
     try {
       const {

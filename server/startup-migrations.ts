@@ -16,6 +16,12 @@ export async function runStartupMigrations() {
     // Check and create security tables if they don't exist
     await ensureSecurityTables();
 
+    // Add restaurant category
+    await addRestaurantCategoryMigration();
+
+    // Add video support to products
+    await addVideoSupportToProducts();
+
     console.log("✅ All startup migrations completed successfully!");
   } catch (error) {
     console.error("❌ Startup migrations failed:", error);
@@ -416,5 +422,72 @@ async function ensureUserPreferencesTable() {
   } catch (error) {
     console.error("❌ Failed to create user_preferences table:", error);
     throw error;
+  }
+}
+
+// Migration to add Restaurant category
+async function addRestaurantCategoryMigration() {
+  try {
+    console.log("🍽️ Adding Restaurant category...");
+
+    // Check if restaurant category already exists
+    const existingCategory = await db.execute(sql`
+      SELECT id FROM categories WHERE name ILIKE 'Restaurant%' OR id = 'restaurant'
+    `);
+    
+    if (existingCategory.length > 0) {
+      console.log("✅ Restaurant category already exists, skipping...");
+      return;
+    }
+
+    // Insert the restaurant category
+    await db.execute(sql`
+      INSERT INTO categories (id, name, name_en, description, icon, sort_order, is_active)
+      VALUES (
+        'restaurant',
+        'Restaurant', 
+        'Restaurant',
+        'Restaurants locaux et livraison de repas',
+        'fas fa-utensils',
+        1,
+        true
+      )
+      ON CONFLICT (id) DO NOTHING;
+    `);
+
+    console.log("✅ Restaurant category added successfully!");
+  } catch (error) {
+    console.error("❌ Failed to add restaurant category:", error);
+    // Don't throw - this shouldn't break the app if it fails
+  }
+}
+
+// Migration to add video support to products
+async function addVideoSupportToProducts() {
+  try {
+    console.log("🎥 Adding video support to products...");
+
+    // Check if videos column already exists
+    const columnExists = await db.execute(sql`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'products' AND column_name = 'videos'
+    `);
+    
+    if (columnExists.length > 0) {
+      console.log("✅ Videos column already exists, skipping...");
+      return;
+    }
+
+    // Add videos column to products table (array of text for video URLs)
+    await db.execute(sql`
+      ALTER TABLE products 
+      ADD COLUMN videos TEXT[]
+    `);
+
+    console.log("✅ Video support added to products table!");
+  } catch (error) {
+    console.error("❌ Failed to add video support to products:", error);
+    // Don't throw - this shouldn't break the app if it fails
   }
 }

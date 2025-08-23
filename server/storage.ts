@@ -180,6 +180,7 @@ export interface IStorage {
     tags?: string[];
   }): Promise<{ items: Product[]; total: number; hasMore: boolean }>;
   getVendorProducts(vendorId: string): Promise<Product[]>;
+  getRestaurantProducts(): Promise<any[]>;
   updateProduct(id: string, updates: Partial<InsertProduct>): Promise<Product>;
   updateProductStock(id: string, quantity: number): Promise<Product>;
   updateProductImages(id: string, images: string[]): Promise<Product>;
@@ -1011,6 +1012,35 @@ export class DatabaseStorage implements IStorage {
       .from(products)
       .where(eq(products.vendorId, vendorId))
       .orderBy(desc(products.createdAt));
+  }
+
+  // Get restaurant products for the video feed
+  async getRestaurantProducts(): Promise<any[]> {
+    const restaurantProducts = await db
+      .select({
+        id: products.id,
+        name: products.name,
+        description: products.description,
+        price: products.price,
+        images: products.images,
+        videos: products.videos,
+        rating: products.rating,
+        vendorId: products.vendorId,
+        vendorName: vendors.storeName,
+      })
+      .from(products)
+      .innerJoin(vendors, eq(products.vendorId, vendors.id))
+      .where(
+        and(
+          eq(products.isActive, true),
+          eq(products.categoryId, 'restaurant'),
+          eq(vendors.status, 'approved')
+        )
+      )
+      .orderBy(desc(products.createdAt))
+      .limit(50); // Limit to recent 50 restaurant items
+
+    return restaurantProducts;
   }
 
   async updateProduct(id: string, updates: Partial<InsertProduct>): Promise<Product> {

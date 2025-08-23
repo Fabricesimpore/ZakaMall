@@ -225,6 +225,7 @@ export const products = pgTable("products", {
   trackQuantity: boolean("track_quantity").default(true),
   quantity: integer("quantity").default(0),
   images: text("images").array(),
+  videos: text("videos").array(),
   weight: decimal("weight", { precision: 8, scale: 2 }),
   dimensions: jsonb("dimensions"),
   isActive: boolean("is_active").default(true),
