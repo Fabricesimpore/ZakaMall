@@ -167,7 +167,7 @@ export async function searchProducts(req: Request, res: Response) {
 
     // Expand the search query with synonyms
     const expandedQuery = expandSearchQuery(params.q);
-    
+
     // Perform the search
     const result = await index.search(expandedQuery, searchParams);
 

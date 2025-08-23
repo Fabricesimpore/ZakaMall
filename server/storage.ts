@@ -511,8 +511,8 @@ export class DatabaseStorage implements IStorage {
           db.delete(phoneVerifications).where(eq(phoneVerifications.phone, targetUser.phone!))
         );
       }
-      
-      // Delete email verifications by user's email (if exists)  
+
+      // Delete email verifications by user's email (if exists)
       if (targetUser?.email) {
         await safeDelete("emailVerifications", () =>
           db.delete(emailVerifications).where(eq(emailVerifications.email, targetUser.email!))
@@ -526,56 +526,59 @@ export class DatabaseStorage implements IStorage {
       );
       await safeDelete("drivers", () => db.delete(drivers).where(eq(drivers.userId, userId)));
       await safeDelete("vendors", () => db.delete(vendors).where(eq(vendors.userId, userId)));
-      
+
       // Delete security and monitoring related records
-      await safeDelete("securityEvents", () => 
-        db.delete(securityEvents).where(
-          or(
-            eq(securityEvents.userId, userId),
-            eq(securityEvents.resolvedBy, userId)
-          )
-        )
+      await safeDelete("securityEvents", () =>
+        db
+          .delete(securityEvents)
+          .where(or(eq(securityEvents.userId, userId), eq(securityEvents.resolvedBy, userId)))
       );
-      await safeDelete("fraudAnalysis", () => 
-        db.delete(fraudAnalysis).where(
-          or(
-            eq(fraudAnalysis.userId, userId),
-            eq(fraudAnalysis.reviewedBy, userId)
-          )
-        )
+      await safeDelete("fraudAnalysis", () =>
+        db
+          .delete(fraudAnalysis)
+          .where(or(eq(fraudAnalysis.userId, userId), eq(fraudAnalysis.reviewedBy, userId)))
       );
-      await safeDelete("userVerifications", () => 
-        db.delete(userVerifications).where(
-          or(
-            eq(userVerifications.userId, userId),
-            eq(userVerifications.verifiedBy, userId)
-          )
-        )
+      await safeDelete("userVerifications", () =>
+        db
+          .delete(userVerifications)
+          .where(or(eq(userVerifications.userId, userId), eq(userVerifications.verifiedBy, userId)))
       );
-      await safeDelete("suspiciousActivities", () => 
-        db.delete(suspiciousActivities).where(
-          or(
-            eq(suspiciousActivities.userId, userId),
-            eq(suspiciousActivities.investigatedBy, userId)
+      await safeDelete("suspiciousActivities", () =>
+        db
+          .delete(suspiciousActivities)
+          .where(
+            or(
+              eq(suspiciousActivities.userId, userId),
+              eq(suspiciousActivities.investigatedBy, userId)
+            )
           )
-        )
       );
-      await safeDelete("blacklist", () => db.delete(blacklist).where(eq(blacklist.addedBy, userId)));
-      await safeDelete("searchLogs", () => db.delete(searchLogs).where(eq(searchLogs.userId, userId)));
-      await safeDelete("userBehavior", () => db.delete(userBehavior).where(eq(userBehavior.userId, userId)));
-      await safeDelete("userPreferences", () => db.delete(userPreferences).where(eq(userPreferences.userId, userId)));
-      await safeDelete("rateLimitViolations", () => db.delete(rateLimitViolations).where(eq(rateLimitViolations.userId, userId)));
+      await safeDelete("blacklist", () =>
+        db.delete(blacklist).where(eq(blacklist.addedBy, userId))
+      );
+      await safeDelete("searchLogs", () =>
+        db.delete(searchLogs).where(eq(searchLogs.userId, userId))
+      );
+      await safeDelete("userBehavior", () =>
+        db.delete(userBehavior).where(eq(userBehavior.userId, userId))
+      );
+      await safeDelete("userPreferences", () =>
+        db.delete(userPreferences).where(eq(userPreferences.userId, userId))
+      );
+      await safeDelete("rateLimitViolations", () =>
+        db.delete(rateLimitViolations).where(eq(rateLimitViolations.userId, userId))
+      );
 
       // Finally delete the user - try multiple approaches
       console.log("🔥 Deleting user record...");
-      
+
       try {
         // First attempt: Use Drizzle ORM
         await db.delete(users).where(eq(users.id, userId));
         console.log("✅ User deletion completed successfully");
       } catch (ormError: any) {
         console.log("⚠️ Drizzle deletion failed, trying raw SQL...");
-        
+
         try {
           // Second attempt: Use raw SQL
           await db.execute(sql`DELETE FROM users WHERE id = ${userId}`);
@@ -584,14 +587,17 @@ export class DatabaseStorage implements IStorage {
           console.error("❌ Both ORM and raw SQL deletion failed");
           console.error("ORM Error:", ormError.message);
           console.error("Raw SQL Error:", rawError.message);
-          
+
           // Check if user actually exists
-          const userExists = await db.select({ id: users.id }).from(users).where(eq(users.id, userId));
+          const userExists = await db
+            .select({ id: users.id })
+            .from(users)
+            .where(eq(users.id, userId));
           if (userExists.length === 0) {
             console.log("🤔 User doesn't exist anymore - deletion may have succeeded partially");
             return; // Don't throw error if user is gone
           }
-          
+
           throw new Error(`Failed to delete user: ${rawError.message}`);
         }
       }
