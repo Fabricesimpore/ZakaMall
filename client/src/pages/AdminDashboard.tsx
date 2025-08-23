@@ -189,7 +189,17 @@ export default function AdminDashboard() {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      return await apiRequest("DELETE", `/api/admin/users/${userId}`);
+      console.log("🗑️ Attempting to delete user:", userId);
+      const response = await apiRequest("DELETE", `/api/admin/users/${userId}`);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.error("❌ Delete failed:", data);
+        throw new Error(data.message || data.error || "Failed to delete user");
+      }
+      
+      console.log("✅ Delete response:", data);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users-fixed"] });
@@ -197,13 +207,14 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard"] });
       toast({
         title: "Succès",
-        description: "Utilisateur supprimé",
+        description: "Utilisateur supprimé avec succès",
       });
     },
     onError: (error: Error) => {
+      console.error("❌ Delete mutation error:", error);
       toast({
-        title: "Erreur",
-        description: "Impossible de supprimer l'utilisateur",
+        title: "Erreur de suppression",
+        description: error.message || "Impossible de supprimer l'utilisateur. Vérifiez les logs.",
         variant: "destructive",
       });
     },
