@@ -74,7 +74,7 @@ async function emergencyVendorSchemaFix() {
         UPDATE vendors SET 
           store_name = COALESCE(NULLIF(shop_name, ''), business_name),
           legal_name = business_name,
-          contact_email = COALESCE(business_email, business_phone),
+          contact_email = business_phone,
           contact_phone = business_phone,
           review_notes = admin_notes
         WHERE store_name IS NULL OR store_name = ''
