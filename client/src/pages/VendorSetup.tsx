@@ -519,40 +519,40 @@ export default function VendorSetup() {
                               autoComplete="off"
                               type="tel"
                               onChange={(e) => {
-                                let value = e.target.value.replace(/[^\d+]/g, ""); // Keep + and digits
-
-                                // If value doesn't start with +226, add it
-                                if (!value.startsWith("+226")) {
-                                  value = "+226" + value.replace(/^\+?226?/, "");
+                                let value = e.target.value;
+                                
+                                // Remove all non-digit characters except spaces after +226
+                                let cleanValue = value.replace(/[^\d\s+]/g, "");
+                                
+                                // Extract just the digits (removing +226 prefix and spaces)
+                                let digitsOnly = cleanValue.replace(/^\+?226\s?/, "").replace(/\D/g, "");
+                                
+                                // Limit to 8 digits
+                                if (digitsOnly.length > 8) {
+                                  digitsOnly = digitsOnly.slice(0, 8);
                                 }
-
-                                // Remove +226 for processing
-                                let digits = value.replace("+226", "").replace(/\D/g, "");
-
-                                // Limit to 8 digits after +226
-                                if (digits.length > 8) {
-                                  digits = digits.slice(0, 8);
-                                }
-
+                                
                                 // Format as +226 XX XX XX XX
                                 let formatted = "+226";
-                                if (digits.length >= 2) {
-                                  formatted += ` ${digits.slice(0, 2)}`;
+                                if (digitsOnly.length > 0) {
+                                  formatted += " ";
+                                  if (digitsOnly.length <= 2) {
+                                    formatted += digitsOnly;
+                                  } else if (digitsOnly.length <= 4) {
+                                    formatted += digitsOnly.slice(0, 2) + " " + digitsOnly.slice(2);
+                                  } else if (digitsOnly.length <= 6) {
+                                    formatted += digitsOnly.slice(0, 2) + " " + digitsOnly.slice(2, 4) + " " + digitsOnly.slice(4);
+                                  } else {
+                                    formatted += digitsOnly.slice(0, 2) + " " + digitsOnly.slice(2, 4) + " " + 
+                                                digitsOnly.slice(4, 6) + " " + digitsOnly.slice(6, 8);
+                                  }
                                 }
-                                if (digits.length >= 4) {
-                                  formatted += ` ${digits.slice(2, 4)}`;
-                                }
-                                if (digits.length >= 6) {
-                                  formatted += ` ${digits.slice(4, 6)}`;
-                                }
-                                if (digits.length >= 8) {
-                                  formatted += ` ${digits.slice(6, 8)}`;
-                                }
-
+                                
                                 field.onChange(formatted);
                               }}
                               onFocus={(e) => {
-                                if (!e.target.value) {
+                                // Only add +226 if field is completely empty
+                                if (!e.target.value || e.target.value === "") {
                                   field.onChange("+226 ");
                                 }
                               }}
