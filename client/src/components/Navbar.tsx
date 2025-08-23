@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 // import { useQuery } from "@tanstack/react-query";
@@ -23,6 +23,13 @@ export default function Navbar() {
   const { user, isLoading } = useAuth();
   const [location, setLocation] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Debug logging for admin
+  useEffect(() => {
+    if (user?.role === "admin") {
+      console.log("📍 Navbar - Admin user detected:", user);
+    }
+  }, [user]);
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
@@ -175,16 +182,17 @@ export default function Navbar() {
           </div>
 
           {/* Desktop navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-4">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href}>
                 <Button
                   variant={location === link.href ? "secondary" : "ghost"}
-                  className="text-zaka-dark hover:text-zaka-orange transition-colors relative"
+                  className="text-zaka-dark hover:text-zaka-orange transition-colors relative px-3 py-2 text-sm"
                   style={location === link.href ? { color: "var(--zaka-orange)" } : {}}
                 >
-                  <i className={`${link.icon} mr-2`}></i>
-                  {link.label}
+                  <i className={`${link.icon} mr-1 text-xs`}></i>
+                  <span className="hidden lg:inline">{link.label}</span>
+                  <span className="lg:hidden">{link.label.slice(0, 3)}</span>
                   {link.href === "/chat" && <UnreadBadge />}
                 </Button>
               </Link>
@@ -197,7 +205,7 @@ export default function Navbar() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 hover:ring-2 hover:ring-zaka-orange hover:ring-offset-2">
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 hover:ring-2 hover:ring-zaka-orange hover:ring-offset-2 ml-2 flex-shrink-0">
                     <Avatar className="h-10 w-10 border-2 border-zaka-orange">
                       <AvatarImage src={user.profileImageUrl || undefined} />
                       <AvatarFallback className="bg-zaka-orange text-white font-semibold">

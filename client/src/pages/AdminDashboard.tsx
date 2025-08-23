@@ -406,17 +406,28 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-zaka-dark">Administration système</h1>
-          {/* Profile Settings Button - Only for main admin */}
-          {user?.email === "simporefabrice15@gmail.com" && (
+          <div className="flex items-center gap-3">
+            {/* Profile Settings Button - Only for main admin */}
+            {user?.email === "simporefabrice15@gmail.com" && (
+              <Button
+                onClick={() => (window.location.href = "/admin/profile")}
+                variant="outline"
+                className="border-zaka-orange text-zaka-orange hover:bg-zaka-orange hover:text-white"
+              >
+                <i className="fas fa-cog mr-2"></i>
+                Paramètres du profil
+              </Button>
+            )}
+            {/* Logout button as backup */}
             <Button
-              onClick={() => (window.location.href = "/admin/profile")}
+              onClick={() => (window.location.href = "/api/logout")}
               variant="outline"
-              className="border-zaka-orange text-zaka-orange hover:bg-zaka-orange hover:text-white"
+              className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
             >
-              <i className="fas fa-cog mr-2"></i>
-              Paramètres du profil
+              <i className="fas fa-sign-out-alt mr-2"></i>
+              Déconnexion
             </Button>
-          )}
+          </div>
         </div>
 
         {/* Admin Stats */}
