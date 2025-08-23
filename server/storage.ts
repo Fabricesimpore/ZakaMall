@@ -566,13 +566,38 @@ export class DatabaseStorage implements IStorage {
       await safeDelete("userPreferences", () => db.delete(userPreferences).where(eq(userPreferences.userId, userId)));
       await safeDelete("rateLimitViolations", () => db.delete(rateLimitViolations).where(eq(rateLimitViolations.userId, userId)));
 
-      // Finally delete the user - this is the only one that must succeed
+      // Finally delete the user - try multiple approaches
       console.log("🔥 Deleting user record...");
-      await db.delete(users).where(eq(users.id, userId));
-      console.log("✅ User deletion completed successfully");
+      
+      try {
+        // First attempt: Use Drizzle ORM
+        await db.delete(users).where(eq(users.id, userId));
+        console.log("✅ User deletion completed successfully");
+      } catch (ormError: any) {
+        console.log("⚠️ Drizzle deletion failed, trying raw SQL...");
+        
+        try {
+          // Second attempt: Use raw SQL
+          await db.execute(sql`DELETE FROM users WHERE id = ${userId}`);
+          console.log("✅ User deletion completed with raw SQL");
+        } catch (rawError: any) {
+          console.error("❌ Both ORM and raw SQL deletion failed");
+          console.error("ORM Error:", ormError.message);
+          console.error("Raw SQL Error:", rawError.message);
+          
+          // Check if user actually exists
+          const userExists = await db.select({ id: users.id }).from(users).where(eq(users.id, userId));
+          if (userExists.length === 0) {
+            console.log("🤔 User doesn't exist anymore - deletion may have succeeded partially");
+            return; // Don't throw error if user is gone
+          }
+          
+          throw new Error(`Failed to delete user: ${rawError.message}`);
+        }
+      }
     } catch (error: any) {
-      console.error("❌ Failed to delete user record:", error.message);
-      throw new Error(`Failed to delete user: ${error.message}`);
+      console.error("❌ Unexpected error in user deletion:", error.message);
+      throw error;
     }
   }
 
