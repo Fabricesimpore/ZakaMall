@@ -2878,52 +2878,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Video upload endpoint
-  app.post("/api/upload/video", isAuthenticated, videoUpload.single("video"), async (req: any, res) => {
-    try {
-      console.log("🎥 Video upload request received");
-      console.log("Session user:", req.session?.user?.id);
-      console.log(
-        "File received:",
-        req.file ? `${req.file.originalname} (${req.file.size} bytes)` : "No file"
-      );
+  app.post(
+    "/api/upload/video",
+    isAuthenticated,
+    videoUpload.single("video"),
+    async (req: any, res) => {
+      try {
+        console.log("🎥 Video upload request received");
+        console.log("Session user:", req.session?.user?.id);
+        console.log(
+          "File received:",
+          req.file ? `${req.file.originalname} (${req.file.size} bytes)` : "No file"
+        );
 
-      if (!req.file) {
-        console.error("❌ No file in request");
-        return res.status(400).json({ error: "No video file provided" });
-      }
+        if (!req.file) {
+          console.error("❌ No file in request");
+          return res.status(400).json({ error: "No video file provided" });
+        }
 
-      // Check if Cloudinary is configured
-      if (!CloudinaryService.isConfigured()) {
-        console.error("❌ Cloudinary not configured");
-        return res.status(500).json({
-          error: "Video storage not configured. Please set CLOUDINARY environment variables.",
+        // Check if Cloudinary is configured
+        if (!CloudinaryService.isConfigured()) {
+          console.error("❌ Cloudinary not configured");
+          return res.status(500).json({
+            error: "Video storage not configured. Please set CLOUDINARY environment variables.",
+          });
+        }
+
+        console.log(`🎬 Uploading video to Cloudinary: ${req.file.originalname}`);
+
+        // Upload to Cloudinary
+        const result = await CloudinaryService.uploadVideo(req.file.buffer, {
+          folder: "zakamall/restaurant-videos",
+        });
+
+        console.log("✅ Video uploaded successfully to Cloudinary:", result.secure_url);
+
+        res.json({
+          success: true,
+          url: result.secure_url,
+          publicId: result.public_id,
+          width: result.width,
+          height: result.height,
+        });
+      } catch (error: any) {
+        console.error("Video upload error:", error);
+        res.status(500).json({
+          error: "Failed to upload video",
+          details: error.message,
         });
       }
-
-      console.log(`🎬 Uploading video to Cloudinary: ${req.file.originalname}`);
-
-      // Upload to Cloudinary
-      const result = await CloudinaryService.uploadVideo(req.file.buffer, {
-        folder: "zakamall/restaurant-videos",
-      });
-
-      console.log("✅ Video uploaded successfully to Cloudinary:", result.secure_url);
-
-      res.json({
-        success: true,
-        url: result.secure_url,
-        publicId: result.public_id,
-        width: result.width,
-        height: result.height,
-      });
-    } catch (error: any) {
-      console.error("Video upload error:", error);
-      res.status(500).json({
-        error: "Failed to upload video",
-        details: error.message,
-      });
     }
-  });
+  );
 
   // Image upload endpoint using Cloudinary
   app.post("/api/upload/image", isAuthenticated, upload.single("image"), async (req: any, res) => {
