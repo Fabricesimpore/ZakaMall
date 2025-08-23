@@ -119,10 +119,10 @@ export default function VendorSetup() {
     setCanSubmit(newStep === 3);
   };
   const [_isSubmitting, _setIsSubmitting] = useState(false);
-  const { user: _user, isLoading: authLoading, isAuthenticated } = useAuth();
+  const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
 
-  console.log("🔐 Auth state:", { user: _user, authLoading, isAuthenticated });
+  console.log("🔐 Auth state:", { user, authLoading, isAuthenticated });
 
   const form = useForm<VendorSetupForm>({
     resolver: zodResolver(vendorSetupSchema),
@@ -168,11 +168,17 @@ export default function VendorSetup() {
       console.log("🚀 API request starting for vendor setup");
 
       // Map form fields to match backend schema
+      console.log("👤 Current user:", user);
+      
+      if (!user || !user.email) {
+        throw new Error("Utilisateur non connecté. Veuillez vous reconnecter.");
+      }
+      
       const vendorData = {
         // Map to new field names
         storeName: data.shopName,
         legalName: data.businessName,
-        contactEmail: user?.email || "",
+        contactEmail: user.email,
         contactPhone: data.businessPhone,
         countryCode: "BF",
 
@@ -401,9 +407,9 @@ export default function VendorSetup() {
     );
   }
 
-  // Show message if not authenticated
-  if (!isAuthenticated) {
-    console.log("❌ VendorSetup: User not authenticated");
+  // Show message if not authenticated or user not loaded
+  if (!isAuthenticated || !user) {
+    console.log("❌ VendorSetup: User not authenticated or not loaded");
     return (
       <div className="min-h-screen bg-zaka-light flex items-center justify-center">
         <div className="text-center">
