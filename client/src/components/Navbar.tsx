@@ -151,14 +151,23 @@ export default function Navbar() {
 
                   <div className="mt-auto pt-4 border-t space-y-3">
                     <DarkModeToggle className="w-full" showLabel />
-                    <Button
-                      variant="outline"
-                      className="w-full text-red-600 border-red-600 hover:bg-red-50"
-                      onClick={handleLogout}
-                    >
-                      <i className="fas fa-sign-out-alt mr-2"></i>
-                      Se déconnecter
-                    </Button>
+                    {user ? (
+                      <Button
+                        variant="outline"
+                        className="w-full text-red-600 border-red-600 hover:bg-red-50"
+                        onClick={handleLogout}
+                      >
+                        <i className="fas fa-sign-out-alt mr-2"></i>
+                        Se déconnecter
+                      </Button>
+                    ) : (
+                      <Link href="/login">
+                        <Button variant="outline" className="w-full">
+                          <i className="fas fa-sign-in-alt mr-2"></i>
+                          Se connecter
+                        </Button>
+                      </Link>
+                    )}
                   </div>
                 </div>
               </SheetContent>
@@ -185,13 +194,13 @@ export default function Navbar() {
 
             <DarkModeToggle />
 
-            {user && (
+            {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 hover:ring-2 hover:ring-zaka-orange hover:ring-offset-2">
+                    <Avatar className="h-10 w-10 border-2 border-zaka-orange">
                       <AvatarImage src={user.profileImageUrl || undefined} />
-                      <AvatarFallback className="bg-zaka-orange text-white">
+                      <AvatarFallback className="bg-zaka-orange text-white font-semibold">
                         {user.firstName?.charAt(0) || user.email?.charAt(0) || "U"}
                       </AvatarFallback>
                     </Avatar>
@@ -225,6 +234,13 @@ export default function Navbar() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+            ) : (
+              <Link href="/login">
+                <Button variant="outline" size="sm">
+                  <i className="fas fa-sign-in-alt mr-2"></i>
+                  Se connecter
+                </Button>
+              </Link>
             )}
           </div>
         </div>
