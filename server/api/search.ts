@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { MeiliSearch } from "meilisearch";
 import type { SearchParams, SearchResult, SearchFilters } from "@shared/search-types";
+import { expandSearchQuery } from "../utils/search-synonyms";
 
 let client: MeiliSearch | null = null;
 
@@ -146,6 +147,7 @@ export async function searchProducts(req: Request, res: Response) {
 
     console.log("🔍 Search request:", {
       query: params.q,
+      expandedQuery: expandSearchQuery(params.q),
       page: params.page,
       limit: params.limit,
       sort: params.sort,
@@ -163,8 +165,11 @@ export async function searchProducts(req: Request, res: Response) {
       facets: ["vendor_name", "categories", "brand", "currency", "in_stock"],
     };
 
+    // Expand the search query with synonyms
+    const expandedQuery = expandSearchQuery(params.q);
+    
     // Perform the search
-    const result = await index.search(params.q, searchParams);
+    const result = await index.search(expandedQuery, searchParams);
 
     // Transform result to match our SearchResult interface
     const searchResult: SearchResult = {
@@ -203,8 +208,9 @@ export async function autocomplete(req: Request, res: Response) {
     }
 
     const index = getIndex();
+    const expandedQuery = expandSearchQuery(query);
 
-    const result = await index.search(query, {
+    const result = await index.search(expandedQuery, {
       limit: 8,
       filter: "approved = true AND published = true",
       attributesToRetrieve: ["id", "title", "brand", "categories"],

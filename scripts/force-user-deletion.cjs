@@ -111,16 +111,38 @@ async function forceDeleteUser(userId) {
     // Get user info before deletion for verification cleanup
     const { rows: userInfo } = await pool.query('SELECT email, phone FROM users WHERE id = $1', [userId]);
     
-    // Clean up verification tables by email/phone
+    // Clean up verification tables by email/phone (handle schema mismatches)
     if (userInfo.length > 0) {
       const user = userInfo[0];
+      
       if (user.phone) {
-        await pool.query('DELETE FROM phone_verifications WHERE phone = $1', [user.phone]);
-        console.log('  ✅ Deleted phone verifications');
+        try {
+          // Try both possible column names for phone verifications
+          await pool.query('DELETE FROM phone_verifications WHERE phone = $1', [user.phone]);
+          console.log('  ✅ Deleted phone verifications by phone');
+        } catch (error) {
+          try {
+            await pool.query('DELETE FROM phone_verifications WHERE user_id = $1', [userId]);
+            console.log('  ✅ Deleted phone verifications by user_id');
+          } catch (error2) {
+            console.log('  ⚠️ Phone verifications: table may not exist or have different schema');
+          }
+        }
       }
+      
       if (user.email) {
-        await pool.query('DELETE FROM email_verifications WHERE email = $1', [user.email]);
-        console.log('  ✅ Deleted email verifications');
+        try {
+          // Try both possible column names for email verifications
+          await pool.query('DELETE FROM email_verifications WHERE email = $1', [user.email]);
+          console.log('  ✅ Deleted email verifications by email');
+        } catch (error) {
+          try {
+            await pool.query('DELETE FROM email_verifications WHERE user_id = $1', [userId]);
+            console.log('  ✅ Deleted email verifications by user_id');
+          } catch (error2) {
+            console.log('  ⚠️ Email verifications: table may not exist or have different schema');
+          }
+        }
       }
     }
     
