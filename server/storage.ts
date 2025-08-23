@@ -369,10 +369,15 @@ export class DatabaseStorage implements IStorage {
     // PROTECTION: Check if this is the protected admin account
     const targetUser = await this.getUser(userId);
     if (targetUser?.email === "simporefabrice15@gmail.com") {
-      console.log("🛡️ BLOCKED: Attempt to change protected admin role");
-      console.log(`  Attempted to change from ${targetUser.role} to ${role}`);
-      // Return the unchanged user - silently fail the role change
-      return targetUser;
+      // Always ensure protected admin account has admin role
+      if (role !== "admin") {
+        console.log("🛡️ BLOCKED: Attempt to demote protected admin account");
+        console.log(`  Blocked attempt to change from ${targetUser.role} to ${role}`);
+        console.log("🛡️ ENFORCING: Admin role for protected account");
+        role = "admin"; // Force admin role
+      } else {
+        console.log("🛡️ ALLOWED: Confirming admin role for protected account");
+      }
     }
 
     // Update user role
