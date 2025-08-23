@@ -205,12 +205,16 @@ export async function searchProducts(req: Request, res: Response) {
     };
 
     console.log(`✅ Search completed: ${result.totalHits} results in ${result.processingTimeMs}ms`);
-    
+
     // Debug: Log first few results for price filter debugging
     if (filters.price_max !== undefined && result.hits.length > 0) {
-      console.log(`🔍 Price filter debug - showing first ${Math.min(3, result.hits.length)} results:`);
+      console.log(
+        `🔍 Price filter debug - showing first ${Math.min(3, result.hits.length)} results:`
+      );
       result.hits.slice(0, 3).forEach((hit: any, i: number) => {
-        console.log(`   ${i + 1}. ${hit.title}: ${hit.price_cents} cents (${hit.price_cents / 100} CFA) - Currency: ${hit.currency}`);
+        console.log(
+          `   ${i + 1}. ${hit.title}: ${hit.price_cents} cents (${hit.price_cents / 100} CFA) - Currency: ${hit.currency}`
+        );
       });
     }
 

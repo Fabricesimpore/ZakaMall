@@ -44,7 +44,7 @@ export default function SearchWithSuggestions({
   // Debounce search term to avoid excessive API calls
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  // Fetch search suggestions  
+  // Fetch search suggestions
   const { data: autocompleteData, isLoading } = useQuery({
     queryKey: ["/api/search/suggestions", debouncedSearchTerm],
     queryFn: async () => {
@@ -60,11 +60,13 @@ export default function SearchWithSuggestions({
   });
 
   // Convert string suggestions to SearchSuggestion objects
-  const suggestions: SearchSuggestion[] = (autocompleteData?.suggestions || []).map((suggestion: string, index: number) => ({
-    id: `${index}`,
-    name: suggestion,
-    type: "product" as const,
-  }));
+  const suggestions: SearchSuggestion[] = (autocompleteData?.suggestions || []).map(
+    (suggestion: string, index: number) => ({
+      id: `${index}`,
+      name: suggestion,
+      type: "product" as const,
+    })
+  );
 
   const showSuggestions = isFocused && (searchTerm.length > 1 || recentSearches.length > 0);
 
