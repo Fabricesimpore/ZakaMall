@@ -46,12 +46,27 @@ function parseSearchParams(req: Request): SearchParams {
   const filters: SearchFilters = {};
 
   if (vendor_id) filters.vendor_id = vendor_id as string;
-  if (currency) filters.currency = currency as string;
+  
+  // Handle currency - default to CFA if not specified
+  if (currency) {
+    filters.currency = currency as string;
+    console.log(`💱 Currency filter: ${currency}`);
+  } else {
+    // Don't filter by currency if not specified - show all currencies
+    console.log(`💱 No currency filter specified - showing all currencies`);
+  }
+  
   if (in_stock !== undefined) filters.in_stock = in_stock === "true";
 
   // Handle price range (convert to cents for Meilisearch)
-  if (price_min) filters.price_min = Number(price_min) * 100;
-  if (price_max) filters.price_max = Number(price_max) * 100;
+  if (price_min) {
+    filters.price_min = Number(price_min) * 100;
+    console.log(`💰 Price min: ${price_min} → ${filters.price_min} cents`);
+  }
+  if (price_max) {
+    filters.price_max = Number(price_max) * 100;
+    console.log(`💰 Price max: ${price_max} → ${filters.price_max} cents`);
+  }
 
   // Handle categories (can be single or multiple)
   const categoryList: string[] = [];
@@ -117,11 +132,15 @@ function buildFilterString(filters: SearchFilters): string {
   }
 
   if (filters.price_min !== undefined) {
-    filterParts.push(`price_cents >= ${filters.price_min}`);
+    const priceMinFilter = `price_cents >= ${filters.price_min}`;
+    filterParts.push(priceMinFilter);
+    console.log(`🔍 Added price min filter: ${priceMinFilter}`);
   }
 
   if (filters.price_max !== undefined) {
-    filterParts.push(`price_cents <= ${filters.price_max}`);
+    const priceMaxFilter = `price_cents <= ${filters.price_max}`;
+    filterParts.push(priceMaxFilter);
+    console.log(`🔍 Added price max filter: ${priceMaxFilter}`);
   }
 
   if (filters.categories && filters.categories.length > 0) {
