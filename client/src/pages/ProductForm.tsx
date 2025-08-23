@@ -413,11 +413,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                     {videoUrls.map((url, index) => (
                       <div key={index} className="flex items-center gap-2 p-3 border rounded-lg">
                         <div className="flex-1">
-                          <video 
-                            src={url} 
-                            className="w-full h-32 object-cover rounded"
-                            controls
-                          />
+                          <video src={url} className="w-full h-32 object-cover rounded" controls />
                           <p className="text-xs text-gray-500 mt-1 truncate">{url}</p>
                         </div>
                         <Button
@@ -434,14 +430,14 @@ export default function ProductForm({ productId }: ProductFormProps) {
                         </Button>
                       </div>
                     ))}
-                    
+
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                       <input
                         type="url"
                         placeholder="URL de la vidéo (YouTube, Vimeo, fichier direct...)"
                         className="w-full p-2 border rounded"
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
+                          if (e.key === "Enter") {
                             e.preventDefault();
                             const input = e.target as HTMLInputElement;
                             const url = input.value.trim();
@@ -449,7 +445,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                               const newVideos = [...videoUrls, url];
                               setVideoUrls(newVideos);
                               form.setValue("videos", newVideos);
-                              input.value = '';
+                              input.value = "";
                             }
                           }
                         }}
