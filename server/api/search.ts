@@ -52,8 +52,9 @@ function parseSearchParams(req: Request): SearchParams {
     filters.currency = currency as string;
     console.log(`💱 Currency filter: ${currency}`);
   } else {
-    // Don't filter by currency if not specified - show all currencies
-    console.log(`💱 No currency filter specified - showing all currencies`);
+    // Filter by CFA by default since most products should be in CFA
+    filters.currency = "CFA";
+    console.log(`💱 No currency filter specified - defaulting to CFA`);
   }
 
   if (in_stock !== undefined) filters.in_stock = in_stock === "true";
@@ -140,7 +141,7 @@ function buildFilterString(filters: SearchFilters): string {
   if (filters.price_max !== undefined) {
     const priceMaxFilter = `price_cents <= ${filters.price_max}`;
     filterParts.push(priceMaxFilter);
-    console.log(`🔍 Added price max filter: ${priceMaxFilter}`);
+    console.log(`🔍 Added price max filter: ${priceMaxFilter} (input was ${price_max} CFA)`);
   }
 
   if (filters.categories && filters.categories.length > 0) {
@@ -204,6 +205,14 @@ export async function searchProducts(req: Request, res: Response) {
     };
 
     console.log(`✅ Search completed: ${result.totalHits} results in ${result.processingTimeMs}ms`);
+    
+    // Debug: Log first few results for price filter debugging
+    if (filters.price_max !== undefined && result.hits.length > 0) {
+      console.log(`🔍 Price filter debug - showing first ${Math.min(3, result.hits.length)} results:`);
+      result.hits.slice(0, 3).forEach((hit: any, i: number) => {
+        console.log(`   ${i + 1}. ${hit.title}: ${hit.price_cents} cents (${hit.price_cents / 100} CFA) - Currency: ${hit.currency}`);
+      });
+    }
 
     res.json(searchResult);
   } catch (error) {
