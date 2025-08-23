@@ -5,11 +5,15 @@
 
 export const searchSynonyms: Record<string, string[]> = {
   // Telephone terms
-  tel: ["phone", "telephone", "mobile", "smartphone", "iphone", "samsung"],
-  téléphone: ["phone", "telephone", "mobile", "smartphone", "iphone", "samsung"],
-  telephone: ["phone", "mobile", "smartphone", "iphone", "samsung"],
-  portable: ["mobile", "phone", "smartphone", "iphone", "samsung"],
-  mobile: ["phone", "smartphone", "iphone", "samsung"],
+  tel: ["phone", "telephone", "mobile", "smartphone", "iphone", "samsung", "android", "cellular"],
+  tél: ["phone", "telephone", "mobile", "smartphone", "iphone", "samsung", "android", "cellular"],
+  téléphone: ["phone", "telephone", "mobile", "smartphone", "iphone", "samsung", "android", "cellular"],
+  telephone: ["phone", "mobile", "smartphone", "iphone", "samsung", "android", "cellular"],
+  téléphones: ["phones", "telephone", "mobile", "smartphone", "iphone", "samsung", "android"],
+  portable: ["mobile", "phone", "smartphone", "iphone", "samsung", "android", "cellular"],
+  portables: ["mobiles", "phones", "smartphones", "iphone", "samsung", "android"],
+  mobile: ["phone", "smartphone", "iphone", "samsung", "android", "cellular"],
+  cellulaire: ["cellular", "mobile", "phone", "smartphone"],
 
   // Computer terms
   ordinateur: ["computer", "laptop", "pc", "mac", "desktop"],

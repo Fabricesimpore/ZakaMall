@@ -210,17 +210,22 @@ export async function autocomplete(req: Request, res: Response) {
     const index = getIndex();
     const expandedQuery = expandSearchQuery(query);
 
+    console.log(`🔍 Autocomplete: "${query}" → "${expandedQuery}"`);
+
     const result = await index.search(expandedQuery, {
-      limit: 8,
+      limit: 20, // Increased from 8 to get more results
       filter: "approved = true AND published = true",
       attributesToRetrieve: ["id", "title", "brand", "categories"],
-      attributesToHighlight: [],
+      attributesToHighlight: ["title"],
     });
 
     // Extract unique suggestions from the results
+    // Include both exact matches and partial matches
     const suggestions = Array.from(
       new Set(result.hits.map((hit: any) => hit.title).filter(Boolean))
-    ).slice(0, 8);
+    ).slice(0, 12); // Return up to 12 suggestions
+
+    console.log(`✅ Autocomplete found ${suggestions.length} suggestions for "${query}"`);
 
     res.json({
       suggestions,

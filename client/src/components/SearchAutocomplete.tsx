@@ -69,18 +69,21 @@ export default function SearchAutocomplete({
   }, 300);
 
   // Fetch search suggestions
-  const { data: suggestions = [] } = useQuery({
+  const { data: suggestionsData, isLoading: isLoadingSuggestions } = useQuery({
     queryKey: ["/api/search/suggestions", query],
     queryFn: async () => {
-      if (query.length < 2) return [];
+      if (query.length < 2) return { suggestions: [] };
       const response = await apiRequest(
         "GET",
         `/api/search/suggestions?q=${encodeURIComponent(query)}`
       );
-      return response.json();
+      const data = await response.json();
+      return data;
     },
     enabled: query.length >= 2 && showSuggestions,
   });
+
+  const suggestions = suggestionsData?.suggestions || [];
 
   // Fetch popular search terms
   const { data: popularTerms = [] } = useQuery({
@@ -282,10 +285,18 @@ export default function SearchAutocomplete({
                 )}
               </div>
             ) : query.length >= 2 ? (
-              <div className="px-4 py-8 text-center text-gray-500">
-                <Search className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">Aucune suggestion trouvée</p>
-              </div>
+              isLoadingSuggestions ? (
+                <div className="px-4 py-8 text-center text-gray-500">
+                  <div className="animate-spin w-8 h-8 mx-auto mb-2 border-2 border-gray-300 border-t-zaka-orange rounded-full"></div>
+                  <p className="text-sm">Recherche en cours...</p>
+                </div>
+              ) : (
+                <div className="px-4 py-8 text-center text-gray-500">
+                  <Search className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                  <p className="text-sm font-medium">Aucune suggestion trouvée</p>
+                  <p className="text-xs mt-1">Essayez d'autres mots-clés</p>
+                </div>
+              )
             ) : (
               <div className="px-4 py-8 text-center text-gray-500">
                 <Search className="w-8 h-8 mx-auto mb-2 text-gray-300" />
