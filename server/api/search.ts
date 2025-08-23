@@ -46,7 +46,7 @@ function parseSearchParams(req: Request): SearchParams {
   const filters: SearchFilters = {};
 
   if (vendor_id) filters.vendor_id = vendor_id as string;
-  
+
   // Handle currency - default to CFA if not specified
   if (currency) {
     filters.currency = currency as string;
@@ -55,7 +55,7 @@ function parseSearchParams(req: Request): SearchParams {
     // Don't filter by currency if not specified - show all currencies
     console.log(`💱 No currency filter specified - showing all currencies`);
   }
-  
+
   if (in_stock !== undefined) filters.in_stock = in_stock === "true";
 
   // Handle price range (convert to cents for Meilisearch)

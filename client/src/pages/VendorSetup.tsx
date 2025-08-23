@@ -169,11 +169,11 @@ export default function VendorSetup() {
 
       // Map form fields to match backend schema
       console.log("👤 Current user:", user);
-      
+
       if (!user || !user.email) {
         throw new Error("Utilisateur non connecté. Veuillez vous reconnecter.");
       }
-      
+
       const vendorData = {
         // Map to new field names
         storeName: data.shopName,
@@ -526,18 +526,20 @@ export default function VendorSetup() {
                               type="tel"
                               onChange={(e) => {
                                 let value = e.target.value;
-                                
+
                                 // Remove all non-digit characters except spaces after +226
                                 let cleanValue = value.replace(/[^\d\s+]/g, "");
-                                
+
                                 // Extract just the digits (removing +226 prefix and spaces)
-                                let digitsOnly = cleanValue.replace(/^\+?226\s?/, "").replace(/\D/g, "");
-                                
+                                let digitsOnly = cleanValue
+                                  .replace(/^\+?226\s?/, "")
+                                  .replace(/\D/g, "");
+
                                 // Limit to 8 digits
                                 if (digitsOnly.length > 8) {
                                   digitsOnly = digitsOnly.slice(0, 8);
                                 }
-                                
+
                                 // Format as +226 XX XX XX XX
                                 let formatted = "+226";
                                 if (digitsOnly.length > 0) {
@@ -547,13 +549,24 @@ export default function VendorSetup() {
                                   } else if (digitsOnly.length <= 4) {
                                     formatted += digitsOnly.slice(0, 2) + " " + digitsOnly.slice(2);
                                   } else if (digitsOnly.length <= 6) {
-                                    formatted += digitsOnly.slice(0, 2) + " " + digitsOnly.slice(2, 4) + " " + digitsOnly.slice(4);
+                                    formatted +=
+                                      digitsOnly.slice(0, 2) +
+                                      " " +
+                                      digitsOnly.slice(2, 4) +
+                                      " " +
+                                      digitsOnly.slice(4);
                                   } else {
-                                    formatted += digitsOnly.slice(0, 2) + " " + digitsOnly.slice(2, 4) + " " + 
-                                                digitsOnly.slice(4, 6) + " " + digitsOnly.slice(6, 8);
+                                    formatted +=
+                                      digitsOnly.slice(0, 2) +
+                                      " " +
+                                      digitsOnly.slice(2, 4) +
+                                      " " +
+                                      digitsOnly.slice(4, 6) +
+                                      " " +
+                                      digitsOnly.slice(6, 8);
                                   }
                                 }
-                                
+
                                 field.onChange(formatted);
                               }}
                               onFocus={(e) => {
