@@ -166,7 +166,7 @@ export default function VendorSetup() {
   const setupMutation = useMutation({
     mutationFn: async (data: VendorSetupForm) => {
       console.log("🚀 API request starting for vendor setup");
-      
+
       // Map form fields to match backend schema
       const vendorData = {
         // Map to new field names
@@ -175,42 +175,42 @@ export default function VendorSetup() {
         contactEmail: user?.email || "",
         contactPhone: data.businessPhone,
         countryCode: "BF",
-        
+
         // Keep old fields for backward compatibility
         businessName: data.businessName,
         shopName: data.shopName,
         businessDescription: data.businessDescription,
         businessAddress: data.businessAddress,
         businessPhone: data.businessPhone,
-        
+
         // Tax and payment info
         taxId: data.taxId,
         bankAccount: data.bankAccount,
         bankName: data.bankName,
         mobileMoneyNumber: data.mobileMoneyNumber,
         mobileMoneyName: data.mobileMoneyName,
-        
+
         // Documents
         identityDocument: data.identityDocument,
         identityDocumentPhoto: data.identityDocumentPhoto,
         businessLicense: data.businessLicense,
         businessLicensePhoto: data.businessLicensePhoto,
-        
+
         // Payment method
         paymentMethod: data.paymentMethod,
-        
+
         // Set status to pending for approval
-        status: "pending"
+        status: "pending",
       };
-      
+
       console.log("📦 Sending vendor data:", vendorData);
       const response = await apiRequest("POST", "/api/vendors", vendorData);
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to submit vendor request");
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -226,7 +226,7 @@ export default function VendorSetup() {
     },
     onError: (error: Error) => {
       console.error("❌ Vendor setup error:", error);
-      
+
       if (isUnauthorizedError(error)) {
         toast({
           title: "Session expirée",
@@ -238,9 +238,10 @@ export default function VendorSetup() {
         }, 500);
         return;
       }
-      
+
       // Show specific error message
-      const errorMessage = error.message || "Impossible de soumettre votre demande. Veuillez réessayer.";
+      const errorMessage =
+        error.message || "Impossible de soumettre votre demande. Veuillez réessayer.";
       toast({
         title: "Erreur de soumission",
         description: errorMessage,
@@ -519,12 +520,12 @@ export default function VendorSetup() {
                               type="tel"
                               onChange={(e) => {
                                 let value = e.target.value.replace(/[^\d+]/g, ""); // Keep + and digits
-                                
+
                                 // If value doesn't start with +226, add it
                                 if (!value.startsWith("+226")) {
                                   value = "+226" + value.replace(/^\+?226?/, "");
                                 }
-                                
+
                                 // Remove +226 for processing
                                 let digits = value.replace("+226", "").replace(/\D/g, "");
 

@@ -205,7 +205,10 @@ export default function Navbar() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 hover:ring-2 hover:ring-zaka-orange hover:ring-offset-2 ml-2 flex-shrink-0">
+                  <Button
+                    variant="ghost"
+                    className="relative h-10 w-10 rounded-full p-0 hover:ring-2 hover:ring-zaka-orange hover:ring-offset-2 ml-2 flex-shrink-0"
+                  >
                     <Avatar className="h-10 w-10 border-2 border-zaka-orange">
                       <AvatarImage src={user.profileImageUrl || undefined} />
                       <AvatarFallback className="bg-zaka-orange text-white font-semibold">

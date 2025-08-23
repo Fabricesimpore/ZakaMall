@@ -192,12 +192,12 @@ export default function AdminDashboard() {
       console.log("🗑️ Attempting to delete user:", userId);
       const response = await apiRequest("DELETE", `/api/admin/users/${userId}`);
       const data = await response.json();
-      
+
       if (!response.ok) {
         console.error("❌ Delete failed:", data);
         throw new Error(data.message || data.error || "Failed to delete user");
       }
-      
+
       console.log("✅ Delete response:", data);
       return data;
     },

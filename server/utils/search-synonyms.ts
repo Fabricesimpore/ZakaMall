@@ -7,7 +7,16 @@ export const searchSynonyms: Record<string, string[]> = {
   // Telephone terms
   tel: ["phone", "telephone", "mobile", "smartphone", "iphone", "samsung", "android", "cellular"],
   tél: ["phone", "telephone", "mobile", "smartphone", "iphone", "samsung", "android", "cellular"],
-  téléphone: ["phone", "telephone", "mobile", "smartphone", "iphone", "samsung", "android", "cellular"],
+  téléphone: [
+    "phone",
+    "telephone",
+    "mobile",
+    "smartphone",
+    "iphone",
+    "samsung",
+    "android",
+    "cellular",
+  ],
   telephone: ["phone", "mobile", "smartphone", "iphone", "samsung", "android", "cellular"],
   téléphones: ["phones", "telephone", "mobile", "smartphone", "iphone", "samsung", "android"],
   portable: ["mobile", "phone", "smartphone", "iphone", "samsung", "android", "cellular"],
@@ -26,9 +35,39 @@ export const searchSynonyms: Record<string, string[]> = {
   technologie: ["technology", "tech", "electronic"],
 
   // Clothing
-  vêtement: ["clothing", "clothes", "apparel", "fashion", "jean", "jeans", "shirt", "dress", "pants"],
-  vêtements: ["clothing", "clothes", "apparel", "fashion", "jean", "jeans", "shirt", "dress", "pants"],
-  clothing: ["vêtements", "clothes", "apparel", "jean", "jeans", "shirt", "dress", "pants", "tshirt"],
+  vêtement: [
+    "clothing",
+    "clothes",
+    "apparel",
+    "fashion",
+    "jean",
+    "jeans",
+    "shirt",
+    "dress",
+    "pants",
+  ],
+  vêtements: [
+    "clothing",
+    "clothes",
+    "apparel",
+    "fashion",
+    "jean",
+    "jeans",
+    "shirt",
+    "dress",
+    "pants",
+  ],
+  clothing: [
+    "vêtements",
+    "clothes",
+    "apparel",
+    "jean",
+    "jeans",
+    "shirt",
+    "dress",
+    "pants",
+    "tshirt",
+  ],
   clothes: ["vêtements", "clothing", "apparel", "jean", "jeans", "shirt", "dress", "pants"],
   habit: ["clothing", "clothes", "apparel", "jean", "jeans"],
   habits: ["clothing", "clothes", "apparel", "jean", "jeans"],
@@ -60,7 +99,7 @@ export const searchSynonyms: Record<string, string[]> = {
   // Common search terms that need expansion
   phone: ["telephone", "mobile", "smartphone", "iphone", "samsung", "android"],
   phones: ["telephone", "mobile", "smartphone", "iphone", "samsung", "android"],
-  
+
   // Common brand expansions
   samsung: ["galaxy", "smartphone", "phone", "mobile", "telephone"],
   apple: ["iphone", "ipad", "mac", "macbook", "phone"],
@@ -93,9 +132,15 @@ export function expandSearchQuery(query: string): string {
     // Handle partial matches for longer terms (minimum 3 chars)
     if (term.length >= 3) {
       for (const [synonym, expansions] of Object.entries(searchSynonyms)) {
-        if (synonym.length >= 3 && synonym !== term && (term.includes(synonym) || synonym.includes(term))) {
+        if (
+          synonym.length >= 3 &&
+          synonym !== term &&
+          (term.includes(synonym) || synonym.includes(term))
+        ) {
           expandedTerms.push(...expansions);
-          console.log(`✅ Partial match "${term}" with "${synonym}" added: ${expansions.slice(0, 3).join(", ")}...`);
+          console.log(
+            `✅ Partial match "${term}" with "${synonym}" added: ${expansions.slice(0, 3).join(", ")}...`
+          );
         }
       }
     }
@@ -104,9 +149,9 @@ export function expandSearchQuery(query: string): string {
   // Remove duplicates and return
   const uniqueTerms = [...new Set(expandedTerms)];
   const expandedQuery = uniqueTerms.join(" ");
-  
+
   console.log(`🔄 Query expansion: "${query}" → "${expandedQuery}" (${uniqueTerms.length} terms)`);
-  
+
   return expandedQuery;
 }
 
