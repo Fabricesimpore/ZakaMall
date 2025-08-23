@@ -86,7 +86,7 @@ export default function SearchView({
   });
   const [priceRange, setPriceRange] = useState<[number, number]>([
     filters.price_min || 0,
-    filters.price_max || 1000000,
+    filters.price_max || 100000,
   ]);
 
   // Debounced search function
@@ -157,7 +157,7 @@ export default function SearchView({
     setPriceRange(newRange);
     debouncedSearch({
       price_min: newRange[0] > 0 ? newRange[0] : undefined,
-      price_max: newRange[1] < 1000000 ? newRange[1] : undefined,
+      price_max: newRange[1] < 100000 ? newRange[1] : undefined,
     });
   };
 
@@ -184,7 +184,7 @@ export default function SearchView({
       sort: "popularity_score:desc",
       ...initialFilters, // Keep initial filters (like vendor_id)
     });
-    setPriceRange([0, 1000000]);
+    setPriceRange([0, 100000]);
   };
 
   // Get active filter count
@@ -192,7 +192,7 @@ export default function SearchView({
     let count = 0;
     if (filters.categories?.length) count++;
     if (filters.brands?.length) count++;
-    if (filters.price_min || filters.price_max) count++;
+    if (filters.price_min || (filters.price_max && filters.price_max < 100000)) count++;
     if (filters.in_stock === false) count++; // Only count if explicitly set to false
     return count;
   };
@@ -325,7 +325,7 @@ export default function SearchView({
                       value={priceRange}
                       onValueChange={handlePriceRangeChange}
                       min={0}
-                      max={1000000}
+                      max={100000}
                       step={1000}
                       className="w-full"
                     />
