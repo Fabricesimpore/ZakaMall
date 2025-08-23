@@ -166,7 +166,52 @@ export default function VendorSetup() {
   const setupMutation = useMutation({
     mutationFn: async (data: VendorSetupForm) => {
       console.log("🚀 API request starting for vendor setup");
-      return await apiRequest("POST", "/api/vendors", data);
+      
+      // Map form fields to match backend schema
+      const vendorData = {
+        // Map to new field names
+        storeName: data.shopName,
+        legalName: data.businessName,
+        contactEmail: user?.email || "",
+        contactPhone: data.businessPhone,
+        countryCode: "BF",
+        
+        // Keep old fields for backward compatibility
+        businessName: data.businessName,
+        shopName: data.shopName,
+        businessDescription: data.businessDescription,
+        businessAddress: data.businessAddress,
+        businessPhone: data.businessPhone,
+        
+        // Tax and payment info
+        taxId: data.taxId,
+        bankAccount: data.bankAccount,
+        bankName: data.bankName,
+        mobileMoneyNumber: data.mobileMoneyNumber,
+        mobileMoneyName: data.mobileMoneyName,
+        
+        // Documents
+        identityDocument: data.identityDocument,
+        identityDocumentPhoto: data.identityDocumentPhoto,
+        businessLicense: data.businessLicense,
+        businessLicensePhoto: data.businessLicensePhoto,
+        
+        // Payment method
+        paymentMethod: data.paymentMethod,
+        
+        // Set status to pending for approval
+        status: "pending"
+      };
+      
+      console.log("📦 Sending vendor data:", vendorData);
+      const response = await apiRequest("POST", "/api/vendors", vendorData);
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to submit vendor request");
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       console.log("✅ Vendor setup mutation successful");
@@ -180,6 +225,8 @@ export default function VendorSetup() {
       window.location.href = "/vendor-pending";
     },
     onError: (error: Error) => {
+      console.error("❌ Vendor setup error:", error);
+      
       if (isUnauthorizedError(error)) {
         toast({
           title: "Session expirée",
@@ -191,9 +238,12 @@ export default function VendorSetup() {
         }, 500);
         return;
       }
+      
+      // Show specific error message
+      const errorMessage = error.message || "Impossible de soumettre votre demande. Veuillez réessayer.";
       toast({
-        title: "Erreur",
-        description: "Impossible de soumettre votre demande. Veuillez réessayer.",
+        title: "Erreur de soumission",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -465,27 +515,37 @@ export default function VendorSetup() {
                             <Input
                               {...field}
                               placeholder="+226 XX XX XX XX"
+                              autoComplete="off"
+                              type="tel"
                               onChange={(e) => {
-                                let value = e.target.value.replace(/\D/g, ""); // Remove all non-digits
+                                let value = e.target.value.replace(/[^\d+]/g, ""); // Keep + and digits
+                                
+                                // If value doesn't start with +226, add it
+                                if (!value.startsWith("+226")) {
+                                  value = "+226" + value.replace(/^\+?226?/, "");
+                                }
+                                
+                                // Remove +226 for processing
+                                let digits = value.replace("+226", "").replace(/\D/g, "");
 
                                 // Limit to 8 digits after +226
-                                if (value.length > 8) {
-                                  value = value.slice(0, 8);
+                                if (digits.length > 8) {
+                                  digits = digits.slice(0, 8);
                                 }
 
                                 // Format as +226 XX XX XX XX
                                 let formatted = "+226";
-                                if (value.length >= 2) {
-                                  formatted += ` ${value.slice(0, 2)}`;
+                                if (digits.length >= 2) {
+                                  formatted += ` ${digits.slice(0, 2)}`;
                                 }
-                                if (value.length >= 4) {
-                                  formatted += ` ${value.slice(2, 4)}`;
+                                if (digits.length >= 4) {
+                                  formatted += ` ${digits.slice(2, 4)}`;
                                 }
-                                if (value.length >= 6) {
-                                  formatted += ` ${value.slice(4, 6)}`;
+                                if (digits.length >= 6) {
+                                  formatted += ` ${digits.slice(4, 6)}`;
                                 }
-                                if (value.length >= 8) {
-                                  formatted += ` ${value.slice(6, 8)}`;
+                                if (digits.length >= 8) {
+                                  formatted += ` ${digits.slice(6, 8)}`;
                                 }
 
                                 field.onChange(formatted);
