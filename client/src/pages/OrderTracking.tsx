@@ -344,10 +344,12 @@ export default function OrderTracking() {
                   <i className="fas fa-shopping-cart text-6xl text-gray-300 mb-4"></i>
                   <h3 className="text-lg font-semibold mb-2">Aucune commande</h3>
                   <p className="text-gray-600 mb-4">Vous n'avez pas encore passé de commandes</p>
-                  <Button className="bg-zaka-orange hover:bg-zaka-orange">
-                    <i className="fas fa-shopping-bag mr-2"></i>
-                    Commencer mes achats
-                  </Button>
+                  <Link href="/customer">
+                    <Button className="bg-zaka-orange hover:bg-zaka-orange">
+                      <i className="fas fa-shopping-bag mr-2"></i>
+                      Commencer mes achats
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             ) : (
