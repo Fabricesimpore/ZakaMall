@@ -469,12 +469,13 @@ async function addVideoSupportToProducts() {
 
     // Check if videos column already exists
     const columnExists = await db.execute(sql`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'products' AND column_name = 'videos'
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns 
+        WHERE table_name = 'products' AND column_name = 'videos'
+      );
     `);
 
-    if (columnExists.length > 0) {
+    if (columnExists.rows[0]?.exists) {
       console.log("✅ Videos column already exists, skipping...");
       return;
     }
