@@ -49,9 +49,9 @@ function parseSearchParams(req: Request): SearchParams {
   if (currency) filters.currency = currency as string;
   if (in_stock !== undefined) filters.in_stock = in_stock === "true";
 
-  // Handle price range
-  if (price_min) filters.price_min = Number(price_min);
-  if (price_max) filters.price_max = Number(price_max);
+  // Handle price range (convert to cents for Meilisearch)
+  if (price_min) filters.price_min = Number(price_min) * 100;
+  if (price_max) filters.price_max = Number(price_max) * 100;
 
   // Handle categories (can be single or multiple)
   const categoryList: string[] = [];
@@ -145,9 +145,12 @@ export async function searchProducts(req: Request, res: Response) {
     const params = parseSearchParams(req);
     const index = getIndex();
 
+    // Expand the search query with synonyms
+    const expandedQuery = expandSearchQuery(params.q);
+    
     console.log("🔍 Search request:", {
       query: params.q,
-      expandedQuery: expandSearchQuery(params.q),
+      expandedQuery: expandedQuery,
       page: params.page,
       limit: params.limit,
       sort: params.sort,
@@ -155,6 +158,7 @@ export async function searchProducts(req: Request, res: Response) {
     });
 
     const filterString = buildFilterString(params.filters || {});
+    console.log("📝 Filter string:", filterString);
 
     const searchParams: any = {
       filter: filterString,
@@ -165,10 +169,7 @@ export async function searchProducts(req: Request, res: Response) {
       facets: ["vendor_name", "categories", "brand", "currency", "in_stock"],
     };
 
-    // Expand the search query with synonyms
-    const expandedQuery = expandSearchQuery(params.q);
-
-    // Perform the search
+    // Perform the search with already expanded query
     const result = await index.search(expandedQuery, searchParams);
 
     // Transform result to match our SearchResult interface

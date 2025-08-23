@@ -26,10 +26,13 @@ export const searchSynonyms: Record<string, string[]> = {
   technologie: ["technology", "tech", "electronic"],
 
   // Clothing
-  vêtement: ["clothing", "clothes", "apparel", "fashion"],
-  vêtements: ["clothing", "clothes", "apparel", "fashion"],
-  habit: ["clothing", "clothes", "apparel"],
-  habits: ["clothing", "clothes", "apparel"],
+  vêtement: ["clothing", "clothes", "apparel", "fashion", "jean", "jeans", "shirt", "dress", "pants"],
+  vêtements: ["clothing", "clothes", "apparel", "fashion", "jean", "jeans", "shirt", "dress", "pants"],
+  clothing: ["vêtements", "clothes", "apparel", "jean", "jeans", "shirt", "dress", "pants", "tshirt"],
+  clothes: ["vêtements", "clothing", "apparel", "jean", "jeans", "shirt", "dress", "pants"],
+  habit: ["clothing", "clothes", "apparel", "jean", "jeans"],
+  habits: ["clothing", "clothes", "apparel", "jean", "jeans"],
+  mode: ["fashion", "clothing", "clothes", "style"],
 
   // Home
   maison: ["home", "house", "household"],
@@ -54,43 +57,57 @@ export const searchSynonyms: Record<string, string[]> = {
   auto: ["car", "vehicle", "automobile"],
   véhicule: ["vehicle", "car", "auto"],
 
+  // Common search terms that need expansion
+  phone: ["telephone", "mobile", "smartphone", "iphone", "samsung", "android"],
+  phones: ["telephone", "mobile", "smartphone", "iphone", "samsung", "android"],
+  
   // Common brand expansions
-  samsung: ["galaxy", "smartphone", "phone", "mobile"],
-  apple: ["iphone", "ipad", "mac", "macbook"],
-  nike: ["shoes", "sneakers", "sportswear"],
-  adidas: ["shoes", "sneakers", "sportswear"],
+  samsung: ["galaxy", "smartphone", "phone", "mobile", "telephone"],
+  apple: ["iphone", "ipad", "mac", "macbook", "phone"],
+  iphone: ["apple", "phone", "smartphone", "mobile", "telephone"],
+  nike: ["shoes", "sneakers", "sportswear", "chaussures"],
+  adidas: ["shoes", "sneakers", "sportswear", "chaussures"],
 };
 
 /**
  * Expand a search query with synonyms
  */
 export function expandSearchQuery(query: string): string {
-  if (!query || query.length < 2) {
+  if (!query || query.length < 1) {
     return query;
   }
 
-  const terms = query.toLowerCase().split(/\s+/);
+  const terms = query.toLowerCase().trim().split(/\s+/);
   const expandedTerms: string[] = [];
 
   for (const term of terms) {
+    // Always include the original term
     expandedTerms.push(term);
 
-    // Add synonyms if they exist
+    // Add exact match synonyms
     if (searchSynonyms[term]) {
       expandedTerms.push(...searchSynonyms[term]);
+      console.log(`✅ Expanded "${term}" to: ${searchSynonyms[term].join(", ")}`);
     }
 
-    // Handle partial matches for longer terms
-    for (const [synonym, expansions] of Object.entries(searchSynonyms)) {
-      if (synonym.length > 3 && term.includes(synonym)) {
-        expandedTerms.push(...expansions);
+    // Handle partial matches for longer terms (minimum 3 chars)
+    if (term.length >= 3) {
+      for (const [synonym, expansions] of Object.entries(searchSynonyms)) {
+        if (synonym.length >= 3 && synonym !== term && (term.includes(synonym) || synonym.includes(term))) {
+          expandedTerms.push(...expansions);
+          console.log(`✅ Partial match "${term}" with "${synonym}" added: ${expansions.slice(0, 3).join(", ")}...`);
+        }
       }
     }
   }
 
   // Remove duplicates and return
   const uniqueTerms = [...new Set(expandedTerms)];
-  return uniqueTerms.join(" ");
+  const expandedQuery = uniqueTerms.join(" ");
+  
+  console.log(`🔄 Query expansion: "${query}" → "${expandedQuery}" (${uniqueTerms.length} terms)`);
+  
+  return expandedQuery;
 }
 
 /**
