@@ -526,6 +526,45 @@ export class DatabaseStorage implements IStorage {
       );
       await safeDelete("drivers", () => db.delete(drivers).where(eq(drivers.userId, userId)));
       await safeDelete("vendors", () => db.delete(vendors).where(eq(vendors.userId, userId)));
+      
+      // Delete security and monitoring related records
+      await safeDelete("securityEvents", () => 
+        db.delete(securityEvents).where(
+          or(
+            eq(securityEvents.userId, userId),
+            eq(securityEvents.resolvedBy, userId)
+          )
+        )
+      );
+      await safeDelete("fraudAnalysis", () => 
+        db.delete(fraudAnalysis).where(
+          or(
+            eq(fraudAnalysis.userId, userId),
+            eq(fraudAnalysis.reviewedBy, userId)
+          )
+        )
+      );
+      await safeDelete("userVerifications", () => 
+        db.delete(userVerifications).where(
+          or(
+            eq(userVerifications.userId, userId),
+            eq(userVerifications.verifiedBy, userId)
+          )
+        )
+      );
+      await safeDelete("suspiciousActivities", () => 
+        db.delete(suspiciousActivities).where(
+          or(
+            eq(suspiciousActivities.userId, userId),
+            eq(suspiciousActivities.investigatedBy, userId)
+          )
+        )
+      );
+      await safeDelete("blacklist", () => db.delete(blacklist).where(eq(blacklist.addedBy, userId)));
+      await safeDelete("searchLogs", () => db.delete(searchLogs).where(eq(searchLogs.userId, userId)));
+      await safeDelete("userBehavior", () => db.delete(userBehavior).where(eq(userBehavior.userId, userId)));
+      await safeDelete("userPreferences", () => db.delete(userPreferences).where(eq(userPreferences.userId, userId)));
+      await safeDelete("rateLimitViolations", () => db.delete(rateLimitViolations).where(eq(rateLimitViolations.userId, userId)));
 
       // Finally delete the user - this is the only one that must succeed
       console.log("🔥 Deleting user record...");
