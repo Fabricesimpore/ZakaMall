@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
 
 interface ProductVideoUploaderFormProps {
   onVideosChange: (videoUrls: string[]) => void;
@@ -192,11 +190,21 @@ export default function ProductVideoUploaderForm({
           Conseils pour de bonnes vidéos de restaurant:
         </h4>
         <ul className="text-sm text-orange-700 space-y-1">
-          <li>• <strong>Courtes et captivantes</strong>: 15-60 secondes idéalement</li>
-          <li>• <strong>Bonne qualité</strong>: Éclairage naturel, image stable</li>
-          <li>• <strong>Verticales</strong>: Format portrait pour mobile (9:16)</li>
-          <li>• <strong>Montrez le processus</strong>: Préparation ou plat final</li>
-          <li>• <strong>Formats supportés</strong>: MP4, MOV, AVI, WebM</li>
+          <li>
+            • <strong>Courtes et captivantes</strong>: 15-60 secondes idéalement
+          </li>
+          <li>
+            • <strong>Bonne qualité</strong>: Éclairage naturel, image stable
+          </li>
+          <li>
+            • <strong>Verticales</strong>: Format portrait pour mobile (9:16)
+          </li>
+          <li>
+            • <strong>Montrez le processus</strong>: Préparation ou plat final
+          </li>
+          <li>
+            • <strong>Formats supportés</strong>: MP4, MOV, AVI, WebM
+          </li>
         </ul>
       </div>
     </div>

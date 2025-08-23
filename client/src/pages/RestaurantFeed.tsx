@@ -3,9 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Share2, MessageCircle, Play, Pause, Volume2, VolumeX } from "lucide-react";
+import { Heart, Share2, MessageCircle, Play, Volume2, VolumeX } from "lucide-react";
 
 interface RestaurantProduct {
   id: string;
@@ -77,7 +76,7 @@ function VideoPlayer({ src, isActive, product }: VideoPlayerProps) {
           text: `Découvrez ${product.name} de ${product.vendorName}`,
           url: window.location.href,
         });
-      } catch (error) {
+      } catch (_error) {
         console.log("Partage annulé");
       }
     } else {
