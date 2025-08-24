@@ -141,7 +141,9 @@ function buildFilterString(filters: SearchFilters): string {
   if (filters.price_max !== undefined) {
     const priceMaxFilter = `price_cents <= ${filters.price_max}`;
     filterParts.push(priceMaxFilter);
-    console.log(`🔍 Added price max filter: ${priceMaxFilter} (input was ${filters.price_max / 100} CFA)`);
+    console.log(
+      `🔍 Added price max filter: ${priceMaxFilter} (input was ${filters.price_max / 100} CFA)`
+    );
   }
 
   if (filters.categories && filters.categories.length > 0) {

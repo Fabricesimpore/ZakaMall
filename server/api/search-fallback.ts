@@ -34,13 +34,11 @@ export async function databaseSearch(req: Request, res: Response) {
     const searchTerms = expandedQuery.toLowerCase().split(" ").filter(Boolean);
 
     // Build WHERE conditions
-    const conditions: SQL[] = [
-      eq(products.isActive, true),
-    ];
+    const conditions: SQL[] = [eq(products.isActive, true)];
 
     // Add search conditions
     if (searchTerms.length > 0) {
-      const searchConditions = searchTerms.map(term => 
+      const searchConditions = searchTerms.map((term) =>
         or(
           sql`LOWER(${products.name}) LIKE ${`%${term}%`}`,
           sql`LOWER(${products.description}) LIKE ${`%${term}%`}`,
@@ -134,7 +132,7 @@ export async function databaseSearch(req: Request, res: Response) {
     const totalPages = Math.ceil(totalHits / limitNum);
 
     // Transform products to match search format
-    const hits = productsQuery.map(p => ({
+    const hits = productsQuery.map((p) => ({
       id: p.id,
       title: p.name,
       description: p.description,
@@ -158,7 +156,7 @@ export async function databaseSearch(req: Request, res: Response) {
 
     const searchResult: SearchResult = {
       hits,
-      query: q as string || "",
+      query: (q as string) || "",
       processingTimeMs: 0,
       hitsPerPage: limitNum,
       page: pageNum,
@@ -168,7 +166,6 @@ export async function databaseSearch(req: Request, res: Response) {
 
     console.log(`✅ Database search completed: ${totalHits} results`);
     res.json(searchResult);
-
   } catch (error) {
     console.error("❌ Database search error:", error);
     res.status(500).json({
@@ -207,18 +204,12 @@ export async function databaseAutocomplete(req: Request, res: Response) {
       .where(
         and(
           eq(products.isActive, true),
-          or(
-            ...searchTerms.map(term => 
-              sql`LOWER(${products.name}) LIKE ${`%${term}%`}`
-            )
-          )
+          or(...searchTerms.map((term) => sql`LOWER(${products.name}) LIKE ${`%${term}%`}`))
         )
       )
       .limit(10);
 
-    const suggestionList = suggestions
-      .map(s => s.name)
-      .filter(Boolean);
+    const suggestionList = suggestions.map((s) => s.name).filter(Boolean);
 
     // Add common search terms based on the query
     const commonTerms: string[] = [];
@@ -239,7 +230,6 @@ export async function databaseAutocomplete(req: Request, res: Response) {
       query,
       processingTimeMs: 0,
     });
-
   } catch (error) {
     console.error("❌ Database autocomplete error:", error);
     res.json({
