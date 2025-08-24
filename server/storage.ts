@@ -472,139 +472,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(userId: string): Promise<void> {
-    console.log("🗑️ Starting simplified user deletion for:", userId);
-
-    // PROTECTION: Check if this is the protected admin account
-    const targetUser = await this.getUser(userId);
-    if (targetUser?.email === "simporefabrice15@gmail.com") {
-      console.log("🛡️ BLOCKED: Attempt to delete protected admin account");
-      throw new Error("Cannot delete protected admin account");
-    }
-
-    // Helper function to safely delete from a table
-    const safeDelete = async (name: string, deleteOp: () => Promise<any>) => {
-      try {
-        console.log(`  Trying to delete from ${name}...`);
-        await deleteOp();
-        console.log(`  ✅ Deleted from ${name}`);
-        return true;
-      } catch (error: any) {
-        console.log(`  ⚠️ Skipped ${name}: ${error.message?.slice(0, 100)}`);
-        return false;
-      }
-    };
-
+    // Import and use the comprehensive deletion function
+    const { deleteUserComprehensive, diagnoseForeignKeyBlocks } = await import("./storage-user-deletion");
+    
     try {
-      // Try to delete related records, but don't fail if they don't exist
-      await safeDelete("messages", () => db.delete(messages).where(eq(messages.senderId, userId)));
-      await safeDelete("chatParticipants", () =>
-        db.delete(chatParticipants).where(eq(chatParticipants.userId, userId))
-      );
-      await safeDelete("chatRooms", () =>
-        db.delete(chatRooms).where(eq(chatRooms.createdBy, userId))
-      );
-      await safeDelete("reviews", () => db.delete(reviews).where(eq(reviews.userId, userId)));
-      await safeDelete("cart", () => db.delete(cart).where(eq(cart.userId, userId)));
-      await safeDelete("orders", () => db.delete(orders).where(eq(orders.customerId, userId)));
-      // Delete phone verifications by user's phone number (if exists)
-      if (targetUser?.phone) {
-        await safeDelete("phoneVerifications", () =>
-          db.delete(phoneVerifications).where(eq(phoneVerifications.phone, targetUser.phone!))
-        );
-      }
-
-      // Delete email verifications by user's email (if exists)
-      if (targetUser?.email) {
-        await safeDelete("emailVerifications", () =>
-          db.delete(emailVerifications).where(eq(emailVerifications.email, targetUser.email!))
-        );
-      }
-      await safeDelete("notifications", () =>
-        db.delete(notifications).where(eq(notifications.userId, userId))
-      );
-      await safeDelete("vendorNotificationSettings", () =>
-        db.delete(vendorNotificationSettings).where(eq(vendorNotificationSettings.userId, userId))
-      );
-      await safeDelete("drivers", () => db.delete(drivers).where(eq(drivers.userId, userId)));
-      await safeDelete("vendors", () => db.delete(vendors).where(eq(vendors.userId, userId)));
-
-      // Delete security and monitoring related records
-      await safeDelete("securityEvents", () =>
-        db
-          .delete(securityEvents)
-          .where(or(eq(securityEvents.userId, userId), eq(securityEvents.resolvedBy, userId)))
-      );
-      await safeDelete("fraudAnalysis", () =>
-        db
-          .delete(fraudAnalysis)
-          .where(or(eq(fraudAnalysis.userId, userId), eq(fraudAnalysis.reviewedBy, userId)))
-      );
-      await safeDelete("userVerifications", () =>
-        db
-          .delete(userVerifications)
-          .where(or(eq(userVerifications.userId, userId), eq(userVerifications.verifiedBy, userId)))
-      );
-      await safeDelete("suspiciousActivities", () =>
-        db
-          .delete(suspiciousActivities)
-          .where(
-            or(
-              eq(suspiciousActivities.userId, userId),
-              eq(suspiciousActivities.investigatedBy, userId)
-            )
-          )
-      );
-      await safeDelete("blacklist", () =>
-        db.delete(blacklist).where(eq(blacklist.addedBy, userId))
-      );
-      await safeDelete("searchLogs", () =>
-        db.delete(searchLogs).where(eq(searchLogs.userId, userId))
-      );
-      await safeDelete("userBehavior", () =>
-        db.delete(userBehavior).where(eq(userBehavior.userId, userId))
-      );
-      await safeDelete("userPreferences", () =>
-        db.delete(userPreferences).where(eq(userPreferences.userId, userId))
-      );
-      await safeDelete("rateLimitViolations", () =>
-        db.delete(rateLimitViolations).where(eq(rateLimitViolations.userId, userId))
-      );
-
-      // Finally delete the user - try multiple approaches
-      console.log("🔥 Deleting user record...");
-
-      try {
-        // First attempt: Use Drizzle ORM
-        await db.delete(users).where(eq(users.id, userId));
-        console.log("✅ User deletion completed successfully");
-      } catch (ormError: any) {
-        console.log("⚠️ Drizzle deletion failed, trying raw SQL...");
-
-        try {
-          // Second attempt: Use raw SQL
-          await db.execute(sql`DELETE FROM users WHERE id = ${userId}`);
-          console.log("✅ User deletion completed with raw SQL");
-        } catch (rawError: any) {
-          console.error("❌ Both ORM and raw SQL deletion failed");
-          console.error("ORM Error:", ormError.message);
-          console.error("Raw SQL Error:", rawError.message);
-
-          // Check if user actually exists
-          const userExists = await db
-            .select({ id: users.id })
-            .from(users)
-            .where(eq(users.id, userId));
-          if (userExists.length === 0) {
-            console.log("🤔 User doesn't exist anymore - deletion may have succeeded partially");
-            return; // Don't throw error if user is gone
-          }
-
-          throw new Error(`Failed to delete user: ${rawError.message}`);
-        }
-      }
+      await deleteUserComprehensive(userId);
     } catch (error: any) {
-      console.error("❌ Unexpected error in user deletion:", error.message);
-      throw error;
+      // If deletion fails, diagnose what's blocking it
+      console.error("❌ Deletion failed, running diagnostics...");
+      const diagnostics = await diagnoseForeignKeyBlocks(userId);
+      console.error("🔍 Blocking references found:", diagnostics);
+      throw new Error(`Cannot delete user - ${diagnostics.blockingTables.length} tables still have references. Check logs for details.`);
     }
   }
 
