@@ -473,8 +473,10 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUser(userId: string): Promise<void> {
     // Import and use the comprehensive deletion function
-    const { deleteUserComprehensive, diagnoseForeignKeyBlocks } = await import("./storage-user-deletion");
-    
+    const { deleteUserComprehensive, diagnoseForeignKeyBlocks } = await import(
+      "./storage-user-deletion"
+    );
+
     try {
       await deleteUserComprehensive(userId);
     } catch (error: any) {
@@ -482,7 +484,9 @@ export class DatabaseStorage implements IStorage {
       console.error("❌ Deletion failed, running diagnostics...");
       const diagnostics = await diagnoseForeignKeyBlocks(userId);
       console.error("🔍 Blocking references found:", diagnostics);
-      throw new Error(`Cannot delete user - ${diagnostics.blockingTables.length} tables still have references. Check logs for details.`);
+      throw new Error(
+        `Cannot delete user - ${diagnostics.blockingTables.length} tables still have references. Check logs for details.`
+      );
     }
   }
 
