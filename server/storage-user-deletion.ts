@@ -196,12 +196,12 @@ export async function deleteUserComprehensive(userId: string): Promise<void> {
     const vendorRecord = await db.select().from(vendors).where(eq(vendors.userId, userId)).limit(1);
     if (vendorRecord.length > 0) {
       const vendorId = vendorRecord[0].id;
-      
+
       // Delete vendor trust scores
       await safeDelete("vendorTrustScores", () =>
         db.delete(vendorTrustScores).where(eq(vendorTrustScores.vendorId, vendorId))
       );
-      
+
       // Delete reviews of vendor's products first
       await safeDelete("reviews of vendor products", () =>
         db.execute(sql`
@@ -209,7 +209,7 @@ export async function deleteUserComprehensive(userId: string): Promise<void> {
           WHERE product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId})
         `)
       );
-      
+
       // Delete cart items that reference vendor's products
       await safeDelete("cart items for vendor products", () =>
         db.execute(sql`
@@ -217,7 +217,7 @@ export async function deleteUserComprehensive(userId: string): Promise<void> {
           WHERE product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId})
         `)
       );
-      
+
       // Delete order items that reference vendor's products
       await safeDelete("order items for vendor products", () =>
         db.execute(sql`
@@ -225,7 +225,7 @@ export async function deleteUserComprehensive(userId: string): Promise<void> {
           WHERE product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId})
         `)
       );
-      
+
       // NOW we can delete products that belong to this vendor
       await safeDelete("products owned by vendor", () =>
         db.execute(sql`DELETE FROM products WHERE vendor_id = ${vendorId}`)
