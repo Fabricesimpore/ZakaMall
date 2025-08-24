@@ -3,6 +3,7 @@ import {
   users,
   vendors,
   drivers,
+  products,
   orders,
   orderItems,
   cart,
@@ -191,11 +192,43 @@ export async function deleteUserComprehensive(userId: string): Promise<void> {
       db.delete(blacklist).where(eq(blacklist.addedBy, userId))
     );
 
-    // 11. Delete vendor trust scores if vendor
+    // 11. Delete vendor-related data if user is a vendor
     const vendorRecord = await db.select().from(vendors).where(eq(vendors.userId, userId)).limit(1);
     if (vendorRecord.length > 0) {
+      const vendorId = vendorRecord[0].id;
+      
+      // Delete vendor trust scores
       await safeDelete("vendorTrustScores", () =>
-        db.delete(vendorTrustScores).where(eq(vendorTrustScores.vendorId, vendorRecord[0].id))
+        db.delete(vendorTrustScores).where(eq(vendorTrustScores.vendorId, vendorId))
+      );
+      
+      // Delete reviews of vendor's products first
+      await safeDelete("reviews of vendor products", () =>
+        db.execute(sql`
+          DELETE FROM reviews 
+          WHERE product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId})
+        `)
+      );
+      
+      // Delete cart items that reference vendor's products
+      await safeDelete("cart items for vendor products", () =>
+        db.execute(sql`
+          DELETE FROM cart 
+          WHERE product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId})
+        `)
+      );
+      
+      // Delete order items that reference vendor's products
+      await safeDelete("order items for vendor products", () =>
+        db.execute(sql`
+          DELETE FROM order_items 
+          WHERE product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId})
+        `)
+      );
+      
+      // NOW we can delete products that belong to this vendor
+      await safeDelete("products owned by vendor", () =>
+        db.execute(sql`DELETE FROM products WHERE vendor_id = ${vendorId}`)
       );
     }
 
@@ -254,6 +287,11 @@ export async function diagnoseForeignKeyBlocks(userId: string): Promise<any> {
       table: "vendors",
       column: "user_id",
       query: sql`SELECT COUNT(*) as count FROM vendors WHERE user_id = ${userId}`,
+    },
+    {
+      table: "products (via vendor)",
+      column: "vendor_id",
+      query: sql`SELECT COUNT(*) as count FROM products WHERE vendor_id IN (SELECT id FROM vendors WHERE user_id = ${userId})`,
     },
     {
       table: "drivers",

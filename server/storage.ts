@@ -484,9 +484,17 @@ export class DatabaseStorage implements IStorage {
       console.error("❌ Deletion failed, running diagnostics...");
       const diagnostics = await diagnoseForeignKeyBlocks(userId);
       console.error("🔍 Blocking references found:", diagnostics);
-      throw new Error(
-        `Cannot delete user - ${diagnostics.blockingTables.length} tables still have references. Check logs for details.`
-      );
+      
+      // Build detailed error message
+      const blockingDetails = diagnostics.blockingTables
+        .map((t: any) => `${t.table}(${t.count} rows)`)
+        .join(", ");
+      
+      const errorMsg = diagnostics.blockingTables.length > 0
+        ? `Cannot delete user - blocked by: ${blockingDetails}`
+        : `Cannot delete user - ${error.message}`;
+      
+      throw new Error(errorMsg);
     }
   }
 
