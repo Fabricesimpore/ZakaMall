@@ -141,7 +141,7 @@ function buildFilterString(filters: SearchFilters): string {
   if (filters.price_max !== undefined) {
     const priceMaxFilter = `price_cents <= ${filters.price_max}`;
     filterParts.push(priceMaxFilter);
-    console.log(`🔍 Added price max filter: ${priceMaxFilter} (input was ${price_max} CFA)`);
+    console.log(`🔍 Added price max filter: ${priceMaxFilter} (input was ${filters.price_max / 100} CFA)`);
   }
 
   if (filters.categories && filters.categories.length > 0) {
@@ -207,7 +207,7 @@ export async function searchProducts(req: Request, res: Response) {
     console.log(`✅ Search completed: ${result.totalHits} results in ${result.processingTimeMs}ms`);
 
     // Debug: Log first few results for price filter debugging
-    if (filters.price_max !== undefined && result.hits.length > 0) {
+    if (params.filters?.price_max !== undefined && result.hits.length > 0) {
       console.log(
         `🔍 Price filter debug - showing first ${Math.min(3, result.hits.length)} results:`
       );
@@ -233,6 +233,13 @@ export async function searchProducts(req: Request, res: Response) {
  */
 export async function autocomplete(req: Request, res: Response) {
   try {
+    // Check if Meilisearch is configured
+    if (!process.env.MEILI_HOST && !process.env.MEILI_MASTER_KEY && !process.env.MEILI_SEARCH_KEY) {
+      console.log("⚠️ Meilisearch not configured, using database autocomplete");
+      const { databaseAutocomplete } = await import("./search-fallback");
+      return await databaseAutocomplete(req, res);
+    }
+
     const { q = "" } = req.query;
     const query = String(q).trim();
 
