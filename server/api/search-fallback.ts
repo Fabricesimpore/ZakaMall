@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { db } from "../storage";
+import { db } from "../db";
 import { products, vendors } from "@shared/schema";
 import { eq, and, or, like, gte, lte, desc, asc, sql, SQL } from "drizzle-orm";
 import type { SearchResult, SearchFilters } from "@shared/search-types";
