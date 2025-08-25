@@ -1406,7 +1406,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const userId = req.user.claims.sub;
-      
+
       // Get user details to check if admin
       const user = await storage.getUser(userId);
       if (!user || user.role !== "admin") {
