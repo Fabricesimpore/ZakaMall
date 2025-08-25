@@ -96,7 +96,7 @@ export async function diagnoseDeletion(userId: string): Promise<any> {
 
         diagnostics.vendorProductCount = Number(productsCheck.rows[0]?.count || 0);
       }
-    } catch (_error: any) {
+    } catch {
       // Vendor table might not exist
     }
   } catch (error: any) {

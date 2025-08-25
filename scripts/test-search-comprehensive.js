@@ -372,7 +372,7 @@ async function main() {
   try {
     await tester.runAllTests();
     process.exit(0);
-  } catch (error) {
+  } catch {
     console.error("\n💥 Test suite failed with errors");
     process.exit(1);
   }

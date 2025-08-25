@@ -76,7 +76,7 @@ function VideoPlayer({ src, isActive, product }: VideoPlayerProps) {
           text: `Découvrez ${product.name} de ${product.vendorName}`,
           url: window.location.href,
         });
-      } catch (_error) {
+      } catch {
         console.log("Partage annulé");
       }
     } else {

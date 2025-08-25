@@ -53,7 +53,7 @@ export async function emergencyDatabaseFix() {
         WHERE products.vendor_id = vendors.id
           AND (products.vendor_display_name IS NULL OR products.vendor_slug IS NULL);
       `);
-    } catch (_error: any) {
+    } catch {
       // Fallback for older schema that might not have store_name
       console.log("🔄 Trying fallback update with legacy column names...");
       await db.execute(sql`

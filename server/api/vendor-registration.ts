@@ -15,7 +15,7 @@ import {
 export async function registerVendor(req: Request, res: Response) {
   try {
     // Rate limiting by IP (simple implementation)
-    const clientIp = req.ip;
+    const _clientIp = req.ip;
     // TODO: Implement proper rate limiting with Redis/memory store
 
     // Validate input
@@ -182,7 +182,7 @@ export async function approveVendor(req: Request, res: Response) {
     }
 
     // Use idempotency key to prevent double-clicks
-    const idempotencyKey = req.headers["idempotency-key"] as string;
+    const _idempotencyKey = req.headers["idempotency-key"] as string;
     // TODO: Implement idempotency check with Redis/memory store
 
     try {

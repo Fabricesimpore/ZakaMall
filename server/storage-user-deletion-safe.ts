@@ -150,7 +150,7 @@ export async function deleteUserSafe(userId: string): Promise<void> {
         vendorId = vendorRecord[0].id;
         console.log("  📦 User is a vendor with ID:", vendorId);
       }
-    } catch (_error) {
+    } catch {
       console.log("  ⏭️ Vendor table check failed - skipping vendor cleanup");
     }
 
@@ -175,7 +175,7 @@ export async function deleteUserSafe(userId: string): Promise<void> {
           .where(eq(products.vendorId, vendorId));
         productIds = vendorProducts.map((p) => p.id);
         console.log(`  📦 Found ${productIds.length} products for vendor`);
-      } catch (_error) {
+      } catch {
         console.log("  ⏭️ Could not fetch vendor products");
       }
 
@@ -249,7 +249,7 @@ export async function deleteUserSafe(userId: string): Promise<void> {
         .where(eq(orders.customerId, userId));
       orderIds = userOrders.map((o) => o.id);
       console.log(`  📦 Found ${orderIds.length} orders for user`);
-    } catch (_error) {
+    } catch {
       console.log("  ⏭️ Could not fetch user orders");
     }
 
@@ -413,7 +413,7 @@ async function checkBlockingReferences(userId: string): Promise<string[]> {
       if (count > 0) {
         blocking.push(`${table} (${count} rows)`);
       }
-    } catch (_error) {
+    } catch {
       // Table might not exist
     }
   }

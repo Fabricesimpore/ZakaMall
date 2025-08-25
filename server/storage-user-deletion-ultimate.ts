@@ -403,7 +403,7 @@ export async function deleteUserUltimate(userId: string): Promise<void> {
               `)
               );
             }
-          } catch (_error) {
+          } catch {
             console.log(`  ⚠️ Could not check ${constraint.table_name}`);
           }
         }
