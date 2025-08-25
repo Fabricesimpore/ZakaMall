@@ -1402,6 +1402,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/products/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      
+      // Get user details to check if admin
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== "admin") {
+        return res.status(403).json({ message: "Only admins can delete products" });
+      }
+
+      // Delete the product (this should cascade to related data)
+      await storage.deleteProduct(id);
+
+      // Remove from search index
+      try {
+        const { syncHooks } = await import("./services/product-sync");
+        await syncHooks.onProductDeleted(id);
+      } catch (syncError) {
+        console.warn("⚠️ Failed to remove product from search index:", syncError);
+      }
+
+      res.json({ message: "Product deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      res.status(500).json({ message: "Failed to delete product" });
+    }
+  });
+
   // Cart routes
   app.post("/api/cart", isAuthenticated, async (req: any, res) => {
     try {

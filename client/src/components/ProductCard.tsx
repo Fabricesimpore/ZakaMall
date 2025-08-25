@@ -2,12 +2,24 @@ import React, { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { useUserBehaviorTracker } from "@/hooks/useUserBehaviorTracker";
+import { useAuth } from "@/hooks/useAuth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import WhatsAppSupport from "@/components/WhatsAppSupport";
 import ProductDetailModal from "@/components/ProductDetailModal";
 
@@ -28,6 +40,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -100,6 +113,27 @@ export default function ProductCard({ product }: ProductCardProps) {
     },
   });
 
+  // Delete product mutation (admin only)
+  const deleteProductMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("DELETE", `/api/products/${product.id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      toast({
+        title: "Succès",
+        description: "Produit supprimé avec succès",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le produit",
+        variant: "destructive",
+      });
+    },
+  });
+
   const formatPrice = (price: string | number) => {
     return parseFloat(price.toString()).toLocaleString();
   };
@@ -163,6 +197,49 @@ export default function ProductCard({ product }: ProductCardProps) {
 
             {product.quantity === 0 && (
               <Badge className="absolute top-2 right-2 bg-red-500 text-white">Rupture</Badge>
+            )}
+
+            {/* Admin delete button */}
+            {user?.role === "admin" && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 left-2 h-8 w-8 p-0"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <i className="fas fa-trash text-xs"></i>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Supprimer le produit</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Êtes-vous sûr de vouloir supprimer "{product.name}" ? Cette action est
+                      irréversible et supprimera également toutes les données associées (avis,
+                      commandes, etc.).
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => deleteProductMutation.mutate()}
+                      disabled={deleteProductMutation.isPending}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      {deleteProductMutation.isPending ? (
+                        <>
+                          <i className="fas fa-spinner fa-spin mr-2"></i>
+                          Suppression...
+                        </>
+                      ) : (
+                        "Supprimer"
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
 
