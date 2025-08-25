@@ -3781,7 +3781,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Use the ultimate deletion for production
       const { deleteUserUltimate } = await import("./storage-user-deletion-ultimate");
-      
+
       console.log("🔥 Deleting user:", id);
       await deleteUserUltimate(id);
       console.log("✅ User deleted successfully:", id);
