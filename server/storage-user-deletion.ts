@@ -5,11 +5,11 @@ import {
   drivers,
   products,
   orders,
-  orderItems,
+  // orderItems, // Unused import
   cart,
   reviews,
   reviewVotes,
-  reviewResponses,
+  // reviewResponses, // Unused import
   messages,
   chatRooms,
   chatParticipants,
@@ -264,7 +264,7 @@ export async function deleteUserComprehensive(userId: string): Promise<void> {
     console.log("🔥 All related data cleaned, deleting user record...");
 
     try {
-      const result = await db.delete(users).where(eq(users.id, userId));
+      await db.delete(users).where(eq(users.id, userId));
       console.log("✅ User deletion completed successfully");
       return;
     } catch (deleteError: any) {

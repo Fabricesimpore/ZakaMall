@@ -29,7 +29,7 @@ import {
   suspiciousActivities,
   blacklist,
   vendorAuditLog,
-  storeSlugRedirects,
+  // storeSlugRedirects, // Unused import
   type User,
   type UpsertUser,
   type InsertUser,
