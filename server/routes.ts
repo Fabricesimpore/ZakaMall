@@ -3757,21 +3757,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const userId = req.user.claims.sub;
       const { isAdmin } = await ensureAdminAccess(userId, storage);
-      
+
       if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       const { diagnoseDeletion } = await import("./deletion-diagnostics");
       const diagnostics = await diagnoseDeletion(id);
-      
+
       res.json(diagnostics);
     } catch (error) {
       console.error("Error running diagnostics:", error);
       res.status(500).json({ message: "Failed to run diagnostics", error: (error as any).message });
     }
   });
-  
+
   app.delete("/api/admin/users/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
