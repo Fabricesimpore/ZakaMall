@@ -3779,11 +3779,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Cannot delete protected admin account" });
       }
 
-      // Use the safe deletion for production
-      const { deleteUserSafe } = await import("./storage-user-deletion-safe");
+      // Use the ultimate deletion for production
+      const { deleteUserUltimate } = await import("./storage-user-deletion-ultimate");
       
       console.log("🔥 Deleting user:", id);
-      await deleteUserSafe(id);
+      await deleteUserUltimate(id);
       console.log("✅ User deleted successfully:", id);
       res.json({ message: "User deleted successfully" });
     } catch (error) {

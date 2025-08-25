@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, vendors, drivers, products, orders, orderItems, cart, reviews, messages, chatRooms, chatParticipants, notifications, phoneVerifications, emailVerifications, searchLogs, userBehavior, userPreferences } from "@shared/schema";
+import { users, vendors, drivers, products, orders, orderItems, cart, reviews, reviewVotes, reviewResponses, messages, chatRooms, chatParticipants, notifications, phoneVerifications, emailVerifications, searchLogs, userBehavior, userPreferences, payments, securityEvents, fraudAnalysis, userVerifications, suspiciousActivities, blacklist, vendorTrustScores, vendorNotificationSettings, rateLimitViolations } from "@shared/schema";
 import { eq, or, sql, inArray } from "drizzle-orm";
 
 /**
@@ -53,6 +53,13 @@ export async function deleteUserSafe(userId: string): Promise<void> {
   };
   
   try {
+    // Phase 0: Try to identify what's blocking first
+    console.log("🔍 Checking for blocking references...");
+    const blockingRefs = await checkBlockingReferences(userId);
+    if (blockingRefs.length > 0) {
+      console.log("⚠️ Found blocking references:", blockingRefs);
+    }
+    
     // Phase 1: Delete leaf tables (no dependencies)
     await safeDelete("userPreferences", () =>
       db.delete(userPreferences).where(eq(userPreferences.userId, userId))
@@ -64,6 +71,43 @@ export async function deleteUserSafe(userId: string): Promise<void> {
     
     await safeDelete("searchLogs", () =>
       db.delete(searchLogs).where(eq(searchLogs.userId, userId))
+    );
+    
+    // Delete all security and fraud-related records
+    await safeDelete("rateLimitViolations", () =>
+      db.delete(rateLimitViolations).where(eq(rateLimitViolations.userId, userId))
+    );
+    
+    await safeDelete("securityEvents", () =>
+      db.delete(securityEvents).where(or(
+        eq(securityEvents.userId, userId),
+        eq(securityEvents.resolvedBy, userId)
+      ))
+    );
+    
+    await safeDelete("fraudAnalysis", () =>
+      db.delete(fraudAnalysis).where(or(
+        eq(fraudAnalysis.userId, userId),
+        eq(fraudAnalysis.reviewedBy, userId)
+      ))
+    );
+    
+    await safeDelete("userVerifications", () =>
+      db.delete(userVerifications).where(or(
+        eq(userVerifications.userId, userId),
+        eq(userVerifications.verifiedBy, userId)
+      ))
+    );
+    
+    await safeDelete("suspiciousActivities", () =>
+      db.delete(suspiciousActivities).where(or(
+        eq(suspiciousActivities.userId, userId),
+        eq(suspiciousActivities.investigatedBy, userId)
+      ))
+    );
+    
+    await safeDelete("blacklist", () =>
+      db.delete(blacklist).where(eq(blacklist.addedBy, userId))
     );
     
     // Phase 2: Get vendor ID if user is a vendor (needed for product cleanup)
@@ -80,6 +124,16 @@ export async function deleteUserSafe(userId: string): Promise<void> {
     
     // Phase 3: Clean up product-related data if user is a vendor
     if (vendorId) {
+      // Delete vendor trust scores first
+      await safeDelete("vendorTrustScores", () =>
+        db.delete(vendorTrustScores).where(eq(vendorTrustScores.vendorId, vendorId))
+      );
+      
+      // Delete vendor notification settings
+      await safeDelete("vendorNotificationSettings", () =>
+        db.delete(vendorNotificationSettings).where(eq(vendorNotificationSettings.userId, userId))
+      );
+      
       // Get all product IDs for this vendor
       let productIds: string[] = [];
       try {
@@ -93,6 +147,26 @@ export async function deleteUserSafe(userId: string): Promise<void> {
       }
       
       if (productIds.length > 0) {
+        // Delete review votes for these products' reviews
+        await safeDelete("review votes for vendor products", () =>
+          db.execute(sql`
+            DELETE FROM ${reviewVotes}
+            WHERE review_id IN (
+              SELECT id FROM ${reviews} WHERE product_id = ANY(${productIds})
+            )
+          `)
+        );
+        
+        // Delete review responses for these products' reviews
+        await safeDelete("review responses for vendor products", () =>
+          db.execute(sql`
+            DELETE FROM ${reviewResponses}
+            WHERE review_id IN (
+              SELECT id FROM ${reviews} WHERE product_id = ANY(${productIds})
+            )
+          `)
+        );
+        
         // Delete reviews for these products
         await safeDelete("reviews of vendor products", () =>
           db.delete(reviews).where(inArray(reviews.productId, productIds))
@@ -115,7 +189,21 @@ export async function deleteUserSafe(userId: string): Promise<void> {
       }
     }
     
-    // Phase 4: Delete user's own reviews
+    // Phase 4: Delete user's own review-related data
+    await safeDelete("user review votes", () =>
+      db.delete(reviewVotes).where(eq(reviewVotes.userId, userId))
+    );
+    
+    // Delete review responses for user's reviews
+    await safeDelete("review responses for user reviews", () =>
+      db.execute(sql`
+        DELETE FROM ${reviewResponses}
+        WHERE review_id IN (
+          SELECT id FROM ${reviews} WHERE user_id = ${userId}
+        )
+      `)
+    );
+    
     await safeDelete("user reviews", () =>
       db.delete(reviews).where(eq(reviews.userId, userId))
     );
@@ -145,9 +233,19 @@ export async function deleteUserSafe(userId: string): Promise<void> {
       db.delete(orders).where(eq(orders.customerId, userId))
     );
     
-    // Phase 6: Delete cart items
+    // Phase 6: Delete cart items and payments
     await safeDelete("cart", () =>
       db.delete(cart).where(eq(cart.userId, userId))
+    );
+    
+    // Delete payments linked to user's orders
+    await safeDelete("payments for user orders", () =>
+      db.execute(sql`
+        DELETE FROM ${payments}
+        WHERE order_id IN (
+          SELECT id FROM ${orders} WHERE customer_id = ${userId}
+        )
+      `)
     );
     
     // Phase 7: Delete chat/messaging data
@@ -194,11 +292,21 @@ export async function deleteUserSafe(userId: string): Promise<void> {
     console.log("🔥 All related data cleaned, deleting user record...");
     
     try {
-      const result = await db.delete(users).where(eq(users.id, userId));
+      await db.delete(users).where(eq(users.id, userId));
       console.log("✅ User deletion completed successfully");
       return;
     } catch (deleteError: any) {
       console.error("❌ User deletion failed after cleanup:", deleteError.message);
+      
+      // Try a more aggressive approach - use CASCADE manually
+      console.log("🔄 Attempting CASCADE-style deletion...");
+      try {
+        await db.execute(sql`DELETE FROM users WHERE id = ${userId}`);
+        console.log("✅ User deletion completed with raw SQL");
+        return;
+      } catch (rawError: any) {
+        console.error("❌ Raw SQL deletion also failed:", rawError.message);
+      }
       
       // Check if user still exists
       const userStillExists = await db
@@ -221,6 +329,37 @@ export async function deleteUserSafe(userId: string): Promise<void> {
 /**
  * Production-safe product deletion with proper error handling
  */
+async function checkBlockingReferences(userId: string): Promise<string[]> {
+  const blocking: string[] = [];
+  
+  // Check common blocking tables
+  const checks = [
+    { table: 'vendors', check: () => db.select({ count: sql`count(*)` }).from(vendors).where(eq(vendors.userId, userId)) },
+    { table: 'drivers', check: () => db.select({ count: sql`count(*)` }).from(drivers).where(eq(drivers.userId, userId)) },
+    { table: 'orders', check: () => db.select({ count: sql`count(*)` }).from(orders).where(eq(orders.customerId, userId)) },
+    { table: 'cart', check: () => db.select({ count: sql`count(*)` }).from(cart).where(eq(cart.userId, userId)) },
+    { table: 'reviews', check: () => db.select({ count: sql`count(*)` }).from(reviews).where(eq(reviews.userId, userId)) },
+    { table: 'payments', check: () => db.execute(sql`
+      SELECT count(*) as count FROM ${payments} 
+      WHERE order_id IN (SELECT id FROM ${orders} WHERE customer_id = ${userId})
+    `) },
+  ];
+  
+  for (const { table, check } of checks) {
+    try {
+      const result = await check();
+      const count = Number(result.rows?.[0]?.count || result[0]?.count || 0);
+      if (count > 0) {
+        blocking.push(`${table} (${count} rows)`);
+      }
+    } catch (error) {
+      // Table might not exist
+    }
+  }
+  
+  return blocking;
+}
+
 export async function deleteProductSafe(productId: string): Promise<void> {
   console.log("🗑️ Starting SAFE product deletion for:", productId);
   
@@ -266,7 +405,7 @@ export async function deleteProductSafe(productId: string): Promise<void> {
     console.log("🔥 All related data cleaned, deleting product record...");
     
     try {
-      const result = await db.delete(products).where(eq(products.id, productId));
+      await db.delete(products).where(eq(products.id, productId));
       console.log("✅ Product deletion completed successfully");
       return;
     } catch (deleteError: any) {
