@@ -1413,8 +1413,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Only admins can delete products" });
       }
 
-      // Delete the product (this should cascade to related data)
-      await storage.deleteProduct(id);
+      // Use the safe deletion for production
+      const { deleteProductSafe } = await import("./storage-user-deletion-safe");
+      await deleteProductSafe(id);
 
       // Remove from search index
       try {
@@ -3379,7 +3380,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Product not found or access denied" });
       }
 
-      await storage.deleteProduct(id);
+      // Use the safe deletion for production
+      const { deleteProductSafe } = await import("./storage-user-deletion-safe");
+      await deleteProductSafe(id);
 
       // Remove from search index
       try {
@@ -3776,8 +3779,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Cannot delete protected admin account" });
       }
 
+      // Use the safe deletion for production
+      const { deleteUserSafe } = await import("./storage-user-deletion-safe");
+      
       console.log("🔥 Deleting user:", id);
-      await storage.deleteUser(id);
+      await deleteUserSafe(id);
       console.log("✅ User deleted successfully:", id);
       res.json({ message: "User deleted successfully" });
     } catch (error) {
