@@ -11,6 +11,7 @@ import { requestLogger, errorLogger, logInfo } from "./logger";
 import { validateEnvironment, getNumericEnv } from "./envValidator";
 import { runStartupMigrations } from "./startup-migrations";
 import { emergencyDatabaseFix } from "./emergency-db-fix";
+import { runStartupHealthCheck, createHealthCheckMiddleware } from "./database/startup-health-check";
 
 // Validate environment variables on startup
 validateEnvironment();
@@ -97,12 +98,74 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
-(async () => {
-  // Run startup migrations before registering routes
-  await runStartupMigrations();
+// Comprehensive health check endpoint
+app.get("/api/health/detailed", async (_req, res) => {
+  try {
+    const healthCheck = await runStartupHealthCheck(false); // Don't auto-fix in health endpoint
+    const statusCode = healthCheck.overall === "critical" ? 503 : 200;
+    
+    res.status(statusCode).json({
+      status: healthCheck.overall,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || "development",
+      version: "1.0.0",
+      database: healthCheck.database,
+      errors: healthCheck.errors,
+      warnings: healthCheck.warnings,
+    });
+  } catch (error: any) {
+    res.status(503).json({
+      status: "critical",
+      timestamp: new Date().toISOString(),
+      error: error.message,
+    });
+  }
+});
 
-  // Run emergency database fix if needed
-  await emergencyDatabaseFix();
+(async () => {
+  console.log("🚀 Starting ZakaMall server...");
+  
+  try {
+    // 1. Run comprehensive startup health check
+    console.log("🏥 Running startup health check...");
+    const healthCheck = await runStartupHealthCheck(true); // Auto-fix enabled
+    
+    if (healthCheck.overall === "critical") {
+      console.error("❌ Critical health check failures detected:");
+      healthCheck.errors.forEach(error => console.error(`  - ${error}`));
+      
+      if (process.env.NODE_ENV === "production") {
+        console.error("❌ Server startup aborted due to critical errors in production");
+        process.exit(1);
+      } else {
+        console.warn("⚠️ Continuing startup in development mode despite critical errors");
+      }
+    }
+    
+    if (healthCheck.overall === "warning") {
+      console.warn("⚠️ Health check warnings:");
+      healthCheck.warnings.forEach(warning => console.warn(`  - ${warning}`));
+    }
+    
+    // 2. Run legacy startup migrations (for backward compatibility)
+    console.log("🔄 Running legacy startup migrations...");
+    await runStartupMigrations();
+
+    // 3. Run emergency database fix if needed (for backward compatibility)
+    console.log("🔧 Running emergency database fixes...");
+    await emergencyDatabaseFix();
+    
+    console.log("✅ Database initialization completed");
+    
+  } catch (error: any) {
+    console.error("❌ Startup health check failed:", error.message);
+    if (process.env.NODE_ENV === "production") {
+      console.error("❌ Server startup aborted");
+      process.exit(1);
+    } else {
+      console.warn("⚠️ Continuing startup in development mode");
+    }
+  }
 
   const server = await registerRoutes(app);
 
