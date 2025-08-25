@@ -210,6 +210,28 @@ export async function deleteUserComprehensive(userId: string): Promise<void> {
         `)
       );
 
+      // Delete review responses for vendor's product reviews
+      await safeDelete("review responses for vendor products", () =>
+        db.execute(sql`
+          DELETE FROM review_responses 
+          WHERE review_id IN (
+            SELECT r.id FROM reviews r 
+            WHERE r.product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId})
+          )
+        `)
+      );
+
+      // Delete review votes for vendor's product reviews
+      await safeDelete("review votes for vendor products", () =>
+        db.execute(sql`
+          DELETE FROM review_votes 
+          WHERE review_id IN (
+            SELECT r.id FROM reviews r 
+            WHERE r.product_id IN (SELECT id FROM products WHERE vendor_id = ${vendorId})
+          )
+        `)
+      );
+
       // Delete cart items that reference vendor's products
       await safeDelete("cart items for vendor products", () =>
         db.execute(sql`
@@ -226,13 +248,13 @@ export async function deleteUserComprehensive(userId: string): Promise<void> {
         `)
       );
 
-      // NOW we can delete products that belong to this vendor
+      // Delete all products that belong to this vendor BEFORE deleting the vendor record
       await safeDelete("products owned by vendor", () =>
-        db.execute(sql`DELETE FROM products WHERE vendor_id = ${vendorId}`)
+        db.delete(products).where(eq(products.vendorId, vendorId))
       );
     }
 
-    // 12. Delete vendor/driver records
+    // 12. Delete vendor/driver records AFTER all their dependent data is gone
     await safeDelete("drivers", () => db.delete(drivers).where(eq(drivers.userId, userId)));
 
     await safeDelete("vendors", () => db.delete(vendors).where(eq(vendors.userId, userId)));
