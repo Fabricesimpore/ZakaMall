@@ -37,6 +37,7 @@ import { eq, or, sql } from "drizzle-orm";
  */
 export async function deleteUserComprehensive(userId: string): Promise<void> {
   console.log("🗑️ Starting COMPREHENSIVE user deletion for:", userId);
+  console.log("📦 Version: Fixed vendor product deletion order");
 
   // Get user details for additional cleanup
   const [targetUser] = await db.select().from(users).where(eq(users.id, userId));
