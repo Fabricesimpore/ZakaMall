@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Share2, MessageCircle, Play, Volume2, VolumeX } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { Heart, Share2, MessageCircle, Play, Volume2, VolumeX, Plus, Minus, ShoppingCart } from "lucide-react";
 
 interface RestaurantProduct {
   id: string;
@@ -22,9 +24,158 @@ interface VideoPlayerProps {
   src: string;
   isActive: boolean;
   product: RestaurantProduct;
+  onOrderClick: (product: RestaurantProduct) => void;
 }
 
-function VideoPlayer({ src, isActive, product }: VideoPlayerProps) {
+interface QuickOrderModalProps {
+  product: RestaurantProduct | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+function QuickOrderModal({ product, isOpen, onClose }: QuickOrderModalProps) {
+  const { toast } = useToast();
+  const [quantity, setQuantity] = useState(1);
+  const [isAdded, setIsAdded] = useState(false);
+
+  const addToCartMutation = useMutation({
+    mutationFn: async () => {
+      if (!product) throw new Error("No product selected");
+      return await apiRequest("POST", "/api/cart", {
+        productId: product.id,
+        quantity: quantity,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+      setIsAdded(true);
+      toast({
+        title: "Succès",
+        description: `${quantity} × ${product?.name} ajouté au panier`,
+      });
+      setTimeout(() => {
+        setIsAdded(false);
+        onClose();
+        setQuantity(1);
+      }, 1500);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'ajouter le produit au panier. Connectez-vous d'abord.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  if (!product) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold">Commander maintenant</DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          {/* Product info */}
+          <div className="flex gap-4">
+            <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
+              {product.images && product.images[0] ? (
+                <img 
+                  src={product.images[0]} 
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <i className="fas fa-utensils text-gray-400"></i>
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-lg">{product.name}</h3>
+              <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
+              <p className="text-lg font-bold text-zaka-orange mt-2">
+                {parseFloat(product.price).toLocaleString()} CFA
+              </p>
+            </div>
+          </div>
+
+          {/* Quantity selector */}
+          <div className="flex items-center justify-between">
+            <span className="font-medium">Quantité:</span>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                disabled={quantity <= 1}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <span className="text-lg font-semibold w-8 text-center">{quantity}</span>
+              <Button
+                variant="outline" 
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setQuantity(quantity + 1)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Total */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex justify-between items-center">
+              <span className="font-medium">Total:</span>
+              <span className="text-xl font-bold text-zaka-orange">
+                {(parseFloat(product.price) * quantity).toLocaleString()} CFA
+              </span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="flex-1"
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={() => addToCartMutation.mutate()}
+              disabled={addToCartMutation.isPending}
+              className={`flex-1 ${isAdded ? "bg-green-600 hover:bg-green-700" : "bg-zaka-orange hover:bg-zaka-orange/90"}`}
+            >
+              {addToCartMutation.isPending ? (
+                <>
+                  <i className="fas fa-spinner fa-spin mr-2"></i>
+                  Ajout...
+                </>
+              ) : isAdded ? (
+                <>
+                  <i className="fas fa-check mr-2"></i>
+                  Ajouté!
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  Ajouter au panier
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function VideoPlayer({ src, isActive, product, onOrderClick }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -202,7 +353,7 @@ function VideoPlayer({ src, isActive, product }: VideoPlayerProps) {
             <Button
               size="sm"
               className="bg-zaka-orange hover:bg-zaka-orange/90"
-              onClick={() => window.open(`/store/${product.vendorId}`, "_blank")}
+              onClick={() => onOrderClick(product)}
             >
               Commander
             </Button>
@@ -215,7 +366,19 @@ function VideoPlayer({ src, isActive, product }: VideoPlayerProps) {
 
 export default function RestaurantFeed() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedProduct, setSelectedProduct] = useState<RestaurantProduct | null>(null);
+  const [showOrderModal, setShowOrderModal] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleOrderClick = (product: RestaurantProduct) => {
+    setSelectedProduct(product);
+    setShowOrderModal(true);
+  };
+
+  const closeOrderModal = () => {
+    setShowOrderModal(false);
+    setSelectedProduct(null);
+  };
 
   // Fetch restaurant products with videos
   const {
@@ -340,6 +503,7 @@ export default function RestaurantFeed() {
                 src={product.videos[0]}
                 isActive={index === currentIndex}
                 product={product}
+                onOrderClick={handleOrderClick}
               />
             ) : (
               // Fallback for products without videos - show image with overlay
@@ -380,7 +544,7 @@ export default function RestaurantFeed() {
                       <Button
                         size="sm"
                         className="bg-zaka-orange hover:bg-zaka-orange/90"
-                        onClick={() => window.open(`/store/${product.vendorId}`, "_blank")}
+                        onClick={() => handleOrderClick(product)}
                       >
                         Commander
                       </Button>
@@ -410,6 +574,13 @@ export default function RestaurantFeed() {
       <div className="absolute top-4 left-4 text-white text-sm bg-black bg-opacity-50 px-3 py-1 rounded-full">
         ↕️ Glissez pour naviguer
       </div>
+
+      {/* Quick Order Modal */}
+      <QuickOrderModal
+        product={selectedProduct}
+        isOpen={showOrderModal}
+        onClose={closeOrderModal}
+      />
     </div>
   );
 }

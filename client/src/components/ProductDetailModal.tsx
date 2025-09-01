@@ -24,6 +24,7 @@ interface ProductDetails {
   description: string;
   price: string;
   images: string[] | null;
+  videos: string[] | null;
   quantity: number;
   rating: string;
   vendorId: string;
@@ -45,7 +46,8 @@ export default function ProductDetailModal({
   const { toast } = useToast();
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
   // Fetch product details
   const { data: product, isLoading } = useQuery<ProductDetails>({
@@ -63,7 +65,8 @@ export default function ProductDetailModal({
     if (isOpen) {
       setQuantity(1);
       setIsAdded(false);
-      setCurrentImageIndex(0);
+      setCurrentMediaIndex(0);
+      setIsVideoPlaying(false);
     }
   }, [isOpen, productId]);
 
@@ -121,8 +124,14 @@ export default function ProductDetailModal({
     return imageUrl;
   };
 
+  // Combine images and videos into a single media array
   const images = product?.images?.filter((img) => img) || [];
-  const currentImage = images[currentImageIndex];
+  const videos = product?.videos?.filter((vid) => vid) || [];
+  const allMedia = [
+    ...images.map(img => ({ type: 'image', url: img })),
+    ...videos.map(vid => ({ type: 'video', url: vid }))
+  ];
+  const currentMedia = allMedia[currentMediaIndex];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -154,15 +163,44 @@ export default function ProductDetailModal({
 
               <TabsContent value="details" className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Image Gallery */}
+                  {/* Media Gallery (Images + Videos) */}
                   <div className="space-y-4">
                     <div className="relative">
-                      {currentImage ? (
-                        <img
-                          src={getImageUrl(currentImage)}
-                          alt={product.name}
-                          className="w-full h-96 object-cover rounded-lg"
-                        />
+                      {currentMedia ? (
+                        currentMedia.type === 'video' ? (
+                          <div className="relative w-full h-96 bg-black rounded-lg overflow-hidden">
+                            <video
+                              src={currentMedia.url}
+                              className="w-full h-full object-cover"
+                              controls
+                              loop
+                              muted
+                              playsInline
+                              poster=""
+                              onPlay={() => setIsVideoPlaying(true)}
+                              onPause={() => setIsVideoPlaying(false)}
+                              onEnded={() => setIsVideoPlaying(false)}
+                            />
+                            {!isVideoPlaying && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                                <div className="bg-white bg-opacity-20 rounded-full p-4">
+                                  <i className="fas fa-play text-white text-2xl ml-1"></i>
+                                </div>
+                              </div>
+                            )}
+                            {/* Video badge */}
+                            <Badge className="absolute top-4 left-4 bg-zaka-orange text-white">
+                              <i className="fas fa-video mr-1"></i>
+                              Vidéo
+                            </Badge>
+                          </div>
+                        ) : (
+                          <img
+                            src={getImageUrl(currentMedia.url)}
+                            alt={product.name}
+                            className="w-full h-96 object-cover rounded-lg"
+                          />
+                        )
                       ) : (
                         <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
                           <i className="fas fa-image text-4xl text-gray-400"></i>
@@ -181,16 +219,16 @@ export default function ProductDetailModal({
                         </Badge>
                       )}
 
-                      {/* Image navigation */}
-                      {images.length > 1 && (
+                      {/* Media navigation */}
+                      {allMedia.length > 1 && (
                         <>
                           <Button
                             variant="ghost"
                             size="icon"
                             className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
                             onClick={() =>
-                              setCurrentImageIndex((prev) =>
-                                prev === 0 ? images.length - 1 : prev - 1
+                              setCurrentMediaIndex((prev) =>
+                                prev === 0 ? allMedia.length - 1 : prev - 1
                               )
                             }
                           >
@@ -201,8 +239,8 @@ export default function ProductDetailModal({
                             size="icon"
                             className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
                             onClick={() =>
-                              setCurrentImageIndex((prev) =>
-                                prev === images.length - 1 ? 0 : prev + 1
+                              setCurrentMediaIndex((prev) =>
+                                prev === allMedia.length - 1 ? 0 : prev + 1
                               )
                             }
                           >
@@ -212,22 +250,35 @@ export default function ProductDetailModal({
                       )}
                     </div>
 
-                    {/* Image thumbnails */}
-                    {images.length > 1 && (
+                    {/* Media thumbnails */}
+                    {allMedia.length > 1 && (
                       <div className="flex gap-2 overflow-x-auto">
-                        {images.map((image, index) => (
+                        {allMedia.map((media, index) => (
                           <button
                             key={index}
-                            onClick={() => setCurrentImageIndex(index)}
-                            className={`flex-shrink-0 w-16 h-16 border-2 rounded-lg overflow-hidden ${
-                              index === currentImageIndex ? "border-zaka-blue" : "border-gray-200"
+                            onClick={() => setCurrentMediaIndex(index)}
+                            className={`relative flex-shrink-0 w-16 h-16 border-2 rounded-lg overflow-hidden ${
+                              index === currentMediaIndex ? "border-zaka-blue" : "border-gray-200"
                             }`}
                           >
-                            <img
-                              src={getImageUrl(image)}
-                              alt={`${product.name} ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
+                            {media.type === 'video' ? (
+                              <>
+                                <video
+                                  src={media.url}
+                                  className="w-full h-full object-cover"
+                                  muted
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                                  <i className="fas fa-play text-white text-xs"></i>
+                                </div>
+                              </>
+                            ) : (
+                              <img
+                                src={getImageUrl(media.url)}
+                                alt={`${product.name} ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            )}
                           </button>
                         ))}
                       </div>

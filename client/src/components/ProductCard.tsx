@@ -30,11 +30,13 @@ interface ProductCardProps {
     description: string;
     price: string;
     images: string[] | null;
+    videos: string[] | null;
     quantity: number;
     rating: string;
     vendorId: string;
     vendorDisplayName?: string;
     vendorSlug?: string;
+    categoryId?: string;
   };
 }
 
@@ -138,6 +140,9 @@ export default function ProductCard({ product }: ProductCardProps) {
     return parseFloat(price.toString()).toLocaleString();
   };
 
+  const hasVideos = product.videos && product.videos.length > 0;
+  const isRestaurant = product.categoryId === 'restaurant' || hasVideos; // Assume products with videos are restaurant items
+
   const getFirstImage = () => {
     if (product.images && product.images.length > 0) {
       const imageUrl = product.images[0];
@@ -176,17 +181,43 @@ export default function ProductCard({ product }: ProductCardProps) {
         <CardContent className="p-0">
           <div className="relative">
             {getFirstImage() ? (
-              <img
-                src={getFirstImage()!}
-                alt={product.name}
-                className="w-full h-48 object-cover rounded-t-lg"
-                loading="lazy"
-                decoding="async"
-              />
+              <div className="relative">
+                <img
+                  src={getFirstImage()!}
+                  alt={product.name}
+                  className="w-full h-48 object-cover rounded-t-lg"
+                  loading="lazy"
+                  decoding="async"
+                />
+                {/* Video play overlay */}
+                {hasVideos && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 rounded-t-lg">
+                    <div className="bg-white bg-opacity-30 rounded-full p-3 hover:bg-opacity-50 transition-all">
+                      <i className="fas fa-play text-white text-lg ml-1"></i>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="w-full h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
                 <i className="fas fa-image text-3xl text-gray-400"></i>
               </div>
+            )}
+
+            {/* Video indicator */}
+            {hasVideos && (
+              <Badge className="absolute top-2 left-2 bg-zaka-orange text-white">
+                <i className="fas fa-video mr-1"></i>
+                Vidéo
+              </Badge>
+            )}
+
+            {/* Restaurant indicator */}
+            {isRestaurant && !hasVideos && (
+              <Badge className="absolute top-2 left-2 bg-green-600 text-white">
+                <i className="fas fa-utensils mr-1"></i>
+                Restaurant
+              </Badge>
             )}
 
             {product.quantity <= 5 && product.quantity > 0 && (
