@@ -18,6 +18,7 @@ import {
   ShoppingCart,
   Check,
 } from "lucide-react";
+import "@/styles/video-feed.css";
 
 interface RestaurantProduct {
   id: string;
@@ -315,7 +316,7 @@ function VideoPlayer({ src, isActive, product, onOrderClick, onQuickAdd }: Video
       </div>
 
       {/* Right sidebar with actions */}
-      <div className="absolute right-4 bottom-20 flex flex-col items-center gap-6">
+      <div className="absolute right-4 bottom-28 flex flex-col items-center gap-6 z-50 right-sidebar-actions">
         {/* Like button */}
         <div className="flex flex-col items-center">
           <Button
@@ -353,17 +354,19 @@ function VideoPlayer({ src, isActive, product, onOrderClick, onQuickAdd }: Video
           <Share2 className="h-6 w-6" />
         </Button>
 
-        {/* Quick Add to Cart */}
+        {/* Quick Add to Cart - Made more prominent */}
         <div className="flex flex-col items-center">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setShowQuickAdd(!showQuickAdd)}
-            className="bg-zaka-orange bg-opacity-90 text-white hover:bg-opacity-100 border-2 border-white/20"
+            className="bg-zaka-orange hover:bg-zaka-orange/90 text-white border-2 border-white shadow-xl ring-4 ring-zaka-orange/40 w-16 h-16 rounded-full pulse-animation"
           >
-            <ShoppingCart className="h-6 w-6" />
+            <ShoppingCart className="h-8 w-8" />
           </Button>
-          <span className="text-white text-xs mt-1 font-medium">Ajouter</span>
+          <span className="text-white text-xs mt-1 font-bold bg-zaka-orange/90 px-3 py-1 rounded-full shadow-lg">
+            AJOUTER
+          </span>
         </div>
       </div>
 
@@ -635,7 +638,7 @@ export default function RestaurantFeed() {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-black" ref={containerRef}>
+    <div className="h-screen overflow-hidden bg-black relative video-feed-container" ref={containerRef}>
       <Navbar />
 
       {/* Video Feed */}

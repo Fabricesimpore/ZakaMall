@@ -1,0 +1,26 @@
+/* Hide WhatsApp floating button in video feed mode */
+.video-feed-container [aria-label*="WhatsApp"],
+.video-feed-container button[aria-label*="Contacter le support WhatsApp"] {
+  display: none !important;
+}
+
+/* Ensure video feed actions are properly visible */
+.video-feed-container .right-sidebar-actions {
+  z-index: 50 !important;
+}
+
+/* Pulse animation for the add button */
+.pulse-animation {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+}
