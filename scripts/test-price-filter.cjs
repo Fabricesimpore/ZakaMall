@@ -26,10 +26,12 @@ async function testPriceFilter() {
       limit: 5,
       attributesToRetrieve: ["title", "price_cents", "currency"],
     });
-    
+
     console.log(`   Found ${allProducts.totalHits} total products`);
     allProducts.hits.forEach((product, i) => {
-      console.log(`   ${i + 1}. ${product.title}: ${product.price_cents} cents (${product.currency})`);
+      console.log(
+        `   ${i + 1}. ${product.title}: ${product.price_cents} cents (${product.currency})`
+      );
     });
 
     // 2. Test max price filter of 10000 (should be 1000000 cents)
@@ -39,11 +41,13 @@ async function testPriceFilter() {
       attributesToRetrieve: ["title", "price_cents", "currency"],
       limit: 10,
     });
-    
+
     console.log(`   Results: ${priceTest1.totalHits} products found`);
     priceTest1.hits.forEach((product, i) => {
       const actualPrice = product.price_cents / 100;
-      console.log(`   ${i + 1}. ${product.title}: ${actualPrice} CFA (${product.price_cents} cents)`);
+      console.log(
+        `   ${i + 1}. ${product.title}: ${actualPrice} CFA (${product.price_cents} cents)`
+      );
     });
 
     // 3. Test if we have products over 10000 CFA
@@ -53,11 +57,13 @@ async function testPriceFilter() {
       attributesToRetrieve: ["title", "price_cents", "currency"],
       limit: 10,
     });
-    
+
     console.log(`   Results: ${priceTest2.totalHits} products found`);
     priceTest2.hits.forEach((product, i) => {
       const actualPrice = product.price_cents / 100;
-      console.log(`   ${i + 1}. ${product.title}: ${actualPrice} CFA (${product.price_cents} cents)`);
+      console.log(
+        `   ${i + 1}. ${product.title}: ${actualPrice} CFA (${product.price_cents} cents)`
+      );
     });
 
     // 4. Test price range
@@ -67,11 +73,13 @@ async function testPriceFilter() {
       attributesToRetrieve: ["title", "price_cents", "currency"],
       limit: 10,
     });
-    
+
     console.log(`   Results: ${priceTest3.totalHits} products found`);
     priceTest3.hits.forEach((product, i) => {
       const actualPrice = product.price_cents / 100;
-      console.log(`   ${i + 1}. ${product.title}: ${actualPrice} CFA (${product.price_cents} cents)`);
+      console.log(
+        `   ${i + 1}. ${product.title}: ${actualPrice} CFA (${product.price_cents} cents)`
+      );
     });
 
     // 5. Check currency distribution
@@ -80,12 +88,11 @@ async function testPriceFilter() {
       facets: ["currency"],
       limit: 0,
     });
-    
+
     const currencies = currencyTest.facetDistribution?.currency || {};
     console.log("   Currencies found:", currencies);
 
     console.log("\n✅ Price filter test completed");
-
   } catch (error) {
     console.error("❌ Error testing price filter:", error);
   }

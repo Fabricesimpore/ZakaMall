@@ -38,11 +38,11 @@ async function runStartupMigrations() {
     // Create security tables first (critical for admin access)
     console.log("🔐 Creating security tables...");
     await runCommand("node", ["scripts/create-security-tables.cjs"]);
-    
+
     // Emergency vendor schema fix (critical for admin vendor management)
     console.log("🚨 Running emergency vendor schema fix...");
     await runCommand("node", ["scripts/emergency-vendor-schema-fix.cjs"]);
-    
+
     // Run comprehensive vendors schema sync
     console.log("📝 Running vendors schema sync...");
     await runCommand("node", ["scripts/sync-vendors-schema.cjs"]);

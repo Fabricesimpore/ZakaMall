@@ -15,10 +15,10 @@ if (!connectionString) {
 
 async function migrateVendorData() {
   const pool = new Pool({ connectionString });
-  
+
   try {
     console.log("🔄 Migrating vendor data to new schema...");
-    
+
     // Simple data migration - only use columns we know exist
     await pool.query(`
       UPDATE vendors SET 
@@ -30,7 +30,7 @@ async function migrateVendorData() {
       WHERE store_name IS NULL OR store_name = ''
     `);
     console.log("✅ Basic data migration completed");
-    
+
     // Generate slugs for records that don't have them
     await pool.query(`
       UPDATE vendors SET store_slug = 
@@ -49,7 +49,7 @@ async function migrateVendorData() {
       WHERE store_slug IS NULL OR store_slug = ''
     `);
     console.log("✅ Slugs generated");
-    
+
     // Verify the results
     const { rows: verification } = await pool.query(`
       SELECT 
@@ -58,11 +58,10 @@ async function migrateVendorData() {
         COUNT(store_slug) as has_store_slug
       FROM vendors
     `);
-    
+
     console.log("📊 Migration results:", verification[0]);
-    
+
     console.log("🎉 Vendor data migration completed successfully!");
-    
   } catch (error) {
     console.error("❌ Data migration failed:", error);
     throw error;

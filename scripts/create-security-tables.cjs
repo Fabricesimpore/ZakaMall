@@ -15,10 +15,10 @@ if (!connectionString) {
 
 async function createSecurityTables() {
   const pool = new Pool({ connectionString });
-  
+
   try {
     console.log("🔐 Creating security tables...");
-    
+
     // Create security_events table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS security_events (
@@ -46,8 +46,8 @@ async function createSecurityTables() {
       );
     `);
     console.log("✅ security_events table created/verified");
-    
-    // Create rate_limit_violations table  
+
+    // Create rate_limit_violations table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS rate_limit_violations (
         id SERIAL PRIMARY KEY,
@@ -61,7 +61,7 @@ async function createSecurityTables() {
       );
     `);
     console.log("✅ rate_limit_violations table created/verified");
-    
+
     // Create fraud_analysis table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS fraud_analysis (
@@ -80,7 +80,7 @@ async function createSecurityTables() {
       );
     `);
     console.log("✅ fraud_analysis table created/verified");
-    
+
     // Create suspicious_activities table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS suspicious_activities (
@@ -98,7 +98,7 @@ async function createSecurityTables() {
       );
     `);
     console.log("✅ suspicious_activities table created/verified");
-    
+
     // Create indexes for performance
     await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_security_events_user_id ON security_events(user_id);
@@ -109,9 +109,8 @@ async function createSecurityTables() {
       CREATE INDEX IF NOT EXISTS idx_suspicious_activities_user_id ON suspicious_activities(user_id);
     `);
     console.log("✅ Security table indexes created/verified");
-    
+
     console.log("🎉 All security tables created successfully!");
-    
   } catch (error) {
     console.error("❌ Failed to create security tables:", error);
     throw error;
