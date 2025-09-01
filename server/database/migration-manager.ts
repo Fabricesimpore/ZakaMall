@@ -22,7 +22,7 @@ export interface MigrationStatus {
  */
 export async function checkMigrationStatus(): Promise<MigrationStatus> {
   console.log("🔍 Checking migration status...");
-  
+
   try {
     // Check if migration table exists
     const migrationTableResult = await db.execute(sql`
@@ -32,9 +32,9 @@ export async function checkMigrationStatus(): Promise<MigrationStatus> {
         AND table_name = '__drizzle_migrations'
       ) as exists
     `);
-    
+
     const migrationTableExists = migrationTableResult.rows[0]?.exists as boolean;
-    
+
     if (!migrationTableExists) {
       return {
         hasUnappliedMigrations: true,
@@ -51,9 +51,9 @@ export async function checkMigrationStatus(): Promise<MigrationStatus> {
       ORDER BY created_at DESC 
       LIMIT 1
     `);
-    
+
     const lastAppliedMigration = lastMigrationResult.rows[0]?.hash || null;
-    
+
     // For now, we'll use a simple check
     // In a real implementation, you'd compare with actual migration files
     return {
@@ -62,7 +62,6 @@ export async function checkMigrationStatus(): Promise<MigrationStatus> {
       pendingMigrations: [],
       migrationTableExists: true,
     };
-    
   } catch (error: any) {
     console.error("❌ Error checking migration status:", error.message);
     return {
@@ -79,22 +78,21 @@ export async function checkMigrationStatus(): Promise<MigrationStatus> {
  */
 export async function runPendingMigrations(): Promise<boolean> {
   console.log("🔄 Running pending migrations...");
-  
+
   try {
     // Use Drizzle's migration command
     const { stdout, stderr } = await execAsync("npx drizzle-kit migrate", {
       env: process.env,
       cwd: process.cwd(),
     });
-    
+
     if (stderr && !stderr.includes("No migrations to apply")) {
       console.error("Migration stderr:", stderr);
     }
-    
+
     console.log("Migration output:", stdout);
     console.log("✅ Migrations completed successfully");
     return true;
-    
   } catch (error: any) {
     console.error("❌ Migration failed:", error.message);
     if (error.stdout) console.error("stdout:", error.stdout);
@@ -109,7 +107,7 @@ export async function runPendingMigrations(): Promise<boolean> {
 export async function generateMigration(name?: string): Promise<boolean> {
   const migrationName = name || `migration_${Date.now()}`;
   console.log(`🔄 Generating migration: ${migrationName}`);
-  
+
   try {
     const { stdout, stderr } = await execAsync(
       `npx drizzle-kit generate --name="${migrationName}"`,
@@ -118,15 +116,14 @@ export async function generateMigration(name?: string): Promise<boolean> {
         cwd: process.cwd(),
       }
     );
-    
+
     if (stderr) {
       console.error("Generate stderr:", stderr);
     }
-    
+
     console.log("Generate output:", stdout);
     console.log("✅ Migration generated successfully");
     return true;
-    
   } catch (error: any) {
     console.error("❌ Migration generation failed:", error.message);
     return false;
@@ -138,21 +135,20 @@ export async function generateMigration(name?: string): Promise<boolean> {
  */
 export async function introspectDatabase(): Promise<boolean> {
   console.log("🔍 Introspecting database schema...");
-  
+
   try {
     const { stdout, stderr } = await execAsync("npx drizzle-kit introspect", {
       env: process.env,
       cwd: process.cwd(),
     });
-    
+
     if (stderr) {
       console.error("Introspect stderr:", stderr);
     }
-    
+
     console.log("Introspect output:", stdout);
     console.log("✅ Database introspection completed");
     return true;
-    
   } catch (error: any) {
     console.error("❌ Database introspection failed:", error.message);
     return false;
@@ -164,21 +160,20 @@ export async function introspectDatabase(): Promise<boolean> {
  */
 export async function pushSchemaChanges(): Promise<boolean> {
   console.log("🔄 Pushing schema changes...");
-  
+
   try {
     const { stdout, stderr } = await execAsync("npx drizzle-kit push", {
       env: process.env,
       cwd: process.cwd(),
     });
-    
+
     if (stderr && !stderr.includes("No schema changes")) {
       console.error("Push stderr:", stderr);
     }
-    
+
     console.log("Push output:", stdout);
     console.log("✅ Schema push completed");
     return true;
-    
   } catch (error: any) {
     console.error("❌ Schema push failed:", error.message);
     return false;
@@ -188,14 +183,12 @@ export async function pushSchemaChanges(): Promise<boolean> {
 /**
  * Comprehensive migration check and auto-apply
  */
-export async function ensureDatabaseUpToDate(
-  autoApply: boolean = false
-): Promise<boolean> {
+export async function ensureDatabaseUpToDate(autoApply: boolean = false): Promise<boolean> {
   console.log("🔍 Ensuring database is up to date...");
-  
+
   try {
     const migrationStatus = await checkMigrationStatus();
-    
+
     if (!migrationStatus.migrationTableExists) {
       console.log("📋 Migration table doesn't exist, initializing...");
       if (autoApply) {
@@ -209,13 +202,13 @@ export async function ensureDatabaseUpToDate(
         return false;
       }
     }
-    
+
     if (migrationStatus.hasUnappliedMigrations) {
       console.log("📋 Pending migrations found:");
       migrationStatus.pendingMigrations.forEach((migration, index) => {
         console.log(`  ${index + 1}. ${migration}`);
       });
-      
+
       if (autoApply) {
         console.log("🔄 Auto-applying migrations...");
         const success = await runPendingMigrations();
@@ -228,10 +221,9 @@ export async function ensureDatabaseUpToDate(
         return false;
       }
     }
-    
+
     console.log("✅ Database is up to date");
     return true;
-    
   } catch (error: any) {
     console.error("❌ Error ensuring database is up to date:", error.message);
     return false;

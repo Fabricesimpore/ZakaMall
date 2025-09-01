@@ -1,24 +1,21 @@
 /**
  * Database Management System
- * 
+ *
  * Comprehensive database management with:
  * - Schema validation
- * - Migration management  
+ * - Migration management
  * - Health checks
  * - Auto-healing capabilities
  */
 
 export { validateDatabaseSchema, autoFixMissingTables } from "./schema-validator";
-export { 
-  checkMigrationStatus, 
-  runPendingMigrations, 
+export {
+  checkMigrationStatus,
+  runPendingMigrations,
   generateMigration,
-  ensureDatabaseUpToDate 
+  ensureDatabaseUpToDate,
 } from "./migration-manager";
-export { 
-  runStartupHealthCheck, 
-  createHealthCheckMiddleware 
-} from "./startup-health-check";
+export { runStartupHealthCheck, createHealthCheckMiddleware } from "./startup-health-check";
 
 // Re-export database instance
 export { db } from "../db";

@@ -11,7 +11,10 @@ import { requestLogger, errorLogger, logInfo } from "./logger";
 import { validateEnvironment, getNumericEnv } from "./envValidator";
 import { runStartupMigrations } from "./startup-migrations";
 import { emergencyDatabaseFix } from "./emergency-db-fix";
-import { runStartupHealthCheck, createHealthCheckMiddleware } from "./database/startup-health-check";
+import {
+  runStartupHealthCheck,
+  createHealthCheckMiddleware,
+} from "./database/startup-health-check";
 
 // Validate environment variables on startup
 validateEnvironment();
@@ -103,7 +106,7 @@ app.get("/api/health/detailed", async (_req, res) => {
   try {
     const healthCheck = await runStartupHealthCheck(false); // Don't auto-fix in health endpoint
     const statusCode = healthCheck.overall === "critical" ? 503 : 200;
-    
+
     res.status(statusCode).json({
       status: healthCheck.overall,
       timestamp: new Date().toISOString(),
@@ -124,16 +127,16 @@ app.get("/api/health/detailed", async (_req, res) => {
 
 (async () => {
   console.log("🚀 Starting ZakaMall server...");
-  
+
   try {
     // 1. Run comprehensive startup health check
     console.log("🏥 Running startup health check...");
     const healthCheck = await runStartupHealthCheck(true); // Auto-fix enabled
-    
+
     if (healthCheck.overall === "critical") {
       console.error("❌ Critical health check failures detected:");
-      healthCheck.errors.forEach(error => console.error(`  - ${error}`));
-      
+      healthCheck.errors.forEach((error) => console.error(`  - ${error}`));
+
       if (process.env.NODE_ENV === "production") {
         console.error("❌ Server startup aborted due to critical errors in production");
         process.exit(1);
@@ -141,12 +144,12 @@ app.get("/api/health/detailed", async (_req, res) => {
         console.warn("⚠️ Continuing startup in development mode despite critical errors");
       }
     }
-    
+
     if (healthCheck.overall === "warning") {
       console.warn("⚠️ Health check warnings:");
-      healthCheck.warnings.forEach(warning => console.warn(`  - ${warning}`));
+      healthCheck.warnings.forEach((warning) => console.warn(`  - ${warning}`));
     }
-    
+
     // 2. Run legacy startup migrations (for backward compatibility)
     console.log("🔄 Running legacy startup migrations...");
     await runStartupMigrations();
@@ -154,9 +157,8 @@ app.get("/api/health/detailed", async (_req, res) => {
     // 3. Run emergency database fix if needed (for backward compatibility)
     console.log("🔧 Running emergency database fixes...");
     await emergencyDatabaseFix();
-    
+
     console.log("✅ Database initialization completed");
-    
   } catch (error: any) {
     console.error("❌ Startup health check failed:", error.message);
     if (process.env.NODE_ENV === "production") {

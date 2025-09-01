@@ -172,7 +172,7 @@ export interface ValidationResult {
  */
 export async function validateDatabaseSchema(): Promise<ValidationResult> {
   console.log("🔍 Validating database schema...");
-  
+
   const result: ValidationResult = {
     isValid: true,
     missingTables: [],
@@ -188,10 +188,8 @@ export async function validateDatabaseSchema(): Promise<ValidationResult> {
       FROM information_schema.tables 
       WHERE table_schema = 'public'
     `);
-    
-    const existingTables = new Set(
-      tablesResult.rows.map((row: any) => row.table_name)
-    );
+
+    const existingTables = new Set(tablesResult.rows.map((row: any) => row.table_name));
 
     // Check for missing tables
     for (const tableDef of EXPECTED_SCHEMA) {
@@ -257,7 +255,6 @@ export async function validateDatabaseSchema(): Promise<ValidationResult> {
     if (result.warnings.length > 0) {
       console.warn("⚠️ Schema warnings:", result.warnings);
     }
-
   } catch (error: any) {
     result.isValid = false;
     result.errors.push(`Database validation error: ${error.message}`);
@@ -280,7 +277,7 @@ export async function generateMissingTableStatements(
     if (!tableDef) continue;
 
     let createStatement = `CREATE TABLE IF NOT EXISTS "${tableName}" (\n`;
-    
+
     const columnDefs = tableDef.columns.map((col) => {
       let colDef = `  "${col.name}" ${col.type.toUpperCase()}`;
       if (!col.nullable) colDef += " NOT NULL";
@@ -295,7 +292,7 @@ export async function generateMissingTableStatements(
     });
 
     createStatement += columnDefs.join(",\n");
-    
+
     // Add primary key
     createStatement += `,\n  PRIMARY KEY ("id")`;
     createStatement += "\n);";
@@ -314,7 +311,7 @@ export async function autoFixMissingTables(
   dryRun: boolean = true
 ): Promise<void> {
   const statements = await generateMissingTableStatements(validationResult);
-  
+
   if (statements.length === 0) {
     console.log("✅ No missing tables to fix");
     return;
@@ -330,10 +327,10 @@ export async function autoFixMissingTables(
   }
 
   console.log("🔧 Auto-fixing missing tables...");
-  
+
   for (const statement of statements) {
     try {
-      console.log("Executing:", statement.split('\n')[0] + "...");
+      console.log("Executing:", statement.split("\n")[0] + "...");
       await db.execute(sql.raw(statement));
       console.log("✅ Success");
     } catch (error: any) {
@@ -341,6 +338,6 @@ export async function autoFixMissingTables(
       throw error;
     }
   }
-  
+
   console.log("✅ Auto-fix completed");
 }
