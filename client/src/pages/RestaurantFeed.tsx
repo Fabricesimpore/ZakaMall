@@ -6,7 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Heart, Share2, MessageCircle, Play, Volume2, VolumeX, Plus, Minus, ShoppingCart } from "lucide-react";
+import {
+  Heart,
+  Share2,
+  MessageCircle,
+  Play,
+  Volume2,
+  VolumeX,
+  Plus,
+  Minus,
+  ShoppingCart,
+} from "lucide-react";
 
 interface RestaurantProduct {
   id: string;
@@ -76,14 +86,14 @@ function QuickOrderModal({ product, isOpen, onClose }: QuickOrderModalProps) {
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Commander maintenant</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           {/* Product info */}
           <div className="flex gap-4">
             <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
               {product.images && product.images[0] ? (
-                <img 
-                  src={product.images[0]} 
+                <img
+                  src={product.images[0]}
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
@@ -117,7 +127,7 @@ function QuickOrderModal({ product, isOpen, onClose }: QuickOrderModalProps) {
               </Button>
               <span className="text-lg font-semibold w-8 text-center">{quantity}</span>
               <Button
-                variant="outline" 
+                variant="outline"
                 size="icon"
                 className="h-8 w-8"
                 onClick={() => setQuantity(quantity + 1)}
@@ -139,11 +149,7 @@ function QuickOrderModal({ product, isOpen, onClose }: QuickOrderModalProps) {
 
           {/* Actions */}
           <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="flex-1"
-            >
+            <Button variant="outline" onClick={onClose} className="flex-1">
               Annuler
             </Button>
             <Button

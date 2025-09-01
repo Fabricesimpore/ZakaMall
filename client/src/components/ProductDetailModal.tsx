@@ -128,8 +128,8 @@ export default function ProductDetailModal({
   const images = product?.images?.filter((img) => img) || [];
   const videos = product?.videos?.filter((vid) => vid) || [];
   const allMedia = [
-    ...images.map(img => ({ type: 'image', url: img })),
-    ...videos.map(vid => ({ type: 'video', url: vid }))
+    ...images.map((img) => ({ type: "image", url: img })),
+    ...videos.map((vid) => ({ type: "video", url: vid })),
   ];
   const currentMedia = allMedia[currentMediaIndex];
 
@@ -167,7 +167,7 @@ export default function ProductDetailModal({
                   <div className="space-y-4">
                     <div className="relative">
                       {currentMedia ? (
-                        currentMedia.type === 'video' ? (
+                        currentMedia.type === "video" ? (
                           <div className="relative w-full h-96 bg-black rounded-lg overflow-hidden">
                             <video
                               src={currentMedia.url}
@@ -261,7 +261,7 @@ export default function ProductDetailModal({
                               index === currentMediaIndex ? "border-zaka-blue" : "border-gray-200"
                             }`}
                           >
-                            {media.type === 'video' ? (
+                            {media.type === "video" ? (
                               <>
                                 <video
                                   src={media.url}

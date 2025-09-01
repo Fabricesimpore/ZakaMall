@@ -141,7 +141,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   const hasVideos = product.videos && product.videos.length > 0;
-  const isRestaurant = product.categoryId === 'restaurant' || hasVideos; // Assume products with videos are restaurant items
+  const isRestaurant = product.categoryId === "restaurant" || hasVideos; // Assume products with videos are restaurant items
 
   const getFirstImage = () => {
     if (product.images && product.images.length > 0) {
