@@ -97,20 +97,20 @@ export async function runPendingMigrations(): Promise<boolean> {
     console.error("❌ Migration failed:", error.message);
     if (error.stdout) console.error("stdout:", error.stdout);
     if (error.stderr) console.error("stderr:", error.stderr);
-    
+
     // Check if the error is due to existing schema elements
     const errorMessage = error.message || "";
     const stderr = error.stderr || "";
-    const isSchemaConflict = 
+    const isSchemaConflict =
       errorMessage.includes("already exists") ||
       stderr.includes("already exists") ||
-      errorMessage.includes("type \"order_status\" already exists") ||
-      stderr.includes("type \"order_status\" already exists");
-    
+      errorMessage.includes('type "order_status" already exists') ||
+      stderr.includes('type "order_status" already exists');
+
     if (isSchemaConflict) {
       console.warn("⚠️ Schema conflict detected - some elements already exist");
       console.warn("🔧 Attempting to mark migrations as applied...");
-      
+
       try {
         // Try to manually mark migrations as applied
         await markMigrationsAsApplied();
@@ -121,7 +121,7 @@ export async function runPendingMigrations(): Promise<boolean> {
         return false;
       }
     }
-    
+
     return false;
   }
 }
@@ -131,7 +131,7 @@ export async function runPendingMigrations(): Promise<boolean> {
  */
 async function markMigrationsAsApplied(): Promise<void> {
   console.log("🔧 Manually marking migrations as applied...");
-  
+
   try {
     // First, create the migration table if it doesn't exist
     await db.execute(sql`
@@ -141,22 +141,22 @@ async function markMigrationsAsApplied(): Promise<void> {
         created_at bigint NOT NULL
       )
     `);
-    
+
     // Check what migrations are already recorded
     const existingMigrations = await db.execute(sql`
       SELECT hash FROM "__drizzle_migrations"
     `);
-    
-    const existingHashes = existingMigrations.rows.map(row => row.hash);
-    
+
+    const existingHashes = existingMigrations.rows.map((row) => row.hash);
+
     // List of migration files to mark as applied (based on the files we see)
     const migrationsToMark = [
-      { hash: '0000_silly_madripoor', timestamp: Date.now() - 86400000 * 4 }, // 4 days ago
-      { hash: '0001_vendor_revamp', timestamp: Date.now() - 86400000 * 3 },   // 3 days ago  
-      { hash: '0002_vendor_optimization', timestamp: Date.now() - 86400000 * 2 }, // 2 days ago
-      { hash: '0003_add_vendor_denormalized_fields', timestamp: Date.now() - 86400000 } // 1 day ago
+      { hash: "0000_silly_madripoor", timestamp: Date.now() - 86400000 * 4 }, // 4 days ago
+      { hash: "0001_vendor_revamp", timestamp: Date.now() - 86400000 * 3 }, // 3 days ago
+      { hash: "0002_vendor_optimization", timestamp: Date.now() - 86400000 * 2 }, // 2 days ago
+      { hash: "0003_add_vendor_denormalized_fields", timestamp: Date.now() - 86400000 }, // 1 day ago
     ];
-    
+
     // Insert any missing migrations
     for (const migration of migrationsToMark) {
       if (!existingHashes.includes(migration.hash)) {
