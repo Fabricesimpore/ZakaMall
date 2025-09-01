@@ -16,6 +16,7 @@ import {
   Plus,
   Minus,
   ShoppingCart,
+  Check,
 } from "lucide-react";
 
 interface RestaurantProduct {
@@ -35,6 +36,7 @@ interface VideoPlayerProps {
   isActive: boolean;
   product: RestaurantProduct;
   onOrderClick: (product: RestaurantProduct) => void;
+  onQuickAdd?: (product: RestaurantProduct, quantity: number) => void;
 }
 
 interface QuickOrderModalProps {
@@ -181,12 +183,16 @@ function QuickOrderModal({ product, isOpen, onClose }: QuickOrderModalProps) {
   );
 }
 
-function VideoPlayer({ src, isActive, product, onOrderClick }: VideoPlayerProps) {
+function VideoPlayer({ src, isActive, product, onOrderClick, onQuickAdd }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(Math.floor(Math.random() * 500) + 10);
+  const [quickQuantity, setQuickQuantity] = useState(1);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [lastTap, setLastTap] = useState(0);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -211,6 +217,23 @@ function VideoPlayer({ src, isActive, product, onOrderClick }: VideoPlayerProps)
         setIsPlaying(true);
       }
     }
+  };
+
+  const handleDoubleTap = () => {
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+
+    if (now - lastTap <= DOUBLE_TAP_DELAY) {
+      // Double tap detected - quick add 1 item
+      if (onQuickAdd) {
+        onQuickAdd(product, 1);
+      }
+    } else {
+      // Single tap - toggle play
+      togglePlay();
+    }
+
+    setLastTap(now);
   };
 
   const toggleMute = () => {
@@ -243,6 +266,19 @@ function VideoPlayer({ src, isActive, product, onOrderClick }: VideoPlayerProps)
     }
   };
 
+  const handleQuickAdd = async () => {
+    if (!onQuickAdd) return;
+    setIsAdding(true);
+    try {
+      await onQuickAdd(product, quickQuantity);
+      setIsAdding(false);
+      setShowQuickAdd(false);
+      setQuickQuantity(1);
+    } catch (error) {
+      setIsAdding(false);
+    }
+  };
+
   return (
     <div className="relative w-full h-screen bg-black flex items-center justify-center">
       {/* Video */}
@@ -253,14 +289,14 @@ function VideoPlayer({ src, isActive, product, onOrderClick }: VideoPlayerProps)
         loop
         muted={isMuted}
         playsInline
-        onClick={togglePlay}
+        onClick={handleDoubleTap}
       />
 
       {/* Play/Pause overlay */}
       {!isPlaying && (
         <div
           className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30"
-          onClick={togglePlay}
+          onClick={handleDoubleTap}
         >
           <Play className="w-20 h-20 text-white opacity-80" />
         </div>
@@ -316,7 +352,86 @@ function VideoPlayer({ src, isActive, product, onOrderClick }: VideoPlayerProps)
         >
           <Share2 className="h-6 w-6" />
         </Button>
+
+        {/* Quick Add to Cart */}
+        <div className="flex flex-col items-center">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowQuickAdd(!showQuickAdd)}
+            className="bg-zaka-orange bg-opacity-90 text-white hover:bg-opacity-100 border-2 border-white/20"
+          >
+            <ShoppingCart className="h-6 w-6" />
+          </Button>
+          <span className="text-white text-xs mt-1 font-medium">Ajouter</span>
+        </div>
       </div>
+
+      {/* Quick Add Overlay */}
+      {showQuickAdd && (
+        <div className="absolute right-4 bottom-80 bg-black bg-opacity-90 rounded-2xl p-4 border border-white/20">
+          <div className="text-white text-center">
+            <p className="text-sm font-medium mb-3">Ajouter au panier</p>
+
+            {/* Quantity selector */}
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 bg-white/20 text-white hover:bg-white/30"
+                onClick={() => setQuickQuantity(Math.max(1, quickQuantity - 1))}
+                disabled={quickQuantity <= 1}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <span className="text-lg font-bold w-8 text-center">{quickQuantity}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 bg-white/20 text-white hover:bg-white/30"
+                onClick={() => setQuickQuantity(quickQuantity + 1)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Price */}
+            <p className="text-zaka-orange font-bold mb-3">
+              {(parseFloat(product.price) * quickQuantity).toLocaleString()} CFA
+            </p>
+
+            {/* Action buttons */}
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowQuickAdd(false)}
+                className="text-white border border-white/30 hover:bg-white/10"
+              >
+                Annuler
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleQuickAdd}
+                disabled={isAdding}
+                className="bg-zaka-orange hover:bg-zaka-orange/90 text-white"
+              >
+                {isAdding ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-1"></i>
+                    <span className="text-xs">Ajout...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-3 w-3 mr-1" />
+                    <span className="text-xs">Confirmer</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bottom info panel */}
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent">
@@ -371,9 +486,11 @@ function VideoPlayer({ src, isActive, product, onOrderClick }: VideoPlayerProps)
 }
 
 export default function RestaurantFeed() {
+  const { toast } = useToast();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState<RestaurantProduct | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleOrderClick = (product: RestaurantProduct) => {
@@ -384,6 +501,36 @@ export default function RestaurantFeed() {
   const closeOrderModal = () => {
     setShowOrderModal(false);
     setSelectedProduct(null);
+  };
+
+  // Quick add mutation
+  const quickAddMutation = useMutation({
+    mutationFn: async ({ productId, quantity }: { productId: string; quantity: number }) => {
+      return await apiRequest("POST", "/api/cart", {
+        productId,
+        quantity,
+      });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+      setCartItemCount((prev) => prev + variables.quantity);
+      toast({
+        title: "✅ Ajouté au panier!",
+        description: `${variables.quantity} article(s) ajouté(s)`,
+        duration: 2000,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "❌ Erreur",
+        description: "Connectez-vous pour ajouter au panier",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleQuickAdd = async (product: RestaurantProduct, quantity: number) => {
+    await quickAddMutation.mutateAsync({ productId: product.id, quantity });
   };
 
   // Fetch restaurant products with videos
@@ -510,6 +657,7 @@ export default function RestaurantFeed() {
                 isActive={index === currentIndex}
                 product={product}
                 onOrderClick={handleOrderClick}
+                onQuickAdd={handleQuickAdd}
               />
             ) : (
               // Fallback for products without videos - show image with overlay
@@ -579,6 +727,36 @@ export default function RestaurantFeed() {
       {/* Instructions */}
       <div className="absolute top-4 left-4 text-white text-sm bg-black bg-opacity-50 px-3 py-1 rounded-full">
         ↕️ Glissez pour naviguer
+      </div>
+
+      {/* Double tap instruction */}
+      <div className="absolute bottom-4 left-4 text-white text-xs bg-black bg-opacity-50 px-2 py-1 rounded-full">
+        ❤️ Double-tap pour acheter
+      </div>
+
+      {/* Floating Cart Indicator */}
+      {cartItemCount > 0 && (
+        <div className="absolute top-4 right-4 z-50">
+          <Button
+            size="icon"
+            onClick={() => (window.location.href = "/cart")}
+            className="bg-zaka-orange hover:bg-zaka-orange/90 relative animate-bounce"
+          >
+            <ShoppingCart className="h-5 w-5 text-white" />
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+              {cartItemCount}
+            </span>
+          </Button>
+        </div>
+      )}
+
+      {/* Success Animation */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+        {quickAddMutation.isSuccess && (
+          <div className="bg-green-500 text-white rounded-full p-4 animate-ping">
+            <Check className="h-8 w-8" />
+          </div>
+        )}
       </div>
 
       {/* Quick Order Modal */}
