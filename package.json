@@ -17,7 +17,6 @@
     "db:indexes": "node scripts/setup-database-indexes.js",
     "db:indexes:prod": "NODE_ENV=production node scripts/setup-database-indexes.js",
     "db:migrate:notifications": "node scripts/migrate-notifications.js",
-    "db:migrate:prod": "NODE_ENV=production node scripts/run-production-migrations.js",
     "db:add-shop-name": "node scripts/add-shop-name-column.cjs",
     "db:add-shop-name:prod": "NODE_ENV=production node scripts/add-shop-name-column.cjs",
     "db:sync-vendors": "node scripts/sync-vendors-schema.cjs",
