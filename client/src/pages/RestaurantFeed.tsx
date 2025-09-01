@@ -194,6 +194,9 @@ function VideoPlayer({ src, isActive, product, onOrderClick, onQuickAdd }: Video
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [lastTap, setLastTap] = useState(0);
+  const [videoOrientation, setVideoOrientation] = useState<
+    "portrait" | "landscape" | "square" | "loading"
+  >("loading");
 
   useEffect(() => {
     if (videoRef.current) {
@@ -207,6 +210,22 @@ function VideoPlayer({ src, isActive, product, onOrderClick, onQuickAdd }: Video
       }
     }
   }, [isActive]);
+
+  // Detect video orientation when metadata loads
+  const handleVideoLoadedMetadata = () => {
+    if (videoRef.current) {
+      const { videoWidth, videoHeight } = videoRef.current;
+      const aspectRatio = videoWidth / videoHeight;
+
+      if (aspectRatio > 1.3) {
+        setVideoOrientation("landscape");
+      } else if (aspectRatio < 0.75) {
+        setVideoOrientation("portrait");
+      } else {
+        setVideoOrientation("square");
+      }
+    }
+  };
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -281,16 +300,42 @@ function VideoPlayer({ src, isActive, product, onOrderClick, onQuickAdd }: Video
   };
 
   return (
-    <div className="relative w-full h-screen bg-black flex items-center justify-center">
+    <div className="video-container">
+      {/* Loading indicator */}
+      {videoOrientation === "loading" && (
+        <div className="absolute inset-0 video-loading flex items-center justify-center">
+          <div className="text-white text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-sm">Chargement...</p>
+          </div>
+        </div>
+      )}
+
       {/* Video */}
       <video
         ref={videoRef}
         src={src}
-        className="w-full h-full object-cover"
+        className={`video-transition ${
+          videoOrientation === "portrait"
+            ? "video-portrait"
+            : videoOrientation === "landscape"
+              ? "video-landscape"
+              : videoOrientation === "square"
+                ? "video-square"
+                : "w-full h-full object-cover"
+        }`}
         loop
         muted={isMuted}
         playsInline
+        webkit-playsinline="true"
+        preload="metadata"
         onClick={handleDoubleTap}
+        onLoadedMetadata={handleVideoLoadedMetadata}
+        onError={() => setVideoOrientation("square")}
+        style={{
+          opacity: videoOrientation === "loading" ? 0 : 1,
+          transition: "opacity 0.3s ease-in-out",
+        }}
       />
 
       {/* Play/Pause overlay */}
@@ -540,7 +585,7 @@ export default function RestaurantFeed() {
   const {
     data: products = [],
     isLoading,
-    error,
+    error: fetchError,
   } = useQuery<RestaurantProduct[]>({
     queryKey: ["/api/products/restaurants"],
     queryFn: async () => {
@@ -618,7 +663,7 @@ export default function RestaurantFeed() {
     );
   }
 
-  if (error || products.length === 0) {
+  if (fetchError || products.length === 0) {
     return (
       <div className="h-screen bg-black flex items-center justify-center">
         <div className="text-white text-center">
