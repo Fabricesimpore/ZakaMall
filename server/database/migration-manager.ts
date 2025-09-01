@@ -54,12 +54,30 @@ export async function checkMigrationStatus(): Promise<MigrationStatus> {
 
     const lastAppliedMigration = lastMigrationResult.rows[0]?.hash || null;
 
-    // For now, we'll use a simple check
-    // In a real implementation, you'd compare with actual migration files
+    // Get all applied migrations
+    const allAppliedResult = await db.execute(sql`
+      SELECT hash FROM __drizzle_migrations ORDER BY created_at ASC
+    `);
+
+    const appliedHashes = allAppliedResult.rows.map((row) => row.hash as string);
+
+    // Expected migrations based on our files
+    const expectedMigrations = [
+      "0000_silly_madripoor",
+      "0001_vendor_revamp",
+      "0002_vendor_optimization",
+      "0003_add_vendor_denormalized_fields",
+    ];
+
+    // Find missing migrations
+    const pendingMigrations = expectedMigrations.filter(
+      (migration) => !appliedHashes.includes(migration)
+    );
+
     return {
-      hasUnappliedMigrations: false,
+      hasUnappliedMigrations: pendingMigrations.length > 0,
       lastAppliedMigration,
-      pendingMigrations: [],
+      pendingMigrations,
       migrationTableExists: true,
     };
   } catch (error: any) {
@@ -271,6 +289,14 @@ export async function ensureDatabaseUpToDate(autoApply: boolean = false): Promis
           console.error("❌ Failed to initialize migrations");
           return false;
         }
+
+        // Re-check migration status after initialization
+        console.log("🔍 Re-checking migration status after initialization...");
+        const updatedStatus = await checkMigrationStatus();
+        if (updatedStatus.hasUnappliedMigrations) {
+          console.error("❌ Migrations still pending after initialization attempt");
+          return false;
+        }
       } else {
         console.warn("⚠️ Migration table missing - run migrations manually");
         return false;
@@ -288,6 +314,15 @@ export async function ensureDatabaseUpToDate(autoApply: boolean = false): Promis
         const success = await runPendingMigrations();
         if (!success) {
           console.error("❌ Failed to apply migrations");
+          return false;
+        }
+
+        // Re-check migration status after attempting to apply migrations
+        // This is important in case migrations were marked as applied due to conflicts
+        console.log("🔍 Re-checking migration status after applying...");
+        const updatedStatus = await checkMigrationStatus();
+        if (updatedStatus.hasUnappliedMigrations) {
+          console.error("❌ Migrations still pending after application attempt");
           return false;
         }
       } else {
