@@ -638,7 +638,10 @@ export default function RestaurantFeed() {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-black relative video-feed-container" ref={containerRef}>
+    <div
+      className="h-screen overflow-hidden bg-black relative video-feed-container"
+      ref={containerRef}
+    >
       <Navbar />
 
       {/* Video Feed */}
