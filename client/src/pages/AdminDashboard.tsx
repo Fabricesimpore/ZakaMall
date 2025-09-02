@@ -42,6 +42,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import DocumentViewer from "@/components/DocumentViewer";
 
 export default function AdminDashboard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -629,21 +630,59 @@ export default function AdminDashboard() {
 
                               {(vendor.identityDocument || vendor.businessLicense) && (
                                 <div className="mt-3">
-                                  <h4 className="font-semibold text-sm text-gray-700 mb-2">
-                                    Documents
+                                  <h4 className="font-semibold text-sm text-gray-700 mb-3">
+                                    Documents soumis
                                   </h4>
-                                  <div className="space-y-1 text-sm">
+                                  <div className="space-y-2">
                                     {vendor.identityDocument && (
-                                      <p>
-                                        <span className="font-medium">Pièce d'identité:</span>{" "}
-                                        {vendor.identityDocument}
-                                      </p>
+                                      <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                                        <div className="flex items-center gap-2">
+                                          <i className="fas fa-id-card text-blue-600"></i>
+                                          <span className="text-sm font-medium">
+                                            Pièce d'identité
+                                          </span>
+                                        </div>
+                                        <DocumentViewer
+                                          documentUrl={vendor.identityDocument}
+                                          documentName="piece_identite"
+                                          documentType="identity"
+                                          vendorName={vendor.businessName}
+                                          vendorId={vendor.id}
+                                          documentStatus={vendor.identityDocumentStatus}
+                                          reviewNotes={vendor.identityDocumentNotes}
+                                          isAdmin={user?.role === "admin"}
+                                          onStatusUpdate={() =>
+                                            queryClient.invalidateQueries({
+                                              queryKey: ["/api/vendors"],
+                                            })
+                                          }
+                                        />
+                                      </div>
                                     )}
                                     {vendor.businessLicense && (
-                                      <p>
-                                        <span className="font-medium">Registre commerce:</span>{" "}
-                                        {vendor.businessLicense}
-                                      </p>
+                                      <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                                        <div className="flex items-center gap-2">
+                                          <i className="fas fa-certificate text-green-600"></i>
+                                          <span className="text-sm font-medium">
+                                            Registre de commerce
+                                          </span>
+                                        </div>
+                                        <DocumentViewer
+                                          documentUrl={vendor.businessLicense}
+                                          documentName="registre_commerce"
+                                          documentType="business_license"
+                                          vendorName={vendor.businessName}
+                                          vendorId={vendor.id}
+                                          documentStatus={vendor.businessLicenseStatus}
+                                          reviewNotes={vendor.businessLicenseNotes}
+                                          isAdmin={user?.role === "admin"}
+                                          onStatusUpdate={() =>
+                                            queryClient.invalidateQueries({
+                                              queryKey: ["/api/vendors"],
+                                            })
+                                          }
+                                        />
+                                      </div>
                                     )}
                                   </div>
                                 </div>
@@ -706,6 +745,7 @@ export default function AdminDashboard() {
                           <tr className="text-left text-gray-600 text-sm border-b">
                             <th className="pb-3">Vendeur</th>
                             <th className="pb-3">Entreprise</th>
+                            <th className="pb-3">Documents</th>
                             <th className="pb-3">Statut</th>
                             <th className="pb-3">Date inscription</th>
                             <th className="pb-3">Actions</th>
@@ -734,6 +774,83 @@ export default function AdminDashboard() {
                               <td className="py-4">
                                 <p className="font-medium">{vendor.businessName}</p>
                                 <p className="text-xs text-gray-500">{vendor.businessPhone}</p>
+                              </td>
+                              <td className="py-4">
+                                <div className="flex gap-1">
+                                  {vendor.identityDocument && (
+                                    <DocumentViewer
+                                      documentUrl={vendor.identityDocument}
+                                      documentName="piece_identite"
+                                      documentType="identity"
+                                      vendorName={vendor.businessName}
+                                      vendorId={vendor.id}
+                                      documentStatus={vendor.identityDocumentStatus}
+                                      reviewNotes={vendor.identityDocumentNotes}
+                                      isAdmin={user?.role === "admin"}
+                                      onStatusUpdate={() =>
+                                        queryClient.invalidateQueries({
+                                          queryKey: ["/api/vendors"],
+                                        })
+                                      }
+                                      trigger={
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-8 px-2"
+                                          title="Pièce d'identité"
+                                        >
+                                          <i
+                                            className={`fas fa-id-card text-xs ${
+                                              vendor.identityDocumentStatus === "verified"
+                                                ? "text-green-600"
+                                                : vendor.identityDocumentStatus === "rejected"
+                                                  ? "text-red-600"
+                                                  : "text-blue-600"
+                                            }`}
+                                          ></i>
+                                        </Button>
+                                      }
+                                    />
+                                  )}
+                                  {vendor.businessLicense && (
+                                    <DocumentViewer
+                                      documentUrl={vendor.businessLicense}
+                                      documentName="registre_commerce"
+                                      documentType="business_license"
+                                      vendorName={vendor.businessName}
+                                      vendorId={vendor.id}
+                                      documentStatus={vendor.businessLicenseStatus}
+                                      reviewNotes={vendor.businessLicenseNotes}
+                                      isAdmin={user?.role === "admin"}
+                                      onStatusUpdate={() =>
+                                        queryClient.invalidateQueries({
+                                          queryKey: ["/api/vendors"],
+                                        })
+                                      }
+                                      trigger={
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-8 px-2"
+                                          title="Registre de commerce"
+                                        >
+                                          <i
+                                            className={`fas fa-certificate text-xs ${
+                                              vendor.businessLicenseStatus === "verified"
+                                                ? "text-green-600"
+                                                : vendor.businessLicenseStatus === "rejected"
+                                                  ? "text-red-600"
+                                                  : "text-orange-600"
+                                            }`}
+                                          ></i>
+                                        </Button>
+                                      }
+                                    />
+                                  )}
+                                  {!vendor.identityDocument && !vendor.businessLicense && (
+                                    <span className="text-xs text-gray-400">Aucun document</span>
+                                  )}
+                                </div>
                               </td>
                               <td className="py-4">
                                 <Badge className={getVendorStatusBadgeColor(vendor.status)}>

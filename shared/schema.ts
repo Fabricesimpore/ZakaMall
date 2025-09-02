@@ -63,6 +63,9 @@ export const vendorStatusEnum = pgEnum("vendor_status", [
   "suspended",
 ]);
 
+// Document verification status enum
+export const documentStatusEnum = pgEnum("document_status", ["pending", "verified", "rejected"]);
+
 // User storage table.
 export const users = pgTable("users", {
   id: varchar("id")
@@ -124,6 +127,14 @@ export const vendors = pgTable("vendors", {
   businessLicense: varchar("business_license"),
   businessLicensePhoto: text("business_license_photo"),
 
+  // Document verification status
+  identityDocumentStatus: documentStatusEnum("identity_document_status").default("pending"),
+  businessLicenseStatus: documentStatusEnum("business_license_status").default("pending"),
+  identityDocumentNotes: text("identity_document_notes"),
+  businessLicenseNotes: text("business_license_notes"),
+  documentReviewedAt: timestamp("document_reviewed_at"),
+  documentReviewerId: varchar("document_reviewer_id").references(() => users.id),
+
   // Status and admin
   status: vendorStatusEnum("status").default("pending"),
   reviewNotes: text("review_notes"),
@@ -145,6 +156,22 @@ export const vendorAuditLog = pgTable("vendor_audit_log", {
     .notNull(),
   action: varchar("action", { length: 40 }).notNull(), // created|submitted|approved|rejected|suspended|updated
   actorId: varchar("actor_id").references(() => users.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Document audit log table
+export const documentAuditLog = pgTable("document_audit_log", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  vendorId: varchar("vendor_id")
+    .references(() => vendors.id, { onDelete: "cascade" })
+    .notNull(),
+  documentType: varchar("document_type", { length: 50 }).notNull(), // 'identity' or 'business_license'
+  oldStatus: documentStatusEnum("old_status"),
+  newStatus: documentStatusEnum("new_status").notNull(),
+  reviewerId: varchar("reviewer_id").references(() => users.id),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
