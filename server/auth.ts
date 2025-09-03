@@ -93,7 +93,6 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 // Helper function to create user session
 export function createUserSession(req: any, user: any): Promise<void> {
   return new Promise((resolve, reject) => {
-
     const userSession = {
       claims: {
         sub: user.id,
@@ -122,7 +121,7 @@ export function createUserSession(req: any, user: any): Promise<void> {
           console.error("Session save error:", err);
           reject(err);
         } else {
-            resolve();
+          resolve();
         }
       });
     } else {
