@@ -155,7 +155,7 @@ export default function DocumentViewer({
         title: "Téléchargement réussi",
         description: "Le document a été téléchargé avec succès",
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Erreur de téléchargement",
         description: "Impossible de télécharger le document",

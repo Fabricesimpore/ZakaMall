@@ -26,7 +26,6 @@ import {
   Mic,
   Clock,
   TrendingUp,
-  MapPin,
   Star,
 } from "lucide-react";
 import "@/styles/video-feed.css";

@@ -1,6 +1,6 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { AlertTriangle } from 'lucide-react';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle } from "lucide-react";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -23,7 +23,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error Boundary caught an error:', error, errorInfo);
+    console.error("Error Boundary caught an error:", error, errorInfo);
   }
 
   retry = () => {
@@ -37,9 +37,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
         return <FallbackComponent error={this.state.error!} retry={this.retry} />;
       }
 
-      return (
-        <DefaultErrorFallback error={this.state.error!} retry={this.retry} />
-      );
+      return <DefaultErrorFallback error={this.state.error!} retry={this.retry} />;
     }
 
     return this.props.children;
@@ -50,9 +48,7 @@ function DefaultErrorFallback({ error, retry }: { error: Error; retry: () => voi
   return (
     <div className="min-h-[400px] flex flex-col items-center justify-center p-8 text-center">
       <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
-      <h2 className="text-xl font-semibold text-gray-900 mb-2">
-        Something went wrong
-      </h2>
+      <h2 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h2>
       <p className="text-gray-600 mb-4 max-w-md">
         We apologize for the inconvenience. An unexpected error occurred.
       </p>

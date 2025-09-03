@@ -43,7 +43,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import DocumentViewer from "@/components/DocumentViewer";
-import DocumentErrorBoundary from "@/components/DocumentErrorBoundary";
 
 export default function AdminDashboard() {
   const { user, isLoading: authLoading } = useAuth();
