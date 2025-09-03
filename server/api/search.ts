@@ -164,7 +164,7 @@ export async function searchProducts(req: Request, res: Response) {
     const index = getIndex();
 
     // Expand the search query with synonyms
-    const expandedQuery = expandSearchQuery(params.q || '');
+    const expandedQuery = expandSearchQuery(params.q || "");
 
     const filterString = buildFilterString(params.filters || {});
 
@@ -191,7 +191,6 @@ export async function searchProducts(req: Request, res: Response) {
       totalHits: result.totalHits || 0,
       facetDistribution: result.facetDistribution,
     };
-
 
     res.json(searchResult);
   } catch (error) {

@@ -361,17 +361,16 @@ export async function verifyVendorDocument(req: any, res: any) {
     }
 
     // Determine which field to update
-    const statusField = documentType === "identity" 
-      ? "identityDocumentStatus" 
-      : "businessLicenseStatus";
-    const notesField = documentType === "identity"
-      ? "identityDocumentNotes"
-      : "businessLicenseNotes";
+    const statusField =
+      documentType === "identity" ? "identityDocumentStatus" : "businessLicenseStatus";
+    const notesField =
+      documentType === "identity" ? "identityDocumentNotes" : "businessLicenseNotes";
 
     // Get old status for audit log
-    const oldStatus = documentType === "identity" 
-      ? currentVendor.identityDocumentStatus
-      : currentVendor.businessLicenseStatus;
+    const oldStatus =
+      documentType === "identity"
+        ? currentVendor.identityDocumentStatus
+        : currentVendor.businessLicenseStatus;
 
     // Update the vendor document status
     const updatedVendor = await storage.updateVendorDocumentStatus(
@@ -398,7 +397,6 @@ export async function verifyVendorDocument(req: any, res: any) {
       vendor: updatedVendor,
       message: `Document ${status === "verified" ? "approved" : "rejected"}`,
     });
-
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({

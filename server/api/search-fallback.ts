@@ -22,7 +22,6 @@ export async function databaseSearch(req: Request, res: Response) {
       in_stock,
     } = req.query;
 
-
     // Expand search query with synonyms
     const expandedQuery = expandSearchQuery(q as string);
     const searchTerms = expandedQuery.toLowerCase().split(" ").filter(Boolean);

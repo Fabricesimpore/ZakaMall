@@ -322,7 +322,7 @@ function VideoPlayer({ src, isActive, product, onOrderClick, onQuickAdd }: Video
       setIsAdding(false);
       setShowQuickAdd(false);
       setQuickQuantity(1);
-    } catch (error) {
+    } catch {
       setIsAdding(false);
     }
   };
