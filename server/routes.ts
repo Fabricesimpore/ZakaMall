@@ -1039,6 +1039,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     await suspendVendor(req, res);
   });
 
+  // Document verification endpoint
+  app.patch("/api/admin/vendors/:id/verify-document", isAuthenticated, adminProtection, async (req: any, res) => {
+    const { verifyVendorDocument } = await import("./api/vendor-registration");
+    await verifyVendorDocument(req, res);
+  });
+
   // Get vendor by slug for store pages
   app.get("/api/vendors/by-slug/:slug", async (req, res) => {
     try {

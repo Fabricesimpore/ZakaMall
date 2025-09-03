@@ -39,19 +39,10 @@ export async function setupAuth(app: Express) {
 // Authentication middleware
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const sessionUser = (req as any).session?.user;
-  console.log("🔍 Auth middleware - Session user:", {
-    exists: !!sessionUser,
-    isAuthenticated: sessionUser?.isAuthenticated,
-    userId: sessionUser?.claims?.sub,
-    role: sessionUser?.user?.role,
-  });
-
   if (sessionUser && sessionUser.isAuthenticated) {
     (req as any).user = sessionUser;
     return next();
   }
-
-  console.log("❌ Auth middleware - No valid session");
   return res.status(401).json({ message: "Unauthorized" });
 };
 
@@ -102,12 +93,6 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 // Helper function to create user session
 export function createUserSession(req: any, user: any): Promise<void> {
   return new Promise((resolve, reject) => {
-    console.log("🔐 Creating user session for:", {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      isAdmin: user.role === "admin",
-    });
 
     const userSession = {
       claims: {
@@ -137,8 +122,7 @@ export function createUserSession(req: any, user: any): Promise<void> {
           console.error("Session save error:", err);
           reject(err);
         } else {
-          console.log("Session saved successfully for user:", user.email);
-          resolve();
+            resolve();
         }
       });
     } else {

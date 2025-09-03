@@ -29,6 +29,7 @@ import {
   suspiciousActivities,
   blacklist,
   vendorAuditLog,
+  documentAuditLog,
   // storeSlugRedirects, // Unused import
   type User,
   type UpsertUser,
@@ -622,6 +623,54 @@ export class DatabaseStorage implements IStorage {
     }
 
     return vendor;
+  }
+
+  async getVendorById(id: string): Promise<Vendor | undefined> {
+    const [vendor] = await db.select().from(vendors).where(eq(vendors.id, id));
+    return vendor;
+  }
+
+  async updateVendorDocumentStatus(
+    vendorId: string,
+    statusField: string,
+    status: "verified" | "rejected",
+    notesField: string,
+    notes: string,
+    reviewerId: string
+  ): Promise<Vendor> {
+    const updateData: any = {
+      [statusField]: status,
+      [notesField]: notes,
+      documentReviewedAt: new Date(),
+      documentReviewerId: reviewerId,
+      updatedAt: new Date(),
+    };
+
+    const [vendor] = await db
+      .update(vendors)
+      .set(updateData)
+      .where(eq(vendors.id, vendorId))
+      .returning();
+
+    return vendor;
+  }
+
+  async logDocumentVerification(data: {
+    vendorId: string;
+    documentType: string;
+    oldStatus?: string | null;
+    newStatus: string;
+    reviewerId: string;
+    notes: string;
+  }): Promise<void> {
+    await db.insert(documentAuditLog).values({
+      vendorId: data.vendorId,
+      documentType: data.documentType,
+      oldStatus: data.oldStatus as any,
+      newStatus: data.newStatus as any,
+      reviewerId: data.reviewerId,
+      notes: data.notes,
+    });
   }
 
   // Driver operations

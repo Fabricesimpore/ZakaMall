@@ -330,3 +330,87 @@ export async function suspendVendor(req: Request, res: Response) {
     });
   }
 }
+
+// Document verification endpoint
+export async function verifyVendorDocument(req: any, res: any) {
+  try {
+    const requestSchema = z.object({
+      documentType: z.enum(["identity", "business_license"]),
+      status: z.enum(["verified", "rejected"]),
+      notes: z.string().optional(),
+    });
+
+    const { documentType, status, notes = "" } = requestSchema.parse(req.body);
+    const { id: vendorId } = req.params;
+    const reviewerId = req.user?.id;
+
+    if (!reviewerId) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "Admin authentication required",
+      });
+    }
+
+    // Get current vendor to check existing status
+    const currentVendor = await storage.getVendorById(vendorId);
+    if (!currentVendor) {
+      return res.status(404).json({
+        error: "Vendor not found",
+        message: "The vendor does not exist",
+      });
+    }
+
+    // Determine which field to update
+    const statusField = documentType === "identity" 
+      ? "identityDocumentStatus" 
+      : "businessLicenseStatus";
+    const notesField = documentType === "identity"
+      ? "identityDocumentNotes"
+      : "businessLicenseNotes";
+
+    // Get old status for audit log
+    const oldStatus = documentType === "identity" 
+      ? currentVendor.identityDocumentStatus
+      : currentVendor.businessLicenseStatus;
+
+    // Update the vendor document status
+    const updatedVendor = await storage.updateVendorDocumentStatus(
+      vendorId,
+      statusField,
+      status,
+      notesField,
+      notes,
+      reviewerId
+    );
+
+    // Log the document verification change
+    await storage.logDocumentVerification({
+      vendorId,
+      documentType,
+      oldStatus,
+      newStatus: status,
+      reviewerId,
+      notes,
+    });
+
+    res.json({
+      success: true,
+      vendor: updatedVendor,
+      message: `Document ${status === "verified" ? "approved" : "rejected"}`,
+    });
+
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: "Invalid request",
+        issues: error.issues,
+      });
+    }
+
+    console.error("Document verification error:", error);
+    res.status(500).json({
+      error: "Internal server error",
+      message: "Failed to verify document",
+    });
+  }
+}

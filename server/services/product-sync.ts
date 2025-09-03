@@ -12,19 +12,16 @@ import type { SearchDoc } from "@shared/search-types";
  */
 export async function reindexProduct(productId: string): Promise<void> {
   try {
-    console.log(`🔄 Reindexing product: ${productId}`);
 
     // Get product and vendor data from database
     const product = await storage.getProduct(productId);
     if (!product) {
-      console.log(`⚠️  Product ${productId} not found, removing from index`);
       await removeProducts([productId]);
       return;
     }
 
     const vendor = await storage.getVendor(product.vendorId);
     if (!vendor) {
-      console.log(`⚠️  Vendor for product ${productId} not found, removing from index`);
       await removeProducts([productId]);
       return;
     }

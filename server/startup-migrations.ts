@@ -22,6 +22,9 @@ export async function runStartupMigrations() {
     // Add video support to products
     await addVideoSupportToProducts();
 
+    // Add document verification to vendors table
+    await addDocumentVerificationToVendors();
+
     console.log("✅ All startup migrations completed successfully!");
   } catch (error) {
     console.error("❌ Startup migrations failed:", error);
@@ -489,6 +492,102 @@ async function addVideoSupportToProducts() {
     console.log("✅ Video support added to products table!");
   } catch (error) {
     console.error("❌ Failed to add video support to products:", error);
+    // Don't throw - this shouldn't break the app if it fails
+  }
+}
+
+// Migration to add document verification to vendors table
+async function addDocumentVerificationToVendors() {
+  try {
+    console.log("📋 Adding document verification to vendors table...");
+
+    // Check if document_status enum exists
+    const enumExists = await db.execute(sql`
+      SELECT EXISTS (
+        SELECT FROM pg_type 
+        WHERE typname = 'document_status'
+      );
+    `);
+
+    if (!enumExists.rows[0]?.exists) {
+      console.log("📊 Creating document_status enum...");
+      await db.execute(sql`
+        CREATE TYPE document_status AS ENUM ('pending', 'verified', 'rejected');
+      `);
+    }
+
+    // Check if identity_document_status column exists
+    const columnExists = await db.execute(sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns 
+        WHERE table_name = 'vendors' AND column_name = 'identity_document_status'
+      );
+    `);
+
+    if (columnExists.rows[0]?.exists) {
+      console.log("✅ Document verification columns already exist, skipping...");
+      return;
+    }
+
+    // Add document verification columns to vendors table
+    await db.execute(sql`
+      ALTER TABLE vendors 
+      ADD COLUMN identity_document_status document_status DEFAULT 'pending',
+      ADD COLUMN business_license_status document_status DEFAULT 'pending',
+      ADD COLUMN identity_document_notes text,
+      ADD COLUMN business_license_notes text,
+      ADD COLUMN document_reviewed_at timestamp,
+      ADD COLUMN document_reviewer_id varchar;
+    `);
+
+    // Add foreign key constraint for document_reviewer_id
+    await db.execute(sql`
+      ALTER TABLE vendors 
+      ADD CONSTRAINT vendors_document_reviewer_id_fkey 
+      FOREIGN KEY (document_reviewer_id) REFERENCES users(id);
+    `);
+
+    // Create indexes for better query performance
+    await db.execute(sql`
+      CREATE INDEX idx_vendors_document_status ON vendors(identity_document_status, business_license_status);
+    `);
+
+    // Create document audit log table if it doesn't exist
+    const auditTableExists = await db.execute(sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'document_audit_log'
+      );
+    `);
+
+    if (!auditTableExists.rows[0]?.exists) {
+      console.log("📊 Creating document_audit_log table...");
+      await db.execute(sql`
+        CREATE TABLE document_audit_log (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          vendor_id varchar NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+          document_type varchar(50) NOT NULL,
+          old_status document_status,
+          new_status document_status NOT NULL,
+          reviewer_id varchar REFERENCES users(id),
+          notes text,
+          created_at timestamp DEFAULT now()
+        );
+      `);
+
+      await db.execute(sql`
+        CREATE INDEX idx_document_audit_log_vendor_id ON document_audit_log(vendor_id);
+      `);
+
+      await db.execute(sql`
+        CREATE INDEX idx_document_audit_log_document_type ON document_audit_log(document_type);
+      `);
+    }
+
+    console.log("✅ Document verification added to vendors table!");
+  } catch (error) {
+    console.error("❌ Failed to add document verification to vendors:", error);
     // Don't throw - this shouldn't break the app if it fails
   }
 }

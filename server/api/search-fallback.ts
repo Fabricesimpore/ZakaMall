@@ -22,12 +22,6 @@ export async function databaseSearch(req: Request, res: Response) {
       in_stock,
     } = req.query;
 
-    console.log("🔍 Using database fallback search:", {
-      query: q,
-      page,
-      limit,
-      filters: { vendor_id, category, price_min, price_max, in_stock },
-    });
 
     // Expand search query with synonyms
     const expandedQuery = expandSearchQuery(q as string);
@@ -164,7 +158,6 @@ export async function databaseSearch(req: Request, res: Response) {
       totalHits,
     };
 
-    console.log(`✅ Database search completed: ${totalHits} results`);
     res.json(searchResult);
   } catch (error) {
     console.error("❌ Database search error:", error);

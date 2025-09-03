@@ -9,6 +9,7 @@ import DarkModeProvider from "@/components/DarkModeProvider";
 import { detectOverflow } from "@/utils/overflow-detector";
 import { SkipToContent } from "@/components/a11y/skip-to-content";
 import { ScrollRestoration } from "@/components/scroll-restoration";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import Home from "@/pages/Home";
@@ -66,7 +67,7 @@ function Router() {
   }
 
   return (
-    <>
+    <ErrorBoundary>
       <ScrollRestoration />
       <main id="main" tabIndex={-1}>
         <Switch>
@@ -115,7 +116,7 @@ function Router() {
           <Route component={NotFound} />
         </Switch>
       </main>
-    </>
+    </ErrorBoundary>
   );
 }
 
