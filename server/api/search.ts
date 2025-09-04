@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { MeiliSearch } from "meilisearch";
 import type { SearchParams, SearchResult, SearchFilters } from "@shared/search-types";
 import { expandSearchQuery } from "../utils/search-synonyms";
+import { cacheService } from "../cache";
 
 let client: MeiliSearch | null = null;
 
@@ -169,6 +170,18 @@ export async function searchProducts(req: Request, res: Response) {
     }
 
     const params = parseSearchParams(req);
+    
+    // Create cache key from search parameters
+    const cacheKey = `search:${JSON.stringify(params)}`;
+    
+    // Try to get from cache first
+    const cachedResult = await cacheService.get(cacheKey);
+    if (cachedResult) {
+      console.log(`🎯 Search cache HIT for: ${params.q || 'empty query'}`);
+      res.setHeader('X-Cache', 'HIT');
+      return res.json(cachedResult);
+    }
+
     const index = getIndex();
 
     // Test connection before searching
@@ -212,6 +225,11 @@ export async function searchProducts(req: Request, res: Response) {
       facetDistribution: result.facetDistribution,
     };
 
+    // Cache the result for 10 minutes
+    console.log(`💨 Search cache MISS for: ${params.q || 'empty query'}, caching result`);
+    await cacheService.set(cacheKey, searchResult, 600); // 10 minutes TTL
+    res.setHeader('X-Cache', 'MISS');
+    
     res.json(searchResult);
   } catch (error) {
     console.error("❌ Meilisearch search error, falling back to database:", error);
@@ -247,6 +265,17 @@ export async function autocomplete(req: Request, res: Response) {
       return res.json({ suggestions: [], query, processingTimeMs: 0 });
     }
 
+    // Create cache key for autocomplete
+    const cacheKey = `autocomplete:${query.toLowerCase()}`;
+    
+    // Try to get from cache first
+    const cachedResult = await cacheService.get(cacheKey);
+    if (cachedResult) {
+      console.log(`🎯 Autocomplete cache HIT for: ${query}`);
+      res.setHeader('X-Cache', 'HIT');
+      return res.json(cachedResult);
+    }
+
     const index = getIndex();
     const expandedQuery = expandSearchQuery(query);
 
@@ -267,11 +296,18 @@ export async function autocomplete(req: Request, res: Response) {
 
     console.log(`✅ Autocomplete found ${suggestions.length} suggestions for "${query}"`);
 
-    res.json({
+    const autocompleteResult = {
       suggestions,
       query,
       processingTimeMs: result.processingTimeMs,
-    });
+    };
+
+    // Cache the result for 5 minutes (shorter than search results since autocomplete changes more frequently)
+    console.log(`💨 Autocomplete cache MISS for: ${query}, caching result`);
+    await cacheService.set(cacheKey, autocompleteResult, 300); // 5 minutes TTL
+    res.setHeader('X-Cache', 'MISS');
+
+    res.json(autocompleteResult);
   } catch (error) {
     console.error("❌ Autocomplete error:", error);
     res.status(500).json({

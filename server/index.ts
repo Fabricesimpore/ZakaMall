@@ -4,7 +4,7 @@ dotenv.config();
 import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
-import { registerRoutes } from "./routes";
+import { setupRoutes } from "./routes";
 import { setupVite } from "./vite";
 import { serveStaticFiles } from "./static-files";
 import { requestLogger, errorLogger, logInfo } from "./logger";
