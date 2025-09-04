@@ -44,15 +44,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // WebSocket setup for real-time features
   const wss = new WebSocketServer({ server: httpServer });
-  
+
   wss.on("connection", (ws) => {
     console.log("📡 New WebSocket connection established");
-    
+
     ws.on("message", (message) => {
       try {
         const data = JSON.parse(message.toString());
         console.log("📨 WebSocket message received:", data);
-        
+
         // Handle different message types
         switch (data.type) {
           case "ping":
@@ -77,6 +77,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   console.log("🎯 Modular route system initialized successfully");
   console.log("📡 WebSocket server ready for real-time connections");
-  
+
   return httpServer;
 }

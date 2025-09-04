@@ -2,7 +2,11 @@ import type { Express } from "express";
 import { storage } from "../storage";
 import { isAuthenticated, isVendor } from "../auth";
 import { insertProductSchema } from "@shared/schema";
-import { cacheMiddleware, ProductCacheConfig, CacheInvalidator } from "../middleware/cacheMiddleware";
+import {
+  cacheMiddleware,
+  ProductCacheConfig,
+  CacheInvalidator,
+} from "../middleware/cacheMiddleware";
 import CloudinaryService from "../cloudinaryStorage";
 
 /**
@@ -10,7 +14,6 @@ import CloudinaryService from "../cloudinaryStorage";
  * Handles product catalog, categories, and product management
  */
 export function setupProductRoutes(app: Express) {
-
   // ============ CATEGORY ROUTES ============
 
   // Get all categories
@@ -36,14 +39,14 @@ export function setupProductRoutes(app: Express) {
       }
 
       const { name, description } = req.body;
-      
+
       if (!name) {
         return res.status(400).json({ message: "Category name is required" });
       }
 
       const categoryId = await storage.createCategory({ name, description });
       console.log(`📂 Category created: ${name}`);
-      
+
       res.json({ message: "Category created successfully", categoryId });
     } catch (error) {
       console.error("Error creating category:", error);
@@ -75,10 +78,10 @@ export function setupProductRoutes(app: Express) {
       });
 
       const product = await storage.createProduct(productData);
-      
+
       // Invalidate related caches
       await CacheInvalidator.invalidateProductList();
-      
+
       console.log(`📦 Product created: ${product.name} by vendor ${vendor.storeName}`);
       res.json(product);
     } catch (error) {
@@ -88,7 +91,8 @@ export function setupProductRoutes(app: Express) {
   });
 
   // Get restaurant products
-  app.get("/api/products/restaurants", 
+  app.get(
+    "/api/products/restaurants",
     cacheMiddleware(ProductCacheConfig.restaurantProducts),
     async (req, res) => {
       try {
@@ -102,71 +106,67 @@ export function setupProductRoutes(app: Express) {
   );
 
   // Get products with filtering and pagination
-  app.get("/api/products", 
-    cacheMiddleware(ProductCacheConfig.productList),
-    async (req, res) => {
-      try {
-        const {
-          page = "1",
-          limit = "24",
-          category,
-          vendorId,
-          minPrice,
-          maxPrice,
-          inStock,
-          search,
-        } = req.query;
+  app.get("/api/products", cacheMiddleware(ProductCacheConfig.productList), async (req, res) => {
+    try {
+      const {
+        page = "1",
+        limit = "24",
+        category,
+        vendorId,
+        minPrice,
+        maxPrice,
+        inStock,
+        search,
+      } = req.query;
 
-        const filters = {
-          category: category as string,
-          vendorId: vendorId as string,
-          minPrice: minPrice ? parseFloat(minPrice as string) : undefined,
-          maxPrice: maxPrice ? parseFloat(maxPrice as string) : undefined,
-          inStock: inStock === "true",
-          search: search as string,
-        };
+      const filters = {
+        category: category as string,
+        vendorId: vendorId as string,
+        minPrice: minPrice ? parseFloat(minPrice as string) : undefined,
+        maxPrice: maxPrice ? parseFloat(maxPrice as string) : undefined,
+        inStock: inStock === "true",
+        search: search as string,
+      };
 
-        const pageNum = Math.max(1, parseInt(page as string));
-        const limitNum = Math.min(Math.max(1, parseInt(limit as string)), 100);
+      const pageNum = Math.max(1, parseInt(page as string));
+      const limitNum = Math.min(Math.max(1, parseInt(limit as string)), 100);
 
-        const result = await storage.getProducts(filters, pageNum, limitNum);
-        res.json(result);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-        res.status(500).json({ message: "Failed to fetch products" });
-      }
+      const result = await storage.getProducts(filters, pageNum, limitNum);
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
     }
-  );
+  });
 
   // Get single product by ID
-  app.get("/api/products/:id", 
-    cacheMiddleware(ProductCacheConfig.product),
-    async (req, res) => {
-      try {
-        const { id } = req.params;
-        const product = await storage.getProduct(id);
+  app.get("/api/products/:id", cacheMiddleware(ProductCacheConfig.product), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const product = await storage.getProduct(id);
 
-        if (!product) {
-          return res.status(404).json({ message: "Product not found" });
-        }
-
-        // Get vendor information
-        const vendor = await storage.getVendor(product.vendorId);
-
-        res.json({ 
-          ...product, 
-          vendor: vendor ? {
-            id: vendor.id,
-            storeName: vendor.storeName,
-            storeSlug: vendor.storeSlug,
-          } : null 
-        });
-      } catch (error) {
-        console.error("Error fetching product:", error);
-        res.status(500).json({ message: "Failed to fetch product" });
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
       }
+
+      // Get vendor information
+      const vendor = await storage.getVendor(product.vendorId);
+
+      res.json({
+        ...product,
+        vendor: vendor
+          ? {
+              id: vendor.id,
+              storeName: vendor.storeName,
+              storeSlug: vendor.storeSlug,
+            }
+          : null,
+      });
+    } catch (error) {
+      console.error("Error fetching product:", error);
+      res.status(500).json({ message: "Failed to fetch product" });
     }
-  );
+  });
 
   // Update product
   app.patch("/api/products/:id", isAuthenticated, async (req: any, res) => {
@@ -194,10 +194,10 @@ export function setupProductRoutes(app: Express) {
       }
 
       const updatedProduct = await storage.updateProduct(id, req.body);
-      
+
       // Invalidate caches
       await CacheInvalidator.invalidateProduct(id);
-      
+
       res.json(updatedProduct);
     } catch (error) {
       console.error("Error updating product:", error);
@@ -231,10 +231,10 @@ export function setupProductRoutes(app: Express) {
       }
 
       await storage.deleteProduct(id);
-      
+
       // Invalidate caches
       await CacheInvalidator.invalidateProduct(id);
-      
+
       res.json({ message: "Product deleted successfully" });
     } catch (error) {
       console.error("Error deleting product:", error);
@@ -247,7 +247,7 @@ export function setupProductRoutes(app: Express) {
     try {
       const { id } = req.params;
       const { enhanced = "false" } = req.query;
-      
+
       const reviews = await storage.getProductReviews(id, enhanced === "true");
       res.json(reviews);
     } catch (error) {
@@ -261,7 +261,7 @@ export function setupProductRoutes(app: Express) {
     try {
       const { id } = req.params;
       const { limit = "10" } = req.query;
-      
+
       const product = await storage.getProduct(id);
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
@@ -307,10 +307,10 @@ export function setupProductRoutes(app: Express) {
       }
 
       await storage.updateProductStock(id, stockQuantity);
-      
+
       // Invalidate product cache
       await CacheInvalidator.invalidateProduct(id);
-      
+
       console.log(`📦 Stock updated for product ${id}: ${stockQuantity} units`);
       res.json({ message: "Stock updated successfully", stockQuantity });
     } catch (error) {
@@ -347,12 +347,14 @@ export function setupProductRoutes(app: Express) {
       }
 
       if (!hasPermission) {
-        return res.status(403).json({ message: "Not authorized to update images for this product" });
+        return res
+          .status(403)
+          .json({ message: "Not authorized to update images for this product" });
       }
 
       // Process and validate image URLs
       const processedImages = images.map((imageUrl: string) => {
-        if (imageUrl.includes('cloudinary.com') && !imageUrl.includes('/upload/')) {
+        if (imageUrl.includes("cloudinary.com") && !imageUrl.includes("/upload/")) {
           console.warn(`⚠️ Malformed Cloudinary URL: ${imageUrl}`);
           return imageUrl;
         }
@@ -360,10 +362,10 @@ export function setupProductRoutes(app: Express) {
       });
 
       await storage.updateProductImages(productId, processedImages);
-      
+
       // Invalidate product cache
       await CacheInvalidator.invalidateProduct(productId);
-      
+
       console.log(`🖼️ Images updated for product ${productId}: ${processedImages.length} images`);
       res.json({ message: "Product images updated successfully", images: processedImages });
     } catch (error) {

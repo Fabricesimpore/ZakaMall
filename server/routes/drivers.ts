@@ -9,7 +9,6 @@ import { insertDriverSchema } from "@shared/schema";
  * Handles driver management, location tracking, and availability
  */
 export function setupDriverRoutes(app: Express) {
-
   // Get all drivers (admin only)
   app.get("/api/drivers", isAuthenticated, adminProtection, async (req: any, res) => {
     try {
@@ -35,23 +34,28 @@ export function setupDriverRoutes(app: Express) {
     }
   });
 
-  // Update driver commission rate (admin only) 
-  app.patch("/api/drivers/:id/commission", isAuthenticated, adminProtection, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      const { commissionRate } = req.body;
+  // Update driver commission rate (admin only)
+  app.patch(
+    "/api/drivers/:id/commission",
+    isAuthenticated,
+    adminProtection,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
+        const { commissionRate } = req.body;
 
-      if (typeof commissionRate !== "number" || commissionRate < 0 || commissionRate > 1) {
-        return res.status(400).json({ message: "Invalid commission rate" });
+        if (typeof commissionRate !== "number" || commissionRate < 0 || commissionRate > 1) {
+          return res.status(400).json({ message: "Invalid commission rate" });
+        }
+
+        await storage.updateDriverCommission(id, commissionRate);
+        res.json({ message: "Driver commission updated successfully" });
+      } catch (error) {
+        console.error("Error updating driver commission:", error);
+        res.status(500).json({ message: "Failed to update driver commission" });
       }
-
-      await storage.updateDriverCommission(id, commissionRate);
-      res.json({ message: "Driver commission updated successfully" });
-    } catch (error) {
-      console.error("Error updating driver commission:", error);
-      res.status(500).json({ message: "Failed to update driver commission" });
     }
-  });
+  );
 
   // Create driver profile (authenticated users)
   app.post("/api/drivers", isAuthenticated, async (req: any, res) => {
@@ -75,7 +79,7 @@ export function setupDriverRoutes(app: Express) {
       });
 
       const driver = await storage.createDriver(driverData);
-      
+
       console.log(`🚗 Driver profile created for user ${user.email}`);
       res.json(driver);
     } catch (error) {
@@ -88,7 +92,7 @@ export function setupDriverRoutes(app: Express) {
   app.get("/api/drivers/available", async (req, res) => {
     try {
       const { lat, lng, maxDistance = 10 } = req.query;
-      
+
       const filters: any = {
         isActive: true,
         status: "available",
@@ -137,7 +141,7 @@ export function setupDriverRoutes(app: Express) {
       }
 
       await storage.updateDriverLocation(id, currentLat, currentLng);
-      
+
       console.log(`📍 Driver ${id} location updated: ${currentLat}, ${currentLng}`);
       res.json({ message: "Location updated successfully" });
     } catch (error) {
@@ -172,7 +176,7 @@ export function setupDriverRoutes(app: Express) {
       }
 
       await storage.updateDriverAvailability(id, isActive);
-      
+
       const status = isActive ? "available" : "unavailable";
       console.log(`🚗 Driver ${id} is now ${status}`);
       res.json({ message: `Driver status updated to ${status}` });

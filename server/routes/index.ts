@@ -17,25 +17,25 @@ export function setupRoutes(app: Express) {
 
   // Authentication routes - login, logout, registration, session management
   setupAuthRoutes(app);
-  
+
   // Admin routes - user management, vendor approval, system administration
   setupAdminRoutes(app);
-  
+
   // Cart and Order routes - shopping cart operations and order management
   setupCartOrderRoutes(app);
-  
+
   // Product routes - product catalog, categories, product management
   setupProductRoutes(app);
-  
+
   // Vendor routes - vendor registration, management, and vendor-specific operations
   setupVendorRoutes(app);
-  
+
   // Payment routes - payment processing, callbacks, and payment status
   setupPaymentRoutes(app);
-  
+
   // Driver routes - driver management, location tracking, availability
   setupDriverRoutes(app);
-  
+
   // Search and Review routes - product search, suggestions, and review management
   setupSearchReviewRoutes(app);
 

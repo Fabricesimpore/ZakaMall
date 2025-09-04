@@ -12,7 +12,6 @@ import { orderNotificationService } from "../notifications/orderNotifications";
  * Handles shopping cart operations and order management
  */
 export function setupCartOrderRoutes(app: Express) {
-  
   // ============ CART ROUTES ============
 
   // Add item to cart
@@ -22,11 +21,11 @@ export function setupCartOrderRoutes(app: Express) {
       const cartData = insertCartSchema.parse({ ...req.body, userId });
 
       const cartItem = await storage.addToCart(cartData);
-      
+
       // Invalidate cart cache after adding item
       await cacheService.del(`cart:${userId}`);
       console.log(`🗑️ Invalidated cart cache for user: ${userId}`);
-      
+
       res.json(cartItem);
     } catch (error) {
       console.error("Error adding to cart:", error);
@@ -35,19 +34,24 @@ export function setupCartOrderRoutes(app: Express) {
   });
 
   // Get user's cart items
-  app.get("/api/cart", isAuthenticated, cacheMiddleware({
-    ttl: 180, // 3 minutes - short cache for cart data since it changes frequently
-    keyGenerator: (req) => `cart:${(req as any).user.claims.sub}`,
-  }), async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const cartItems = await storage.getCartItems(userId);
-      res.json(cartItems);
-    } catch (error) {
-      console.error("Error fetching cart:", error);
-      res.status(500).json({ message: "Failed to fetch cart" });
+  app.get(
+    "/api/cart",
+    isAuthenticated,
+    cacheMiddleware({
+      ttl: 180, // 3 minutes - short cache for cart data since it changes frequently
+      keyGenerator: (req) => `cart:${(req as any).user.claims.sub}`,
+    }),
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const cartItems = await storage.getCartItems(userId);
+        res.json(cartItems);
+      } catch (error) {
+        console.error("Error fetching cart:", error);
+        res.status(500).json({ message: "Failed to fetch cart" });
+      }
     }
-  });
+  );
 
   // Update cart item quantity
   app.patch("/api/cart/:id", isAuthenticated, async (req: any, res) => {
@@ -56,12 +60,12 @@ export function setupCartOrderRoutes(app: Express) {
       const { quantity } = req.body;
 
       const cartItem = await storage.updateCartItem(id, quantity);
-      
+
       // Invalidate cart cache after updating item
       const userId = req.user.claims.sub;
       await cacheService.del(`cart:${userId}`);
       console.log(`🗑️ Invalidated cart cache for user: ${userId}`);
-      
+
       res.json(cartItem);
     } catch (error) {
       console.error("Error updating cart item:", error);
@@ -74,12 +78,12 @@ export function setupCartOrderRoutes(app: Express) {
     try {
       const { id } = req.params;
       await storage.removeFromCart(id);
-      
+
       // Invalidate cart cache after removing item
       const userId = req.user.claims.sub;
       await cacheService.del(`cart:${userId}`);
       console.log(`🗑️ Invalidated cart cache for user: ${userId}`);
-      
+
       res.json({ message: "Item removed from cart" });
     } catch (error) {
       console.error("Error removing from cart:", error);
@@ -92,11 +96,11 @@ export function setupCartOrderRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       await storage.clearCart(userId);
-      
+
       // Invalidate cart cache after clearing
       await cacheService.del(`cart:${userId}`);
       console.log(`🗑️ Invalidated cart cache for user: ${userId}`);
-      
+
       res.json({ message: "Cart cleared" });
     } catch (error) {
       console.error("Error clearing cart:", error);
@@ -116,12 +120,9 @@ export function setupCartOrderRoutes(app: Express) {
 
       // Clear cart after successful order
       await storage.clearCart(userId);
-      
+
       // Invalidate user's orders and cart cache after creating order
-      await Promise.all([
-        cacheService.del(`orders:${userId}`),
-        cacheService.del(`cart:${userId}`)
-      ]);
+      await Promise.all([cacheService.del(`orders:${userId}`), cacheService.del(`cart:${userId}`)]);
       console.log(`🗑️ Invalidated orders and cart cache for user: ${userId}`);
 
       // Send email notifications asynchronously
@@ -152,7 +153,7 @@ export function setupCartOrderRoutes(app: Express) {
               customer,
               vendor: vendorUser,
               items: itemsWithDetails,
-            }
+            },
           };
 
           // Send notifications
@@ -200,19 +201,24 @@ export function setupCartOrderRoutes(app: Express) {
   });
 
   // Get user's orders
-  app.get("/api/orders/my-orders", isAuthenticated, cacheMiddleware({
-    ttl: 300, // 5 minutes - orders don't change very frequently
-    keyGenerator: (req) => `orders:${(req as any).user.claims.sub}`,
-  }), async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const orders = await storage.getOrdersWithDetails(userId);
-      res.json(orders);
-    } catch (error) {
-      console.error("Error fetching user orders:", error);
-      res.status(500).json({ message: "Failed to fetch orders" });
+  app.get(
+    "/api/orders/my-orders",
+    isAuthenticated,
+    cacheMiddleware({
+      ttl: 300, // 5 minutes - orders don't change very frequently
+      keyGenerator: (req) => `orders:${(req as any).user.claims.sub}`,
+    }),
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const orders = await storage.getOrdersWithDetails(userId);
+        res.json(orders);
+      } catch (error) {
+        console.error("Error fetching user orders:", error);
+        res.status(500).json({ message: "Failed to fetch orders" });
+      }
     }
-  });
+  );
 
   // Get single order details
   app.get("/api/orders/:id", isAuthenticated, async (req: any, res) => {
@@ -276,7 +282,7 @@ export function setupCartOrderRoutes(app: Express) {
               ...updatedOrder,
               customer,
               vendor: vendorUser,
-            }
+            },
           };
 
           await orderNotificationService.sendOrderStatusUpdateToCustomer(notificationData);
@@ -352,7 +358,7 @@ export function setupCartOrderRoutes(app: Express) {
 
       // Find available drivers
       const availableDrivers = await storage.getAvailableDrivers();
-      
+
       if (availableDrivers.length === 0) {
         return res.status(404).json({ message: "No available drivers found" });
       }
@@ -361,14 +367,14 @@ export function setupCartOrderRoutes(app: Express) {
       const driver = availableDrivers[0];
       await storage.assignDriverToOrder(orderId, driver.id);
 
-      res.json({ 
-        message: "Driver auto-assigned successfully", 
+      res.json({
+        message: "Driver auto-assigned successfully",
         driver: {
           id: driver.id,
           firstName: driver.firstName,
           lastName: driver.lastName,
-          phone: driver.phone
-        }
+          phone: driver.phone,
+        },
       });
     } catch (error) {
       console.error("Error auto-assigning driver:", error);

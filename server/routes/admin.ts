@@ -32,7 +32,7 @@ export function setupAdminRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       const { isAdmin } = await ensureAdminAccess(userId, storage);
-      
+
       if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -55,14 +55,14 @@ export function setupAdminRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       // Special protection for the main admin email
       if (user?.email !== "simporefabrice15@gmail.com") {
         return res.status(403).json({ message: "Emergency admin creation not authorized" });
       }
 
       const { email, password, firstName, lastName } = req.body;
-      
+
       // Validate input
       if (!email || !password || !firstName || !lastName) {
         return res.status(400).json({ message: "All fields required" });
@@ -70,14 +70,14 @@ export function setupAdminRoutes(app: Express) {
 
       const passwordValidation = validatePassword(password);
       if (!passwordValidation.isValid) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "Password does not meet requirements",
-          requirements: passwordValidation.requirements 
+          requirements: passwordValidation.requirements,
         });
       }
 
       const passwordHash = await hashPassword(password);
-      
+
       const adminUserId = await storage.createUser({
         email,
         passwordHash,
@@ -105,18 +105,20 @@ export function setupAdminRoutes(app: Express) {
         // Force admin role for protected email
         await storage.updateUserRole(userId, "admin");
         console.log("🛡️ Emergency restore: simporefabrice15@gmail.com promoted to admin");
-        
+
         // Update session
         if ((req as any).session?.user?.user) {
           (req as any).session.user.user.role = "admin";
         }
-        
-        return res.json({ 
+
+        return res.json({
           message: "Admin role restored successfully",
-          user: { id: user.id, email: user.email, role: "admin" }
+          user: { id: user.id, email: user.email, role: "admin" },
         });
       } else {
-        return res.status(403).json({ message: "Emergency restore not authorized for this account" });
+        return res
+          .status(403)
+          .json({ message: "Emergency restore not authorized for this account" });
       }
     } catch (error) {
       console.error("Emergency restore error:", error);
@@ -136,15 +138,15 @@ export function setupAdminRoutes(app: Express) {
           id: user?.id,
           email: user?.email,
           role: user?.role,
-          exists: !!user
+          exists: !!user,
         },
         session: {
           id: sessionUser?.id,
           email: sessionUser?.email,
           role: sessionUser?.role,
-          exists: !!sessionUser
+          exists: !!sessionUser,
         },
-        match: user?.id === sessionUser?.id && user?.role === sessionUser?.role
+        match: user?.id === sessionUser?.id && user?.role === sessionUser?.role,
       });
     } catch (error) {
       console.error("Debug role error:", error);
@@ -161,22 +163,22 @@ export function setupAdminRoutes(app: Express) {
       if (user?.email === "simporefabrice15@gmail.com") {
         // Nuclear option: recreate admin
         console.log("🚨 NUCLEAR RESTORE: Recreating admin permissions");
-        
+
         await storage.updateUserRole(userId, "admin");
-        
+
         // Force session update
         const freshUser = await storage.getUser(userId);
         if ((req as any).session?.user) {
           (req as any).session.user.user = freshUser;
           (req as any).session.user.claims = {
             ...(req as any).session.user.claims,
-            role: "admin"
+            role: "admin",
           };
         }
 
-        return res.json({ 
+        return res.json({
           message: "Nuclear restore completed",
-          user: { id: freshUser?.id, email: freshUser?.email, role: freshUser?.role }
+          user: { id: freshUser?.id, email: freshUser?.email, role: freshUser?.role },
         });
       } else {
         return res.status(403).json({ message: "Nuclear restore not authorized" });
@@ -199,7 +201,7 @@ export function setupAdminRoutes(app: Express) {
       res.json({
         exists: !!user,
         role: user?.role || null,
-        id: user?.id || null
+        id: user?.id || null,
       });
     } catch (error) {
       console.error("Check DB role error:", error);
@@ -222,10 +224,10 @@ export function setupAdminRoutes(app: Express) {
 
       await storage.updateUserRole(user.id, "admin");
       console.log(`🛡️ Force DB admin: ${email} role updated to admin`);
-      
-      res.json({ 
+
+      res.json({
         message: "Database role forced to admin",
-        user: { id: user.id, email: user.email, role: "admin" }
+        user: { id: user.id, email: user.email, role: "admin" },
       });
     } catch (error) {
       console.error("Force DB admin error:", error);
@@ -292,7 +294,7 @@ export function setupAdminRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       const { isAdmin } = await ensureAdminAccess(userId, storage);
-      
+
       if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -317,7 +319,7 @@ export function setupAdminRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       const { isAdmin } = await ensureAdminAccess(userId, storage);
-      
+
       if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -335,7 +337,7 @@ export function setupAdminRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       const { isAdmin } = await ensureAdminAccess(userId, storage);
-      
+
       if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -352,7 +354,7 @@ export function setupAdminRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       const { isAdmin } = await ensureAdminAccess(userId, storage);
-      
+
       if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -369,7 +371,7 @@ export function setupAdminRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       const { isAdmin } = await ensureAdminAccess(userId, storage);
-      
+
       if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -393,7 +395,7 @@ export function setupAdminRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       const { isAdmin } = await ensureAdminAccess(userId, storage);
-      
+
       if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -418,13 +420,13 @@ export function setupAdminRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       const { isAdmin } = await ensureAdminAccess(userId, storage);
-      
+
       if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const { id } = req.params;
-      
+
       // Don't allow deletion of the main admin
       const targetUser = await storage.getUser(id);
       if (targetUser?.email === "simporefabrice15@gmail.com") {
@@ -443,7 +445,7 @@ export function setupAdminRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       const { isAdmin } = await ensureAdminAccess(userId, storage);
-      
+
       if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -461,9 +463,9 @@ export function setupAdminRoutes(app: Express) {
 
       const passwordValidation = validatePassword(password);
       if (!passwordValidation.isValid) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "Password does not meet requirements",
-          requirements: passwordValidation.requirements 
+          requirements: passwordValidation.requirements,
         });
       }
 
@@ -474,7 +476,7 @@ export function setupAdminRoutes(app: Express) {
       }
 
       const passwordHash = await hashPassword(password);
-      
+
       const newUserId = await storage.createUser({
         email,
         passwordHash,
@@ -497,7 +499,7 @@ export function setupAdminRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       const { isAdmin, user } = await ensureAdminAccess(userId, storage);
-      
+
       if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -513,15 +515,15 @@ export function setupAdminRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       const { isAdmin } = await ensureAdminAccess(userId, storage);
-      
+
       if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const { firstName, lastName } = req.body;
-      
+
       await storage.updateUser(userId, { firstName, lastName });
-      
+
       // Update session
       if ((req as any).session?.user?.user) {
         (req as any).session.user.user.firstName = firstName;
@@ -540,7 +542,7 @@ export function setupAdminRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       const { isAdmin } = await ensureAdminAccess(userId, storage);
-      
+
       if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -558,7 +560,7 @@ export function setupAdminRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       const { isAdmin } = await ensureAdminAccess(userId, storage);
-      
+
       if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }

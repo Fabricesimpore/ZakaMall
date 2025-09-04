@@ -8,14 +8,13 @@ import { PaymentServiceFactory } from "../paymentService";
  * Handles payment processing, callbacks, and payment status
  */
 export function setupPaymentRoutes(app: Express) {
-
   // ============ TEST PAYMENT ROUTES ============
 
   // Test Orange Money payment
   app.post("/api/test/payments/orange-money", async (req, res) => {
     try {
       const { amount, customerPhone } = req.body;
-      
+
       // Simulate Orange Money API
       const mockPayment = {
         id: `test_om_${Date.now()}`,
@@ -38,7 +37,7 @@ export function setupPaymentRoutes(app: Express) {
   app.post("/api/test/payments/moov-money", async (req, res) => {
     try {
       const { amount, customerPhone } = req.body;
-      
+
       // Simulate Moov Money API
       const mockPayment = {
         id: `test_mm_${Date.now()}`,
@@ -61,7 +60,7 @@ export function setupPaymentRoutes(app: Express) {
   app.post("/api/test/payments/cash-on-delivery", async (req, res) => {
     try {
       const { amount, orderId } = req.body;
-      
+
       const mockPayment = {
         id: `test_cod_${Date.now()}`,
         amount,
@@ -83,7 +82,7 @@ export function setupPaymentRoutes(app: Express) {
   app.get("/api/test/payments/:paymentId/status", async (req, res) => {
     try {
       const { paymentId } = req.params;
-      
+
       // Simulate status check
       const mockStatus = {
         id: paymentId,
@@ -119,7 +118,7 @@ export function setupPaymentRoutes(app: Express) {
 
       // Get payment service
       const paymentService = PaymentServiceFactory.getService(paymentMethod);
-      
+
       try {
         const paymentResult = await paymentService.initiatePayment({
           orderId,
@@ -148,9 +147,9 @@ export function setupPaymentRoutes(app: Express) {
         });
       } catch (providerError: any) {
         console.error(`Payment provider error (${paymentMethod}):`, providerError);
-        res.status(500).json({ 
+        res.status(500).json({
           message: "Payment initiation failed",
-          error: providerError.message 
+          error: providerError.message,
         });
       }
     } catch (error) {
@@ -179,12 +178,14 @@ export function setupPaymentRoutes(app: Express) {
       // Check with payment provider for latest status
       try {
         const paymentService = PaymentServiceFactory.getService(payment.paymentMethod);
-        const providerStatus = await paymentService.checkPaymentStatus(payment.providerTransactionId);
+        const providerStatus = await paymentService.checkPaymentStatus(
+          payment.providerTransactionId
+        );
 
         // Update payment status if changed
         if (providerStatus.status !== payment.status) {
           await storage.updatePaymentStatus(paymentId, providerStatus.status);
-          
+
           // Update order status if payment completed
           if (providerStatus.status === "completed") {
             await storage.updateOrderStatus(payment.orderId, "confirmed");
@@ -254,13 +255,14 @@ export function setupPaymentRoutes(app: Express) {
   app.get("/api/payments/orange-money/callback", async (req, res) => {
     try {
       const { transactionId, status } = req.query;
-      
+
       console.log("✅ Orange Money callback:", { transactionId, status });
 
       // Redirect user to appropriate page
-      const redirectUrl = status === "success" 
-        ? `/orders/success?transaction=${transactionId}`
-        : `/orders/failed?transaction=${transactionId}`;
+      const redirectUrl =
+        status === "success"
+          ? `/orders/success?transaction=${transactionId}`
+          : `/orders/failed?transaction=${transactionId}`;
 
       res.redirect(redirectUrl);
     } catch (error) {
@@ -273,7 +275,7 @@ export function setupPaymentRoutes(app: Express) {
   app.get("/api/payments/orange-money/cancel", async (req, res) => {
     try {
       const { transactionId } = req.query;
-      
+
       console.log("❌ Orange Money payment cancelled:", transactionId);
       res.redirect(`/orders/cancelled?transaction=${transactionId}`);
     } catch (error) {

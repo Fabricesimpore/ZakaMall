@@ -40,7 +40,10 @@ export function setupAuthRoutes(app: Express) {
       await createUserSession(req, user);
 
       console.log(`✅ User ${user.email} logged in successfully`);
-      res.json({ message: "Login successful", user: { id: user.id, email: user.email, role: user.role } });
+      res.json({
+        message: "Login successful",
+        user: { id: user.id, email: user.email, role: user.role },
+      });
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ message: "Login failed" });
@@ -70,69 +73,74 @@ export function setupAuthRoutes(app: Express) {
   });
 
   // Get current user info with caching
-  app.get("/api/auth/user", isAuthenticated, cacheMiddleware({
-    ttl: 300, // 5 minutes - shorter for user profile
-    keyGenerator: (req) => `user:${(req as any).user.claims.sub}`,
-    skipCache: (req) => {
-      // Skip cache for admin users to ensure real-time admin protection works
-      const user = (req as any).session?.user?.user;
-      return user?.role === 'admin' || user?.email === 'simporefabrice15@gmail.com';
-    }
-  }), async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+  app.get(
+    "/api/auth/user",
+    isAuthenticated,
+    cacheMiddleware({
+      ttl: 300, // 5 minutes - shorter for user profile
+      keyGenerator: (req) => `user:${(req as any).user.claims.sub}`,
+      skipCache: (req) => {
+        // Skip cache for admin users to ensure real-time admin protection works
+        const user = (req as any).session?.user?.user;
+        return user?.role === "admin" || user?.email === "simporefabrice15@gmail.com";
+      },
+    }),
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const user = await storage.getUser(userId);
 
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // ADMIN PROTECTION: Force admin role for protected email
-      if (user.email === "simporefabrice15@gmail.com" && user.role !== "admin") {
-        console.log("🛡️ EMERGENCY: Admin user detected with wrong role, forcing update!");
-        console.log("🛡️ Before fix:", { email: user.email, role: user.role });
-
-        // Force update in database
-        await storage.updateUserRole(user.id, "admin");
-
-        // Fetch the corrected user
-        const correctedUser = await storage.getUser(userId);
-        console.log("🛡️ After fix:", { email: correctedUser?.email, role: correctedUser?.role });
-
-        if (correctedUser) {
-          user.role = "admin";
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
         }
-      }
 
-      // Update session with fresh user data
-      if ((req as any).session?.user) {
-        console.log("🔄 Updating session with fresh user data:", {
+        // ADMIN PROTECTION: Force admin role for protected email
+        if (user.email === "simporefabrice15@gmail.com" && user.role !== "admin") {
+          console.log("🛡️ EMERGENCY: Admin user detected with wrong role, forcing update!");
+          console.log("🛡️ Before fix:", { email: user.email, role: user.role });
+
+          // Force update in database
+          await storage.updateUserRole(user.id, "admin");
+
+          // Fetch the corrected user
+          const correctedUser = await storage.getUser(userId);
+          console.log("🛡️ After fix:", { email: correctedUser?.email, role: correctedUser?.role });
+
+          if (correctedUser) {
+            user.role = "admin";
+          }
+        }
+
+        // Update session with fresh user data
+        if ((req as any).session?.user) {
+          console.log("🔄 Updating session with fresh user data:", {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+          });
+          (req as any).session.user.user = user;
+        }
+
+        // Get additional role-specific data
+        let roleData = null;
+        if (user.role === "vendor") {
+          roleData = await storage.getVendorByUserId(userId);
+        } else if (user.role === "driver") {
+          roleData = await storage.getDriverByUserId(userId);
+        }
+
+        console.log("🔍 Final user data being returned:", {
           id: user.id,
           email: user.email,
           role: user.role,
         });
-        (req as any).session.user.user = user;
+        res.json({ ...user, roleData });
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        res.status(500).json({ message: "Failed to fetch user" });
       }
-
-      // Get additional role-specific data
-      let roleData = null;
-      if (user.role === "vendor") {
-        roleData = await storage.getVendorByUserId(userId);
-      } else if (user.role === "driver") {
-        roleData = await storage.getDriverByUserId(userId);
-      }
-
-      console.log("🔍 Final user data being returned:", {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      });
-      res.json({ ...user, roleData });
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
     }
-  });
+  );
 
   // Check setup status
   app.get("/api/auth/setup-status", isAuthenticated, async (req: any, res) => {
@@ -178,7 +186,7 @@ export function setupAuthRoutes(app: Express) {
       }
 
       await storage.updateUserRole(userId, role);
-      
+
       // Update session
       if ((req as any).session?.user?.user) {
         (req as any).session.user.user.role = role;
@@ -204,7 +212,10 @@ export function setupAuthRoutes(app: Express) {
       // Update session with fresh user data
       await createUserSession(req, user);
 
-      res.json({ message: "Session refreshed successfully", user: { id: user.id, email: user.email, role: user.role } });
+      res.json({
+        message: "Session refreshed successfully",
+        user: { id: user.id, email: user.email, role: user.role },
+      });
     } catch (error) {
       console.error("Error refreshing session:", error);
       res.status(500).json({ message: "Failed to refresh session" });
@@ -224,9 +235,9 @@ export function setupAuthRoutes(app: Express) {
       // Validate password
       const passwordValidation = validatePassword(password);
       if (!passwordValidation.isValid) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "Password does not meet requirements",
-          requirements: passwordValidation.requirements 
+          requirements: passwordValidation.requirements,
         });
       }
 
@@ -254,15 +265,15 @@ export function setupAuthRoutes(app: Express) {
       });
 
       console.log(`📱 Phone signup initiated for: ${phone}`);
-      
+
       // In production, send SMS with verification code
       console.log(`🔢 Verification code for ${phone}: ${verificationCode}`);
 
-      res.json({ 
-        message: "Verification code sent to your phone", 
+      res.json({
+        message: "Verification code sent to your phone",
         userId,
         // Remove this in production
-        verificationCode: process.env.NODE_ENV === "development" ? verificationCode : undefined
+        verificationCode: process.env.NODE_ENV === "development" ? verificationCode : undefined,
       });
     } catch (error) {
       console.error("Phone signup error:", error);
@@ -295,7 +306,10 @@ export function setupAuthRoutes(app: Express) {
       await createUserSession(req, user);
 
       console.log(`✅ Phone verified and user logged in: ${phone}`);
-      res.json({ message: "Phone verified successfully", user: { id: user.id, phone: user.phone, role: user.role } });
+      res.json({
+        message: "Phone verified successfully",
+        user: { id: user.id, phone: user.phone, role: user.role },
+      });
     } catch (error) {
       console.error("Phone verification error:", error);
       res.status(500).json({ message: "Verification failed" });
@@ -329,7 +343,10 @@ export function setupAuthRoutes(app: Express) {
       await createUserSession(req, user);
 
       console.log(`✅ User ${user.phone} logged in successfully`);
-      res.json({ message: "Login successful", user: { id: user.id, phone: user.phone, role: user.role } });
+      res.json({
+        message: "Login successful",
+        user: { id: user.id, phone: user.phone, role: user.role },
+      });
     } catch (error) {
       console.error("Phone login error:", error);
       res.status(500).json({ message: "Login failed" });
@@ -349,9 +366,9 @@ export function setupAuthRoutes(app: Express) {
       // Validate password
       const passwordValidation = validatePassword(password);
       if (!passwordValidation.isValid) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "Password does not meet requirements",
-          requirements: passwordValidation.requirements 
+          requirements: passwordValidation.requirements,
         });
       }
 
@@ -379,15 +396,15 @@ export function setupAuthRoutes(app: Express) {
       });
 
       console.log(`📧 Email signup initiated for: ${email}`);
-      
+
       // In production, send email with verification code
       console.log(`🔢 Verification code for ${email}: ${verificationCode}`);
 
-      res.json({ 
-        message: "Verification code sent to your email", 
+      res.json({
+        message: "Verification code sent to your email",
         userId,
         // Remove this in production
-        verificationCode: process.env.NODE_ENV === "development" ? verificationCode : undefined
+        verificationCode: process.env.NODE_ENV === "development" ? verificationCode : undefined,
       });
     } catch (error) {
       console.error("Email signup error:", error);
@@ -420,7 +437,10 @@ export function setupAuthRoutes(app: Express) {
       await createUserSession(req, user);
 
       console.log(`✅ Email verified and user logged in: ${email}`);
-      res.json({ message: "Email verified successfully", user: { id: user.id, email: user.email, role: user.role } });
+      res.json({
+        message: "Email verified successfully",
+        user: { id: user.id, email: user.email, role: user.role },
+      });
     } catch (error) {
       console.error("Email verification error:", error);
       res.status(500).json({ message: "Verification failed" });

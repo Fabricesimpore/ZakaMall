@@ -11,7 +11,6 @@ import { validatePassword } from "../utils/passwordValidation";
  * Handles vendor registration, management, and vendor-specific operations
  */
 export function setupVendorRoutes(app: Express) {
-
   // Create vendor profile (for existing authenticated users)
   app.post("/api/vendors", isAuthenticated, async (req: any, res) => {
     try {
@@ -35,7 +34,7 @@ export function setupVendorRoutes(app: Express) {
       });
 
       const vendor = await storage.createVendor(vendorData);
-      
+
       console.log(`🏪 Vendor profile created: ${vendor.storeName} for user ${user.email}`);
       res.json(vendor);
     } catch (error) {
@@ -67,7 +66,7 @@ export function setupVendorRoutes(app: Express) {
       }
 
       await storage.updateVendorStatus(id, status);
-      
+
       console.log(`📋 Vendor ${id} status updated to: ${status}`);
       res.json({ message: "Vendor status updated successfully" });
     } catch (error) {
@@ -114,9 +113,9 @@ export function setupVendorRoutes(app: Express) {
       // Validate password
       const passwordValidation = validatePassword(password);
       if (!passwordValidation.isValid) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "Password does not meet requirements",
-          requirements: passwordValidation.requirements 
+          requirements: passwordValidation.requirements,
         });
       }
 
@@ -176,13 +175,13 @@ export function setupVendorRoutes(app: Express) {
       const vendor = await storage.createVendor(vendorData);
 
       console.log(`🏪 Vendor registration: ${storeName} (${email || phone})`);
-      res.json({ 
+      res.json({
         message: "Vendor registration successful. Awaiting admin approval.",
         vendor: {
           id: vendor.id,
           storeName: vendor.storeName,
           status: vendor.status,
-        }
+        },
       });
     } catch (error) {
       console.error("Vendor registration error:", error);
@@ -194,18 +193,18 @@ export function setupVendorRoutes(app: Express) {
   app.get("/api/vendors/check-store-name", async (req, res) => {
     try {
       const { storeName } = req.query;
-      
+
       if (!storeName) {
         return res.status(400).json({ message: "Store name is required" });
       }
 
       const existingVendor = await storage.getVendorByStoreName(storeName as string);
       const isAvailable = !existingVendor;
-      
-      res.json({ 
+
+      res.json({
         available: isAvailable,
         storeName,
-        slug: isAvailable ? generateSlug(storeName as string) : null
+        slug: isAvailable ? generateSlug(storeName as string) : null,
       });
     } catch (error) {
       console.error("Error checking store name:", error);
@@ -249,7 +248,7 @@ export function setupVendorRoutes(app: Express) {
   app.get("/api/vendors/:id/trust-score", async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       const vendor = await storage.getVendor(id);
       if (!vendor) {
         return res.status(404).json({ message: "Vendor not found" });
@@ -257,10 +256,10 @@ export function setupVendorRoutes(app: Express) {
 
       // Calculate trust score based on various factors
       const trustMetrics = await storage.getVendorTrustMetrics(id);
-      
+
       // Simple trust score calculation (can be enhanced)
       let trustScore = 50; // Base score
-      
+
       // Factors that increase trust
       if (trustMetrics.totalOrders > 10) trustScore += 10;
       if (trustMetrics.totalOrders > 50) trustScore += 10;
@@ -269,7 +268,7 @@ export function setupVendorRoutes(app: Express) {
       if (trustMetrics.completionRate > 0.9) trustScore += 15;
       if (vendor.businessLicense) trustScore += 10;
       if (vendor.taxId) trustScore += 5;
-      
+
       // Factors that decrease trust
       if (trustMetrics.disputeRate > 0.1) trustScore -= 20;
       if (trustMetrics.avgRating < 3.0) trustScore -= 15;
@@ -289,7 +288,7 @@ export function setupVendorRoutes(app: Express) {
           disputeRate: trustMetrics.disputeRate,
           hasBusinessLicense: !!vendor.businessLicense,
           hasTaxId: !!vendor.taxId,
-        }
+        },
       });
     } catch (error) {
       console.error("Error calculating vendor trust score:", error);

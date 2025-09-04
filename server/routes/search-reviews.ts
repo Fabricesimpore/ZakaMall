@@ -9,7 +9,6 @@ import { searchProducts, autocomplete } from "../api/search";
  * Handles product search, suggestions, and review management
  */
 export function setupSearchReviewRoutes(app: Express) {
-
   // ============ SEARCH ROUTES ============
 
   // Main search endpoint (handled by dedicated search module)
@@ -44,7 +43,7 @@ export function setupSearchReviewRoutes(app: Express) {
   app.post("/api/behavior/track", async (req, res) => {
     try {
       const { action, productId, searchQuery, userId } = req.body;
-      
+
       // Track user behavior for recommendations
       await storage.trackUserBehavior({
         action,
@@ -65,7 +64,7 @@ export function setupSearchReviewRoutes(app: Express) {
   app.get("/api/recommendations", async (req, res) => {
     try {
       const { userId, type = "general", limit = "10" } = req.query;
-      
+
       const recommendations = await storage.getUserRecommendations({
         userId: userId as string,
         type: type as string,
@@ -131,7 +130,7 @@ export function setupSearchReviewRoutes(app: Express) {
       }
 
       const review = await storage.createReview(reviewData);
-      
+
       console.log(`⭐ Review created for product ${reviewData.productId} by user ${userId}`);
       res.json(review);
     } catch (error) {
@@ -189,11 +188,13 @@ export function setupSearchReviewRoutes(app: Express) {
 
       const vendor = await storage.getVendorByUserId(userId);
       if (!vendor || vendor.id !== product.vendorId) {
-        return res.status(403).json({ message: "You can only respond to reviews of your own products" });
+        return res
+          .status(403)
+          .json({ message: "You can only respond to reviews of your own products" });
       }
 
       await storage.createReviewResponse(id, userId, response.trim());
-      
+
       console.log(`💬 Vendor response added to review ${id}`);
       res.json({ message: "Response added successfully" });
     } catch (error) {
@@ -206,7 +207,7 @@ export function setupSearchReviewRoutes(app: Express) {
   app.get("/api/reviews/:id/responses", async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       const responses = await storage.getReviewResponses(id);
       res.json(responses);
     } catch (error) {
