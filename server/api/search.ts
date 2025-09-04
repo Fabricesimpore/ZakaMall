@@ -170,15 +170,15 @@ export async function searchProducts(req: Request, res: Response) {
     }
 
     const params = parseSearchParams(req);
-    
+
     // Create cache key from search parameters
     const cacheKey = `search:${JSON.stringify(params)}`;
-    
+
     // Try to get from cache first
     const cachedResult = await cacheService.get(cacheKey);
     if (cachedResult) {
-      console.log(`🎯 Search cache HIT for: ${params.q || 'empty query'}`);
-      res.setHeader('X-Cache', 'HIT');
+      console.log(`🎯 Search cache HIT for: ${params.q || "empty query"}`);
+      res.setHeader("X-Cache", "HIT");
       return res.json(cachedResult);
     }
 
@@ -226,10 +226,10 @@ export async function searchProducts(req: Request, res: Response) {
     };
 
     // Cache the result for 10 minutes
-    console.log(`💨 Search cache MISS for: ${params.q || 'empty query'}, caching result`);
+    console.log(`💨 Search cache MISS for: ${params.q || "empty query"}, caching result`);
     await cacheService.set(cacheKey, searchResult, 600); // 10 minutes TTL
-    res.setHeader('X-Cache', 'MISS');
-    
+    res.setHeader("X-Cache", "MISS");
+
     res.json(searchResult);
   } catch (error) {
     console.error("❌ Meilisearch search error, falling back to database:", error);
@@ -267,12 +267,12 @@ export async function autocomplete(req: Request, res: Response) {
 
     // Create cache key for autocomplete
     const cacheKey = `autocomplete:${query.toLowerCase()}`;
-    
+
     // Try to get from cache first
     const cachedResult = await cacheService.get(cacheKey);
     if (cachedResult) {
       console.log(`🎯 Autocomplete cache HIT for: ${query}`);
-      res.setHeader('X-Cache', 'HIT');
+      res.setHeader("X-Cache", "HIT");
       return res.json(cachedResult);
     }
 
@@ -305,7 +305,7 @@ export async function autocomplete(req: Request, res: Response) {
     // Cache the result for 5 minutes (shorter than search results since autocomplete changes more frequently)
     console.log(`💨 Autocomplete cache MISS for: ${query}, caching result`);
     await cacheService.set(cacheKey, autocompleteResult, 300); // 5 minutes TTL
-    res.setHeader('X-Cache', 'MISS');
+    res.setHeader("X-Cache", "MISS");
 
     res.json(autocompleteResult);
   } catch (error) {

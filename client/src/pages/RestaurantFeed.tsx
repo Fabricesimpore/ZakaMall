@@ -816,7 +816,7 @@ export default function RestaurantFeed() {
       container.removeEventListener("touchend", handleTouchEnd);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [currentIndex, products.length]);
+  }, [currentIndex, products.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Get current products to display (filtered or all)
   const displayProducts =
