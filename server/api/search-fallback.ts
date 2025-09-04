@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { db } from "../db";
 import { products, vendors } from "@shared/schema";
-import { eq, and, or, gte, lte, desc, asc, sql, SQL } from "drizzle-orm";
+import { eq, and, or, desc, asc, sql, SQL } from "drizzle-orm";
 import type { SearchResult } from "@shared/search-types";
 import { expandSearchQuery } from "../utils/search-synonyms";
 
@@ -20,7 +20,7 @@ export async function databaseSearch(req: Request, res: Response) {
       price_min,
       price_max,
       in_stock,
-      currency,
+      currency: _currency,
     } = req.query;
 
     // Expand search query with synonyms

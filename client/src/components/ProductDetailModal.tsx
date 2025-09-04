@@ -216,7 +216,10 @@ export default function ProductDetailModal({
                                 setVideoLoading(false);
                               }}
                               onLoadStart={() => {
-                                console.log("Video loading started:", getVideoUrl(currentMedia.url));
+                                console.log(
+                                  "Video loading started:",
+                                  getVideoUrl(currentMedia.url)
+                                );
                                 setVideoLoading(true);
                                 setVideoError(false);
                               }}
@@ -240,7 +243,7 @@ export default function ProductDetailModal({
                                 <span className="text-white ml-3">Chargement de la vidéo...</span>
                               </div>
                             )}
-                            
+
                             {/* Video error state */}
                             {videoError && (
                               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70">
@@ -250,13 +253,15 @@ export default function ProductDetailModal({
                                 <span className="text-red-400 text-center">
                                   Erreur lors du chargement de la vidéo
                                   <br />
-                                  <button 
+                                  <button
                                     className="text-white underline mt-2"
                                     onClick={() => {
                                       setVideoError(false);
                                       setVideoLoading(true);
                                       // Force video reload
-                                      const video = document.querySelector(`video[src*="${currentMedia.url}"]`) as HTMLVideoElement;
+                                      const video = document.querySelector(
+                                        `video[src*="${currentMedia.url}"]`
+                                      ) as HTMLVideoElement;
                                       if (video) {
                                         video.load();
                                       }

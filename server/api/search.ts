@@ -159,7 +159,10 @@ function buildFilterString(filters: SearchFilters): string {
 export async function searchProducts(req: Request, res: Response) {
   try {
     // Check if Meilisearch is configured before trying to use it
-    if (!process.env.MEILI_HOST || (!process.env.MEILI_MASTER_KEY && !process.env.MEILI_SEARCH_KEY)) {
+    if (
+      !process.env.MEILI_HOST ||
+      (!process.env.MEILI_MASTER_KEY && !process.env.MEILI_SEARCH_KEY)
+    ) {
       console.log("⚠️ Meilisearch not configured, using database fallback");
       const { databaseSearch } = await import("./search-fallback");
       return await databaseSearch(req, res);
@@ -172,7 +175,10 @@ export async function searchProducts(req: Request, res: Response) {
     try {
       await getClient().health();
     } catch (connectionError) {
-      console.error("❌ Meilisearch connection failed, falling back to database:", connectionError instanceof Error ? connectionError.message : "Connection error");
+      console.error(
+        "❌ Meilisearch connection failed, falling back to database:",
+        connectionError instanceof Error ? connectionError.message : "Connection error"
+      );
       const { databaseSearch } = await import("./search-fallback");
       return await databaseSearch(req, res);
     }
