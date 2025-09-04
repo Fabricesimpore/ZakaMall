@@ -6,7 +6,7 @@ import { securityMiddleware } from "./security/SecurityMiddleware";
 import { healthz } from "./healthz";
 import { withRequestTimeout } from "./timeouts";
 import { ensureCacheReady } from "./cache";
-import { setupRoutes } from "./routes";
+import { setupRoutes } from "./routes/index";
 
 /**
  * Register all routes and setup server infrastructure
