@@ -84,7 +84,7 @@ class CacheService {
     try {
       if (!this.isReady()) return false;
       const serialized = JSON.stringify(value);
-      
+
       if (ttlSeconds) {
         await this.client.setex(key, ttlSeconds, serialized);
       } else {
@@ -138,12 +138,12 @@ class CacheService {
 
   // Search cache operations
   async cacheSearchResults(query: string, results: any, ttl: number = 600): Promise<void> {
-    const searchKey = `search:${Buffer.from(query).toString('base64')}`;
+    const searchKey = `search:${Buffer.from(query).toString("base64")}`;
     await this.set(searchKey, results, ttl);
   }
 
   async getSearchResults(query: string): Promise<any | null> {
-    const searchKey = `search:${Buffer.from(query).toString('base64')}`;
+    const searchKey = `search:${Buffer.from(query).toString("base64")}`;
     return await this.get(searchKey);
   }
 
@@ -238,6 +238,6 @@ export const CacheKeys = {
   vendor: (id: string) => `vendor:${id}`,
   user: (id: string) => `user:${id}`,
   cart: (userId: string) => `cart:${userId}`,
-  search: (query: string) => `search:${Buffer.from(query).toString('base64')}`,
+  search: (query: string) => `search:${Buffer.from(query).toString("base64")}`,
   categories: () => "categories",
 } as const;

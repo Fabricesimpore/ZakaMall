@@ -13,13 +13,13 @@ export interface CacheOptions {
 function defaultKeyGenerator(req: Request): string {
   const url = req.originalUrl || req.url;
   const method = req.method;
-  const userId = (req.session as any)?.user?.id || 'anonymous';
-  
+  const userId = (req.session as any)?.user?.id || "anonymous";
+
   // Include user ID for personalized content
-  if (url.includes('/cart') || url.includes('/orders') || url.includes('/profile')) {
+  if (url.includes("/cart") || url.includes("/orders") || url.includes("/profile")) {
     return `${method}:${url}:${userId}`;
   }
-  
+
   return `${method}:${url}`;
 }
 
@@ -35,7 +35,7 @@ export function cacheMiddleware(options: CacheOptions = {}) {
 
   return async (req: Request, res: Response, next: NextFunction) => {
     // Skip caching for non-GET requests
-    if (req.method !== 'GET') {
+    if (req.method !== "GET") {
       return next();
     }
 
@@ -49,15 +49,15 @@ export function cacheMiddleware(options: CacheOptions = {}) {
     try {
       // Try to get from cache
       const cachedData = await cacheService.get(cacheKey);
-      
+
       if (cachedData) {
         onCacheHit(cacheKey);
         console.log(`🎯 Cache HIT for: ${cacheKey}`);
-        
+
         // Set cache headers
-        res.setHeader('X-Cache', 'HIT');
-        res.setHeader('X-Cache-Key', cacheKey);
-        
+        res.setHeader("X-Cache", "HIT");
+        res.setHeader("X-Cache-Key", cacheKey);
+
         return res.json(cachedData);
       }
 
@@ -67,18 +67,18 @@ export function cacheMiddleware(options: CacheOptions = {}) {
 
       // Override res.json to cache the response
       const originalJson = res.json;
-      res.json = function(data: any) {
+      res.json = function (data: any) {
         // Only cache successful responses
         if (res.statusCode === 200) {
-          cacheService.set(cacheKey, data, ttl).catch(error => {
+          cacheService.set(cacheKey, data, ttl).catch((error) => {
             console.error(`❌ Failed to cache response for ${cacheKey}:`, error);
           });
         }
-        
+
         // Set cache headers
-        res.setHeader('X-Cache', 'MISS');
-        res.setHeader('X-Cache-Key', cacheKey);
-        
+        res.setHeader("X-Cache", "MISS");
+        res.setHeader("X-Cache-Key", cacheKey);
+
         return originalJson.call(this, data);
       };
 
@@ -98,7 +98,7 @@ export const ProductCacheConfig = {
     keyGenerator: (req: Request) => `product:${req.params.id}`,
   },
 
-  // Product lists - cache for 10 minutes  
+  // Product lists - cache for 10 minutes
   productList: {
     ttl: 600, // 10 minutes
     keyGenerator: (req: Request) => {
@@ -110,19 +110,19 @@ export const ProductCacheConfig = {
   // Similar products - cache for 1 hour
   similarProducts: {
     ttl: 3600, // 1 hour
-    keyGenerator: (req: Request) => `similar:${req.params.id}:${req.query.limit || '10'}`,
+    keyGenerator: (req: Request) => `similar:${req.params.id}:${req.query.limit || "10"}`,
   },
 
   // Restaurant products - cache for 15 minutes
   restaurantProducts: {
     ttl: 900, // 15 minutes
-    keyGenerator: () => 'restaurant_products',
+    keyGenerator: () => "restaurant_products",
   },
 
   // Product reviews - cache for 20 minutes
   productReviews: {
     ttl: 1200, // 20 minutes
-    keyGenerator: (req: Request) => `reviews:${req.params.id}:${req.query.enhanced || 'false'}`,
+    keyGenerator: (req: Request) => `reviews:${req.params.id}:${req.query.enhanced || "false"}`,
   },
 };
 
@@ -139,8 +139,8 @@ export class CacheInvalidator {
   }
 
   static async invalidateProductList() {
-    await cacheService.invalidatePattern('products:*');
-    console.log('🗑️ Invalidated product list cache');
+    await cacheService.invalidatePattern("products:*");
+    console.log("🗑️ Invalidated product list cache");
   }
 
   static async invalidateVendor(vendorId: string) {
@@ -152,15 +152,12 @@ export class CacheInvalidator {
   }
 
   static async invalidateUser(userId: string) {
-    await Promise.all([
-      cacheService.del(`user:${userId}`),
-      cacheService.del(`cart:${userId}`),
-    ]);
+    await Promise.all([cacheService.del(`user:${userId}`), cacheService.del(`cart:${userId}`)]);
     console.log(`🗑️ Invalidated cache for user: ${userId}`);
   }
 
   static async invalidateAll() {
-    const deleted = await cacheService.invalidatePattern('zakamal:*');
+    const deleted = await cacheService.invalidatePattern("zakamal:*");
     console.log(`🗑️ Invalidated all cache: ${deleted} keys deleted`);
   }
 }

@@ -3,18 +3,14 @@ dotenv.config();
 
 import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";
-import rateLimit from "express-rate-limit";
-import { setupRoutes } from "./routes";
+import { registerRoutes } from "./routes";
 import { setupVite } from "./vite";
 import { serveStaticFiles } from "./static-files";
 import { requestLogger, errorLogger, logInfo } from "./logger";
 import { validateEnvironment, getNumericEnv } from "./envValidator";
 import { runStartupMigrations } from "./startup-migrations";
 import { emergencyDatabaseFix } from "./emergency-db-fix";
-import {
-  runStartupHealthCheck,
-  createHealthCheckMiddleware,
-} from "./database/startup-health-check";
+import { runStartupHealthCheck } from "./database/startup-health-check";
 
 // Validate environment variables on startup
 validateEnvironment();
@@ -29,55 +25,9 @@ if (process.env.NODE_ENV === "production") {
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
-// Rate limiting configuration
-const _limiter = rateLimit({
-  windowMs: getNumericEnv("RATE_LIMIT_WINDOW_MS", 900000), // 15 minutes default
-  max: getNumericEnv("RATE_LIMIT_MAX_REQUESTS", 100), // limit each IP to 100 requests per windowMs
-  message: {
-    error: "Too many requests from this IP, please try again later.",
-    retryAfter: "15 minutes",
-  },
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  // Skip rate limiting for health checks and static assets
-  skip: (req) => {
-    return (
-      req.path === "/health" ||
-      req.path === "/api/health" ||
-      req.path.startsWith("/assets/") ||
-      req.path.startsWith("/static/")
-    );
-  },
-});
-
-// Apply rate limiting to API routes only in production
-// Temporarily disabled for debugging admin login issue
-// if (process.env.NODE_ENV === "production") {
-//   app.use("/api", limiter);
-// }
-
-// More lenient rate limiting for authentication endpoints
-const _authLimiter = rateLimit({
-  windowMs: 900000, // 15 minutes
-  max: process.env.NODE_ENV === "development" ? 1000 : 10, // Much higher limit in development
-  message: {
-    error: "Too many authentication attempts, please try again later.",
-    retryAfter: "15 minutes",
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-// Apply auth rate limiting to specific endpoints (but skip in development for easier testing)
-// Temporarily disabled for debugging
-// if (process.env.NODE_ENV === "production") {
-//   app.use("/api/auth", authLimiter);
-//   app.use("/api/register", authLimiter);
-//   app.use("/api/login", authLimiter);
-//   app.use("/api/verify", authLimiter);
-// } else {
-console.log("⚠️  Auth rate limiting disabled in development mode");
-// }
+// Rate limiting temporarily disabled for debugging
+// TODO: Re-enable rate limiting in production when needed
+console.log("⚠️  Rate limiting disabled in development mode");
 
 // Request logging middleware
 app.use(requestLogger);
