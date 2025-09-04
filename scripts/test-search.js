@@ -5,7 +5,7 @@
  * Run this after starting Meilisearch with: docker-compose -f docker-compose.meili.yml up -d
  */
 
-const { MeiliSearch } = require("meilisearch");
+import { MeiliSearch } from "meilisearch";
 
 async function testSearch() {
   try {

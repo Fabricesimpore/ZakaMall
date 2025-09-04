@@ -20,6 +20,7 @@ export async function databaseSearch(req: Request, res: Response) {
       price_min,
       price_max,
       in_stock,
+      currency,
     } = req.query;
 
     // Expand search query with synonyms
@@ -56,7 +57,7 @@ export async function databaseSearch(req: Request, res: Response) {
       // If the price looks like it's already in cents (> 10000), use as is
       // Otherwise multiply by 100 to convert CFA to cents
       const minCents = minPrice > 10000 ? minPrice : minPrice * 100;
-      conditions.push(gte(products.price, minCents));
+      conditions.push(sql`${products.price}::numeric >= ${minCents}`);
     }
 
     if (price_max) {
@@ -64,12 +65,17 @@ export async function databaseSearch(req: Request, res: Response) {
       // If the price looks like it's already in cents (> 10000), use as is
       // Otherwise multiply by 100 to convert CFA to cents
       const maxCents = maxPrice > 10000 ? maxPrice : maxPrice * 100;
-      conditions.push(lte(products.price, maxCents));
+      conditions.push(sql`${products.price}::numeric <= ${maxCents}`);
     }
 
     if (in_stock === "true") {
       conditions.push(sql`${products.quantity} > 0`);
     }
+
+    // Handle currency filtering if specified (skip if currency field doesn't exist)
+    // if (currency) {
+    //   conditions.push(eq(products.currency, currency as string));
+    // }
 
     // Parse pagination
     const pageNum = Math.max(1, Number(page));
@@ -106,6 +112,7 @@ export async function databaseSearch(req: Request, res: Response) {
         reviewCount: products.reviewCount,
         isActive: products.isActive,
         isFeatured: products.isFeatured,
+        // currency: products.currency, // Skip if field doesn't exist
         createdAt: products.createdAt,
       })
       .from(products)
@@ -128,23 +135,26 @@ export async function databaseSearch(req: Request, res: Response) {
     const hits = productsQuery.map((p) => ({
       id: p.id,
       title: p.name,
-      description: p.description,
+      description: p.description || "",
       price: p.price,
-      price_cents: p.price, // Already in cents in DB
-      currency: "CFA",
+      price_cents: Number(p.price) || 0, // Convert to number
+      currency: "CFA", // Default currency
       compare_at_price: p.compareAtPrice,
-      images: p.images,
+      images: p.images || [],
       categories: p.categoryId ? [p.categoryId] : [],
       vendor_id: p.vendorId,
       vendor_name: p.vendorName || "Unknown",
       sku: p.sku,
       in_stock: (p.quantity || 0) > 0,
+      stock_qty: p.quantity || 0,
       rating: p.rating,
       review_count: p.reviewCount,
-      published: p.isActive,
+      published: p.isActive || false,
       approved: true,
       is_featured: p.isFeatured,
       created_at: p.createdAt?.toISOString(),
+      updated_at: p.createdAt?.toISOString(), // Use createdAt as fallback
+      popularity_score: p.rating || 0,
     }));
 
     const searchResult: SearchResult = {

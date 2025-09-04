@@ -47,13 +47,11 @@ function parseSearchParams(req: Request): SearchParams {
 
   if (vendor_id) filters.vendor_id = vendor_id as string;
 
-  // Handle currency - default to CFA if not specified
+  // Handle currency - only filter if specified
   if (currency) {
     filters.currency = currency as string;
-  } else {
-    // Filter by CFA by default since most products should be in CFA
-    filters.currency = "CFA";
   }
+  // Remove default CFA filter to show all products regardless of currency
 
   if (in_stock !== undefined) filters.in_stock = in_stock === "true";
 
@@ -160,8 +158,24 @@ function buildFilterString(filters: SearchFilters): string {
  */
 export async function searchProducts(req: Request, res: Response) {
   try {
+    // Check if Meilisearch is configured before trying to use it
+    if (!process.env.MEILI_HOST || (!process.env.MEILI_MASTER_KEY && !process.env.MEILI_SEARCH_KEY)) {
+      console.log("⚠️ Meilisearch not configured, using database fallback");
+      const { databaseSearch } = await import("./search-fallback");
+      return await databaseSearch(req, res);
+    }
+
     const params = parseSearchParams(req);
     const index = getIndex();
+
+    // Test connection before searching
+    try {
+      await getClient().health();
+    } catch (connectionError) {
+      console.error("❌ Meilisearch connection failed, falling back to database:", connectionError instanceof Error ? connectionError.message : "Connection error");
+      const { databaseSearch } = await import("./search-fallback");
+      return await databaseSearch(req, res);
+    }
 
     // Expand the search query with synonyms
     const expandedQuery = expandSearchQuery(params.q || "");
@@ -194,11 +208,17 @@ export async function searchProducts(req: Request, res: Response) {
 
     res.json(searchResult);
   } catch (error) {
-    console.error("❌ Search error:", error);
-    res.status(500).json({
-      error: "Search failed",
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
+    console.error("❌ Meilisearch search error, falling back to database:", error);
+    try {
+      const { databaseSearch } = await import("./search-fallback");
+      return await databaseSearch(req, res);
+    } catch (fallbackError) {
+      console.error("❌ Database fallback also failed:", fallbackError);
+      res.status(500).json({
+        error: "Search temporarily unavailable",
+        message: "Both Meilisearch and database search failed",
+      });
+    }
   }
 }
 
