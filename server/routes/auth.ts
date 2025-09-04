@@ -1,11 +1,6 @@
 import type { Express } from "express";
 import { storage } from "../storage";
-import {
-  isAuthenticated,
-  hashPassword,
-  verifyPassword,
-  createUserSession,
-} from "../auth";
+import { isAuthenticated, hashPassword, verifyPassword, createUserSession } from "../auth";
 import { validatePassword } from "../utils/passwordValidation";
 import { loginProtection } from "../security/SecurityMiddleware";
 import { cacheMiddleware } from "../middleware/cacheMiddleware";
