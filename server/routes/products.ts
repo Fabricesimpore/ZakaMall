@@ -1,13 +1,12 @@
 import type { Express } from "express";
 import { storage } from "../storage";
-import { isAuthenticated, isVendor } from "../auth";
+import { isAuthenticated } from "../auth";
 import { insertProductSchema } from "@shared/schema";
 import {
   cacheMiddleware,
   ProductCacheConfig,
   CacheInvalidator,
 } from "../middleware/cacheMiddleware";
-import CloudinaryService from "../cloudinaryStorage";
 
 /**
  * Product and Category Routes

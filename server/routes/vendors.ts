@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { storage } from "../storage";
-import { isAuthenticated, hashPassword, createUserSession } from "../auth";
+import { isAuthenticated, hashPassword } from "../auth";
 import { adminProtection } from "../security/SecurityMiddleware";
 import { insertVendorSchema } from "@shared/schema";
 import { generateSlug } from "../utils/vendor-slug";

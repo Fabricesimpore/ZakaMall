@@ -154,7 +154,7 @@ export async function runStartupHealthCheck(autoFix: boolean = true): Promise<He
     try {
       await db.execute(sql`CREATE TEMP TABLE health_check_temp (id serial)`);
       await db.execute(sql`DROP TABLE health_check_temp`);
-    } catch (_writeError) {
+    } catch {
       result.warnings.push("Database write permissions may be limited");
       if (result.overall === "healthy") result.overall = "warning";
     }

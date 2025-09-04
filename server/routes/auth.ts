@@ -1,7 +1,6 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import {
-  setupAuth,
   isAuthenticated,
   hashPassword,
   verifyPassword,
