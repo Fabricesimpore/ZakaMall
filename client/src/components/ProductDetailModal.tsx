@@ -48,6 +48,8 @@ export default function ProductDetailModal({
   const [isAdded, setIsAdded] = useState(false);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [videoError, setVideoError] = useState(false);
+  const [videoLoading, setVideoLoading] = useState(false);
 
   // Fetch product details
   const { data: product, isLoading } = useQuery<ProductDetails>({
@@ -67,6 +69,8 @@ export default function ProductDetailModal({
       setIsAdded(false);
       setCurrentMediaIndex(0);
       setIsVideoPlaying(false);
+      setVideoError(false);
+      setVideoLoading(false);
     }
   }, [isOpen, productId]);
 
@@ -124,6 +128,19 @@ export default function ProductDetailModal({
     return imageUrl;
   };
 
+  const getVideoUrl = (videoUrl: string) => {
+    if (videoUrl.startsWith("/objects/")) {
+      return videoUrl;
+    }
+    if (videoUrl.includes("cloudinary.com")) {
+      // Apply Cloudinary video transformations for better playback
+      const baseUrl = videoUrl.split("/upload/")[0] + "/upload/";
+      const videoPath = videoUrl.split("/upload/")[1];
+      return `${baseUrl}q_auto,f_auto/${videoPath}`;
+    }
+    return videoUrl;
+  };
+
   // Combine images and videos into a single media array
   const images = product?.images?.filter((img) => img) || [];
   const videos = product?.videos?.filter((vid) => vid) || [];
@@ -132,6 +149,15 @@ export default function ProductDetailModal({
     ...videos.map((vid) => ({ type: "video", url: vid })),
   ];
   const currentMedia = allMedia[currentMediaIndex];
+
+  // Reset video states when changing media
+  useEffect(() => {
+    if (currentMedia?.type === "video") {
+      setVideoError(false);
+      setVideoLoading(false);
+      setIsVideoPlaying(false);
+    }
+  }, [currentMediaIndex, currentMedia]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -170,18 +196,80 @@ export default function ProductDetailModal({
                         currentMedia.type === "video" ? (
                           <div className="relative w-full h-96 bg-black rounded-lg overflow-hidden">
                             <video
-                              src={currentMedia.url}
                               className="w-full h-full object-cover"
                               controls
                               loop
                               muted
                               playsInline
-                              poster=""
-                              onPlay={() => setIsVideoPlaying(true)}
+                              preload="metadata"
+                              crossOrigin="anonymous"
+                              onPlay={() => {
+                                setIsVideoPlaying(true);
+                                setVideoError(false);
+                              }}
                               onPause={() => setIsVideoPlaying(false)}
                               onEnded={() => setIsVideoPlaying(false)}
-                            />
-                            {!isVideoPlaying && (
+                              onError={(e) => {
+                                console.error("Video playback error:", e);
+                                console.error("Video URL:", getVideoUrl(currentMedia.url));
+                                setVideoError(true);
+                                setVideoLoading(false);
+                              }}
+                              onLoadStart={() => {
+                                console.log("Video loading started:", getVideoUrl(currentMedia.url));
+                                setVideoLoading(true);
+                                setVideoError(false);
+                              }}
+                              onLoadedData={() => {
+                                console.log("Video data loaded successfully");
+                                setVideoLoading(false);
+                                setVideoError(false);
+                              }}
+                            >
+                              <source src={getVideoUrl(currentMedia.url)} type="video/mp4" />
+                              <source src={getVideoUrl(currentMedia.url)} type="video/webm" />
+                              <source src={getVideoUrl(currentMedia.url)} type="video/ogg" />
+                              Your browser does not support the video tag.
+                            </video>
+                            {/* Video loading state */}
+                            {videoLoading && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                                <div className="bg-white bg-opacity-20 rounded-full p-4">
+                                  <i className="fas fa-spinner fa-spin text-white text-2xl"></i>
+                                </div>
+                                <span className="text-white ml-3">Chargement de la vidéo...</span>
+                              </div>
+                            )}
+                            
+                            {/* Video error state */}
+                            {videoError && (
+                              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70">
+                                <div className="bg-red-500 bg-opacity-20 rounded-full p-4 mb-3">
+                                  <i className="fas fa-exclamation-triangle text-red-400 text-2xl"></i>
+                                </div>
+                                <span className="text-red-400 text-center">
+                                  Erreur lors du chargement de la vidéo
+                                  <br />
+                                  <button 
+                                    className="text-white underline mt-2"
+                                    onClick={() => {
+                                      setVideoError(false);
+                                      setVideoLoading(true);
+                                      // Force video reload
+                                      const video = document.querySelector(`video[src*="${currentMedia.url}"]`) as HTMLVideoElement;
+                                      if (video) {
+                                        video.load();
+                                      }
+                                    }}
+                                  >
+                                    Réessayer
+                                  </button>
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Play button overlay */}
+                            {!isVideoPlaying && !videoLoading && !videoError && (
                               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
                                 <div className="bg-white bg-opacity-20 rounded-full p-4">
                                   <i className="fas fa-play text-white text-2xl ml-1"></i>
@@ -264,9 +352,11 @@ export default function ProductDetailModal({
                             {media.type === "video" ? (
                               <>
                                 <video
-                                  src={media.url}
+                                  src={getVideoUrl(media.url)}
                                   className="w-full h-full object-cover"
                                   muted
+                                  preload="metadata"
+                                  onError={(e) => console.error("Thumbnail video error:", e)}
                                 />
                                 <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
                                   <i className="fas fa-play text-white text-xs"></i>
