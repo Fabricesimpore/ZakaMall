@@ -15,7 +15,10 @@ import { setupRoutes } from "./routes/index";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize cache service
   console.log("🚀 Initializing Redis cache...");
-  await ensureCacheReady();
+  const cacheReady = await ensureCacheReady();
+  if (!cacheReady) {
+    console.log("⚠️ Continuing without Redis cache - performance may be reduced");
+  }
 
   // Security middleware - apply to all routes
   app.use(securityMiddleware);
