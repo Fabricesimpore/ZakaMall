@@ -3,7 +3,7 @@ import { storage } from "../storage";
 import { isAuthenticated, hashPassword } from "../auth";
 import { adminProtection } from "../security/SecurityMiddleware";
 import { insertVendorSchema } from "@shared/schema";
-import { generateSlug } from "../utils/vendor-slug";
+import { generateUniqueStoreSlug } from "../utils/vendor-slug";
 import { validatePassword } from "../utils/passwordValidation";
 
 /**
@@ -30,7 +30,7 @@ export function setupVendorRoutes(app: Express) {
       const vendorData = insertVendorSchema.parse({
         ...req.body,
         userId,
-        storeSlug: generateSlug(req.body.storeName),
+        storeSlug: await generateUniqueStoreSlug(req.body.storeName),
       });
 
       const vendor = await storage.createVendor(vendorData);
@@ -156,7 +156,7 @@ export function setupVendorRoutes(app: Express) {
       const vendorData = insertVendorSchema.parse({
         userId,
         storeName,
-        storeSlug: generateSlug(storeName),
+        storeSlug: await generateUniqueStoreSlug(storeName),
         businessName,
         businessType,
         businessAddress,
@@ -204,7 +204,7 @@ export function setupVendorRoutes(app: Express) {
       res.json({
         available: isAvailable,
         storeName,
-        slug: isAvailable ? generateSlug(storeName as string) : null,
+        slug: isAvailable ? await generateUniqueStoreSlug(storeName as string) : null,
       });
     } catch (error) {
       console.error("Error checking store name:", error);
