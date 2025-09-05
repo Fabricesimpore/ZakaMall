@@ -15,8 +15,12 @@ class CacheService {
 
   constructor() {
     // Check if Redis should be disabled in production without proper config
-    if (process.env.NODE_ENV === 'production' && !process.env.REDIS_URL && !process.env.REDIS_HOST) {
-      console.log('📝 Redis cache disabled - running without cache in production');
+    if (
+      process.env.NODE_ENV === "production" &&
+      !process.env.REDIS_URL &&
+      !process.env.REDIS_HOST
+    ) {
+      console.log("📝 Redis cache disabled - running without cache in production");
       // Create a mock client that won't try to connect
       this.client = null as any;
       return;
@@ -43,7 +47,7 @@ class CacheService {
 
   private setupEventHandlers() {
     if (!this.client) return;
-    
+
     this.client.on("connect", () => {
       console.log("✅ Redis connected successfully");
       this.isConnected = true;
@@ -66,10 +70,10 @@ class CacheService {
 
   async connect(): Promise<boolean> {
     if (!this.client) {
-      console.log('📝 Redis cache is disabled');
+      console.log("📝 Redis cache is disabled");
       return false;
     }
-    
+
     try {
       await this.client.connect();
       return true;
@@ -243,8 +247,8 @@ export const cacheService = new CacheService();
 // Helper function to ensure cache is ready
 export async function ensureCacheReady(): Promise<boolean> {
   // Check if Redis is disabled in production
-  if (process.env.NODE_ENV === 'production' && !process.env.REDIS_URL && !process.env.REDIS_HOST) {
-    console.log('⚠️ Redis not configured in production, running without cache');
+  if (process.env.NODE_ENV === "production" && !process.env.REDIS_URL && !process.env.REDIS_HOST) {
+    console.log("⚠️ Redis not configured in production, running without cache");
     return false;
   }
 
