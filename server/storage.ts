@@ -897,7 +897,11 @@ export class DatabaseStorage implements IStorage {
       conditions.push(sql`${products.rating}::numeric >= ${filters.minRating}`);
     }
 
-    const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
+    const whereCondition = conditions.length === 0 
+      ? undefined 
+      : conditions.length === 1 
+        ? conditions[0] 
+        : and(...conditions);
 
     // Default pagination settings
     const limit = filters?.limit || 20;
@@ -924,20 +928,31 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Get total count for pagination
-    const countResult = await db
+    const countQuery = db
       .select({ count: sql<number>`count(*)::int` })
-      .from(products)
-      .where(whereCondition);
+      .from(products);
+    
+    const countResult = whereCondition 
+      ? await countQuery.where(whereCondition)
+      : await countQuery;
+    
     const total = countResult[0]?.count || 0;
 
     // Get paginated results
-    const items = await db
+    const itemsQuery = db
       .select()
-      .from(products)
-      .where(whereCondition)
-      .orderBy(orderByClause)
-      .limit(limit)
-      .offset(offset);
+      .from(products);
+    
+    const items = whereCondition
+      ? await itemsQuery
+          .where(whereCondition)
+          .orderBy(orderByClause)
+          .limit(limit)
+          .offset(offset)
+      : await itemsQuery
+          .orderBy(orderByClause)
+          .limit(limit)
+          .offset(offset);
 
     return {
       items,
