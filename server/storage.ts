@@ -844,64 +844,8 @@ export class DatabaseStorage implements IStorage {
     includeInactive?: boolean;
     minRating?: number;
   }): Promise<{ items: Product[]; total: number; hasMore: boolean }> {
-    const conditions = [];
-
-    // Only filter by isActive for marketplace queries (not vendor queries)
-    if (!filters?.includeInactive) {
-      conditions.push(eq(products.isActive, true));
-    }
-
-    if (filters?.vendorId) {
-      conditions.push(eq(products.vendorId, filters.vendorId));
-    }
-
-    if (filters?.categoryId) {
-      conditions.push(eq(products.categoryId, filters.categoryId));
-    }
-
-    if (filters?.search) {
-      // Enhanced search: name, description, and SKU
-      const searchTerm = filters.search.toLowerCase();
-      conditions.push(
-        or(
-          ilike(products.name, `%${searchTerm}%`),
-          ilike(products.description, `%${searchTerm}%`),
-          ilike(products.sku, `%${searchTerm}%`)
-        )!
-      );
-    }
-
-    // Price range filtering
-    if (filters?.minPrice !== undefined) {
-      conditions.push(sql`${products.price}::numeric >= ${filters.minPrice}`);
-    }
-
-    if (filters?.maxPrice !== undefined) {
-      conditions.push(sql`${products.price}::numeric <= ${filters.maxPrice}`);
-    }
-
-    // Stock filtering
-    if (filters?.inStock === true) {
-      conditions.push(
-        or(
-          eq(products.trackQuantity, false), // Products that don't track quantity are always "in stock"
-          sql`${products.quantity} > 0` // Products with quantity > 0
-        )!
-      );
-    } else if (filters?.inStock === false) {
-      conditions.push(and(eq(products.trackQuantity, true), sql`${products.quantity} <= 0`)!);
-    }
-
-    // Rating filtering
-    if (filters?.minRating !== undefined && filters.minRating > 0) {
-      conditions.push(sql`${products.rating}::numeric >= ${filters.minRating}`);
-    }
-
-    const whereCondition = conditions.length === 0 
-      ? undefined 
-      : conditions.length === 1 
-        ? conditions[0] 
-        : and(...conditions);
+    // Simplified filtering for debugging - just get active products
+    const whereCondition = eq(products.isActive, true);
 
     // Default pagination settings
     const limit = filters?.limit || 20;
@@ -928,31 +872,21 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Get total count for pagination
-    const countQuery = db
+    const countResult = await db
       .select({ count: sql<number>`count(*)::int` })
-      .from(products);
-    
-    const countResult = whereCondition 
-      ? await countQuery.where(whereCondition)
-      : await countQuery;
+      .from(products)
+      .where(whereCondition);
     
     const total = countResult[0]?.count || 0;
 
     // Get paginated results
-    const itemsQuery = db
+    const items = await db
       .select()
-      .from(products);
-    
-    const items = whereCondition
-      ? await itemsQuery
-          .where(whereCondition)
-          .orderBy(orderByClause)
-          .limit(limit)
-          .offset(offset)
-      : await itemsQuery
-          .orderBy(orderByClause)
-          .limit(limit)
-          .offset(offset);
+      .from(products)
+      .where(whereCondition)
+      .orderBy(orderByClause)
+      .limit(limit)
+      .offset(offset);
 
     return {
       items,
