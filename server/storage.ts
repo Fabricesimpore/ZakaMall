@@ -897,13 +897,7 @@ export class DatabaseStorage implements IStorage {
       conditions.push(sql`${products.rating}::numeric >= ${filters.minRating}`);
     }
 
-    // Build complete where condition including vendor status
-    const vendorStatusCondition = eq(vendors.status, "approved");
-    const completeWhereCondition = conditions.length === 0 
-      ? vendorStatusCondition
-      : conditions.length === 1 
-        ? and(conditions[0], vendorStatusCondition)!
-        : and(and(...conditions)!, vendorStatusCondition)!;
+    const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
 
     // Default pagination settings
     const limit = filters?.limit || 20;
@@ -934,7 +928,11 @@ export class DatabaseStorage implements IStorage {
       .select({ count: sql<number>`count(*)::int` })
       .from(products)
       .innerJoin(vendors, eq(products.vendorId, vendors.id))
-      .where(completeWhereCondition);
+      .where(
+        whereCondition 
+          ? and(whereCondition, eq(vendors.status, "approved"))!
+          : eq(vendors.status, "approved")
+      );
     const total = countResult[0]?.count || 0;
 
     // Get paginated results (with vendor join for approved vendors only)
@@ -969,7 +967,11 @@ export class DatabaseStorage implements IStorage {
       })
       .from(products)
       .innerJoin(vendors, eq(products.vendorId, vendors.id))
-      .where(completeWhereCondition)
+      .where(
+        whereCondition 
+          ? and(whereCondition, eq(vendors.status, "approved"))!
+          : eq(vendors.status, "approved")
+      )
       .orderBy(orderByClause)
       .limit(limit)
       .offset(offset);
