@@ -897,6 +897,9 @@ export class DatabaseStorage implements IStorage {
       conditions.push(sql`${products.rating}::numeric >= ${filters.minRating}`);
     }
 
+    // Add vendor status filtering to conditions
+    conditions.push(eq(vendors.status, "approved"));
+    
     const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
 
     // Default pagination settings
@@ -928,11 +931,7 @@ export class DatabaseStorage implements IStorage {
       .select({ count: sql<number>`count(*)::int` })
       .from(products)
       .innerJoin(vendors, eq(products.vendorId, vendors.id))
-      .where(
-        whereCondition 
-          ? and(whereCondition, eq(vendors.status, "approved"))!
-          : eq(vendors.status, "approved")
-      );
+      .where(whereCondition);
     const total = countResult[0]?.count || 0;
 
     // Get paginated results (with vendor join for approved vendors only)
@@ -967,11 +966,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(products)
       .innerJoin(vendors, eq(products.vendorId, vendors.id))
-      .where(
-        whereCondition 
-          ? and(whereCondition, eq(vendors.status, "approved"))!
-          : eq(vendors.status, "approved")
-      )
+      .where(whereCondition)
       .orderBy(orderByClause)
       .limit(limit)
       .offset(offset);
