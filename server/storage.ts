@@ -897,12 +897,13 @@ export class DatabaseStorage implements IStorage {
       conditions.push(sql`${products.rating}::numeric >= ${filters.minRating}`);
     }
 
-    const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
-    
-    // Add vendor status filtering when building final where clause
-    const finalWhereCondition = whereCondition
-      ? and(whereCondition, eq(vendors.status, "approved"))!
-      : eq(vendors.status, "approved");
+    // Build final where condition including vendor status  
+    const vendorStatusCondition = eq(vendors.status, "approved");
+    const finalWhereCondition = conditions.length === 0
+      ? vendorStatusCondition
+      : conditions.length === 1
+      ? and(conditions[0], vendorStatusCondition)!
+      : and(and(...conditions)!, vendorStatusCondition)!;
 
     // Default pagination settings
     const limit = filters?.limit || 20;
