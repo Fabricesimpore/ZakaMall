@@ -306,22 +306,22 @@ export default function Landing() {
               <h4 className="font-semibold mb-4">Pour les clients</h4>
               <ul className="space-y-2 text-gray-300">
                 <li>
-                  <a href="#" className="hover:text-zaka-orange">
+                  <a href="/help" className="hover:text-zaka-orange">
                     Comment commander
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-zaka-orange">
+                  <a href="/orders" className="hover:text-zaka-orange">
                     Suivi de commande
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-zaka-orange">
+                  <a href="/contact" className="hover:text-zaka-orange">
                     Service client
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-zaka-orange">
+                  <a href="/refunds" className="hover:text-zaka-orange">
                     Retours & remboursements
                   </a>
                 </li>
@@ -331,22 +331,22 @@ export default function Landing() {
               <h4 className="font-semibold mb-4">Pour les vendeurs</h4>
               <ul className="space-y-2 text-gray-300">
                 <li>
-                  <a href="#" className="hover:text-zaka-orange">
+                  <a href="/register" className="hover:text-zaka-orange">
                     Devenir vendeur
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-zaka-orange">
+                  <a href="/vendor" className="hover:text-zaka-orange">
                     Centre vendeur
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-zaka-orange">
+                  <a href="/terms" className="hover:text-zaka-orange">
                     Politiques
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-zaka-orange">
+                  <a href="/contact" className="hover:text-zaka-orange">
                     Support vendeur
                   </a>
                 </li>
@@ -356,22 +356,27 @@ export default function Landing() {
               <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-300">
                 <li>
-                  <a href="#" className="hover:text-zaka-orange">
+                  <a href="/about" className="hover:text-zaka-orange">
+                    À propos
+                  </a>
+                </li>
+                <li>
+                  <a href="/help" className="hover:text-zaka-orange">
                     Centre d'aide
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-zaka-orange">
+                  <a href="/contact" className="hover:text-zaka-orange">
                     Nous contacter
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-zaka-orange">
+                  <a href="/terms" className="hover:text-zaka-orange">
                     Conditions d'utilisation
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-zaka-orange">
+                  <a href="/privacy" className="hover:text-zaka-orange">
                     Confidentialité
                   </a>
                 </li>

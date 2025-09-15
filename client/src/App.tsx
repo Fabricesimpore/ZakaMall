@@ -38,6 +38,12 @@ import OrderTracking from "@/pages/OrderTracking";
 import SearchPage from "@/pages/SearchPage";
 import StorePage from "@/pages/StorePage";
 import RestaurantFeed from "@/pages/RestaurantFeed";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import TermsOfService from "@/pages/TermsOfService";
+import About from "@/pages/About";
+import Contact from "@/pages/Contact";
+import Help from "@/pages/Help";
+import RefundPolicy from "@/pages/RefundPolicy";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -82,6 +88,14 @@ function Router() {
           <Route path="/payment-test" component={PaymentTest} />
           <Route path="/register" component={Register} />
           <Route path="/create-admin" component={CreateAdmin} />
+          
+          {/* Policy and information pages */}
+          <Route path="/privacy" component={PrivacyPolicy} />
+          <Route path="/terms" component={TermsOfService} />
+          <Route path="/about" component={About} />
+          <Route path="/contact" component={Contact} />
+          <Route path="/help" component={Help} />
+          <Route path="/refunds" component={RefundPolicy} />
 
           {/* Setup routes - accessible during post-registration flow */}
           <Route path="/vendor-setup" component={VendorSetup} />
