@@ -120,7 +120,7 @@ export function setupProductRoutes(app: Express) {
 
       const pageNum = Math.max(1, parseInt(page as string));
       const limitNum = Math.min(Math.max(1, parseInt(limit as string)), 100);
-      
+
       const filters = {
         categoryId: category as string,
         vendorId: vendorId as string,
