@@ -899,7 +899,7 @@ export class DatabaseStorage implements IStorage {
 
     // Add vendor status filtering to conditions
     conditions.push(eq(vendors.status, "approved"));
-    
+
     const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
 
     // Default pagination settings
