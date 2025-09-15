@@ -42,15 +42,15 @@ export function setupSearchReviewRoutes(app: Express) {
   // Track user behavior
   app.post("/api/behavior/track", async (req, res) => {
     try {
-      const { action, productId, searchQuery, userId } = req.body;
+      const { actionType, productId, searchQuery, userId } = req.body;
 
       // Track user behavior for recommendations
       await storage.trackUserBehavior({
-        action,
+        actionType,
         productId,
-        searchQuery,
         userId,
-        timestamp: new Date(),
+        sessionId: req.sessionID,
+        metadata: searchQuery ? { searchQuery } : undefined,
       });
 
       res.json({ message: "Behavior tracked successfully" });
@@ -63,11 +63,15 @@ export function setupSearchReviewRoutes(app: Express) {
   // Get recommendations for user
   app.get("/api/recommendations", async (req, res) => {
     try {
-      const { userId, type = "general", limit = "10" } = req.query;
+      const { userId, type = "trending", limit = "10" } = req.query;
 
-      const recommendations = await storage.getUserRecommendations({
+      // Validate type parameter
+      const validTypes = ["user_based", "item_based", "trending", "similar", "personalized"];
+      const recommendationType = validTypes.includes(type as string) ? type as "user_based" | "item_based" | "trending" | "similar" | "personalized" : "trending";
+
+      const recommendations = await storage.getRecommendations({
         userId: userId as string,
-        type: type as string,
+        type: recommendationType,
         limit: parseInt(limit as string),
       });
 

@@ -25,7 +25,12 @@ export function setupAuthRoutes(app: Express) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      const isPasswordValid = await verifyPassword(password, user.passwordHash);
+      // Check if user has a password set
+      if (!user.password) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      const isPasswordValid = await verifyPassword(password, user.password);
       if (!isPasswordValid) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
@@ -328,7 +333,12 @@ export function setupAuthRoutes(app: Express) {
         return res.status(401).json({ message: "Phone number not verified" });
       }
 
-      const isPasswordValid = await verifyPassword(password, user.passwordHash);
+      // Check if user has a password set
+      if (!user.password) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      const isPasswordValid = await verifyPassword(password, user.password);
       if (!isPasswordValid) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
