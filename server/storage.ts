@@ -897,13 +897,7 @@ export class DatabaseStorage implements IStorage {
       conditions.push(sql`${products.rating}::numeric >= ${filters.minRating}`);
     }
 
-    // Build final where condition including vendor status  
-    const vendorStatusCondition = eq(vendors.status, "approved");
-    const finalWhereCondition = conditions.length === 0
-      ? vendorStatusCondition
-      : conditions.length === 1
-      ? and(conditions[0], vendorStatusCondition)!
-      : and(and(...conditions)!, vendorStatusCondition)!;
+    const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
 
     // Default pagination settings
     const limit = filters?.limit || 20;
@@ -929,47 +923,18 @@ export class DatabaseStorage implements IStorage {
         orderByClause = sortOrder === "asc" ? asc(products.createdAt) : desc(products.createdAt);
     }
 
-    // Get total count for pagination (with vendor join for approved vendors only)
+    // Get total count for pagination
     const countResult = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(products)
-      .innerJoin(vendors, eq(products.vendorId, vendors.id))
-      .where(finalWhereCondition);
+      .where(whereCondition);
     const total = countResult[0]?.count || 0;
 
-    // Get paginated results (with vendor join for approved vendors only)
+    // Get paginated results
     const items = await db
-      .select({
-        id: products.id,
-        name: products.name,
-        description: products.description,
-        price: products.price,
-        categoryId: products.categoryId,
-        vendorId: products.vendorId,
-        sku: products.sku,
-        images: products.images,
-        videos: products.videos,
-        tags: products.tags,
-        rating: products.rating,
-        reviewCount: products.reviewCount,
-        isActive: products.isActive,
-        isFeatured: products.isFeatured,
-        trackQuantity: products.trackQuantity,
-        quantity: products.quantity,
-        lowStockThreshold: products.lowStockThreshold,
-        weight: products.weight,
-        dimensions: products.dimensions,
-        shippingClass: products.shippingClass,
-        metaTitle: products.metaTitle,
-        metaDescription: products.metaDescription,
-        createdAt: products.createdAt,
-        updatedAt: products.updatedAt,
-        vendorDisplayName: products.vendorDisplayName,
-        vendorSlug: products.vendorSlug,
-      })
+      .select()
       .from(products)
-      .innerJoin(vendors, eq(products.vendorId, vendors.id))
-      .where(finalWhereCondition)
+      .where(whereCondition)
       .orderBy(orderByClause)
       .limit(limit)
       .offset(offset);
