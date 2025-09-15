@@ -19,21 +19,25 @@ export default function Help() {
       items: [
         {
           question: "Comment passer une commande sur ZakaMall ?",
-          answer: "Pour passer une commande : 1) Créez un compte ou connectez-vous, 2) Parcourez les produits et ajoutez-les au panier, 3) Vérifiez votre panier, 4) Procédez au paiement en choisissant votre méthode préférée, 5) Confirmez votre adresse de livraison. Vous recevrez une confirmation par email."
+          answer:
+            "Pour passer une commande : 1) Créez un compte ou connectez-vous, 2) Parcourez les produits et ajoutez-les au panier, 3) Vérifiez votre panier, 4) Procédez au paiement en choisissant votre méthode préférée, 5) Confirmez votre adresse de livraison. Vous recevrez une confirmation par email.",
         },
         {
           question: "Puis-je modifier ou annuler ma commande ?",
-          answer: "Vous pouvez modifier ou annuler votre commande dans les 30 minutes suivant sa validation, tant qu'elle n'a pas été préparée par le vendeur. Rendez-vous dans 'Mes Commandes' ou contactez le support client."
+          answer:
+            "Vous pouvez modifier ou annuler votre commande dans les 30 minutes suivant sa validation, tant qu'elle n'a pas été préparée par le vendeur. Rendez-vous dans 'Mes Commandes' ou contactez le support client.",
         },
         {
           question: "Comment suivre ma commande ?",
-          answer: "Après validation de votre commande, vous recevrez un numéro de suivi par SMS et email. Vous pouvez également suivre votre commande en temps réel dans la section 'Mes Commandes' de votre compte."
+          answer:
+            "Après validation de votre commande, vous recevrez un numéro de suivi par SMS et email. Vous pouvez également suivre votre commande en temps réel dans la section 'Mes Commandes' de votre compte.",
         },
         {
           question: "Que faire si je reçois un produit défectueux ?",
-          answer: "En cas de produit défectueux, contactez-nous dans les 48h via le chat support ou par email. Nous organiserons un retour gratuit et un remboursement ou échange selon vos préférences."
-        }
-      ]
+          answer:
+            "En cas de produit défectueux, contactez-nous dans les 48h via le chat support ou par email. Nous organiserons un retour gratuit et un remboursement ou échange selon vos préférences.",
+        },
+      ],
     },
     {
       title: "Paiements & Facturation",
@@ -42,21 +46,25 @@ export default function Help() {
       items: [
         {
           question: "Quels moyens de paiement acceptez-vous ?",
-          answer: "Nous acceptons : Orange Money, Moov Money, cartes bancaires Visa/Mastercard (via Stripe), et le paiement à la livraison dans certaines zones de Ouagadougou."
+          answer:
+            "Nous acceptons : Orange Money, Moov Money, cartes bancaires Visa/Mastercard (via Stripe), et le paiement à la livraison dans certaines zones de Ouagadougou.",
         },
         {
           question: "Mes données de paiement sont-elles sécurisées ?",
-          answer: "Absolument. Nous utilisons le chiffrement SSL et Stripe pour sécuriser toutes les transactions. Vos données bancaires ne sont jamais stockées sur nos serveurs."
+          answer:
+            "Absolument. Nous utilisons le chiffrement SSL et Stripe pour sécuriser toutes les transactions. Vos données bancaires ne sont jamais stockées sur nos serveurs.",
         },
         {
           question: "Comment obtenir une facture ?",
-          answer: "Une facture électronique est automatiquement envoyée à votre email après chaque commande. Vous pouvez également la télécharger depuis votre espace client dans 'Mes Commandes'."
+          answer:
+            "Une facture électronique est automatiquement envoyée à votre email après chaque commande. Vous pouvez également la télécharger depuis votre espace client dans 'Mes Commandes'.",
         },
         {
           question: "Que faire si mon paiement échoue ?",
-          answer: "Vérifiez votre solde/limite, réessayez avec une autre méthode, ou contactez votre banque/opérateur mobile. Notre support peut aussi vous aider à résoudre le problème."
-        }
-      ]
+          answer:
+            "Vérifiez votre solde/limite, réessayez avec une autre méthode, ou contactez votre banque/opérateur mobile. Notre support peut aussi vous aider à résoudre le problème.",
+        },
+      ],
     },
     {
       title: "Livraison & Expédition",
@@ -65,21 +73,25 @@ export default function Help() {
       items: [
         {
           question: "Quels sont les délais de livraison ?",
-          answer: "Dans Ouagadougou : 24-48h pour la plupart des produits. Autres villes du Burkina : 3-7 jours. Les délais peuvent varier selon la disponibilité du produit et la distance."
+          answer:
+            "Dans Ouagadougou : 24-48h pour la plupart des produits. Autres villes du Burkina : 3-7 jours. Les délais peuvent varier selon la disponibilité du produit et la distance.",
         },
         {
           question: "Combien coûte la livraison ?",
-          answer: "Ouagadougou centre : 500 FCFA, périphérie : 1000-1500 FCFA. Autres villes : 2000-5000 FCFA selon la distance. Livraison gratuite pour les commandes > 50,000 FCFA."
+          answer:
+            "Ouagadougou centre : 500 FCFA, périphérie : 1000-1500 FCFA. Autres villes : 2000-5000 FCFA selon la distance. Livraison gratuite pour les commandes > 50,000 FCFA.",
         },
         {
           question: "Livrez-vous partout au Burkina Faso ?",
-          answer: "Nous livrons dans toutes les grandes villes : Ouagadougou, Bobo-Dioulasso, Koudougou, Banfora, Ouahigouya, Fada N'Gourma, et d'autres centres urbains. Contactez-nous pour les zones rurales."
+          answer:
+            "Nous livrons dans toutes les grandes villes : Ouagadougou, Bobo-Dioulasso, Koudougou, Banfora, Ouahigouya, Fada N'Gourma, et d'autres centres urbains. Contactez-nous pour les zones rurales.",
         },
         {
           question: "Comment changer mon adresse de livraison ?",
-          answer: "Vous pouvez modifier votre adresse de livraison avant expédition dans 'Mes Commandes'. Après expédition, contactez le livreur directement via l'app ou notre support."
-        }
-      ]
+          answer:
+            "Vous pouvez modifier votre adresse de livraison avant expédition dans 'Mes Commandes'. Après expédition, contactez le livreur directement via l'app ou notre support.",
+        },
+      ],
     },
     {
       title: "Compte & Profil",
@@ -88,21 +100,25 @@ export default function Help() {
       items: [
         {
           question: "Comment créer un compte ZakaMall ?",
-          answer: "Cliquez sur 'S'inscrire', choisissez votre type de compte (Client, Vendeur, Livreur), remplissez le formulaire avec vos informations, vérifiez votre email/téléphone, et c'est fait !"
+          answer:
+            "Cliquez sur 'S'inscrire', choisissez votre type de compte (Client, Vendeur, Livreur), remplissez le formulaire avec vos informations, vérifiez votre email/téléphone, et c'est fait !",
         },
         {
           question: "J'ai oublié mon mot de passe, que faire ?",
-          answer: "Cliquez sur 'Mot de passe oublié' sur la page de connexion, entrez votre email, consultez votre boîte mail pour le lien de réinitialisation, et créez un nouveau mot de passe."
+          answer:
+            "Cliquez sur 'Mot de passe oublié' sur la page de connexion, entrez votre email, consultez votre boîte mail pour le lien de réinitialisation, et créez un nouveau mot de passe.",
         },
         {
           question: "Comment modifier mes informations personnelles ?",
-          answer: "Connectez-vous à votre compte, allez dans 'Mon Profil', cliquez sur 'Modifier', mettez à jour vos informations, et sauvegardez. Certaines modifications peuvent nécessiter une vérification."
+          answer:
+            "Connectez-vous à votre compte, allez dans 'Mon Profil', cliquez sur 'Modifier', mettez à jour vos informations, et sauvegardez. Certaines modifications peuvent nécessiter une vérification.",
         },
         {
           question: "Comment supprimer mon compte ?",
-          answer: "Pour supprimer votre compte, contactez notre support via email ou chat. Nous traiterons votre demande dans les 48h en respectant la protection de vos données personnelles."
-        }
-      ]
+          answer:
+            "Pour supprimer votre compte, contactez notre support via email ou chat. Nous traiterons votre demande dans les 48h en respectant la protection de vos données personnelles.",
+        },
+      ],
     },
     {
       title: "Vendeurs & Partenaires",
@@ -111,21 +127,25 @@ export default function Help() {
       items: [
         {
           question: "Comment devenir vendeur sur ZakaMall ?",
-          answer: "Créez un compte vendeur, soumettez vos documents (CNI, registre de commerce), attendez la validation (2-5 jours), configurez votre boutique, et commencez à vendre ! Formation gratuite incluse."
+          answer:
+            "Créez un compte vendeur, soumettez vos documents (CNI, registre de commerce), attendez la validation (2-5 jours), configurez votre boutique, et commencez à vendre ! Formation gratuite incluse.",
         },
         {
           question: "Quelles sont les commissions de ZakaMall ?",
-          answer: "Nos commissions varient de 5% à 15% selon la catégorie de produit et votre volume de ventes. Plus vous vendez, moins vous payez de commission. Transparence totale garantie."
+          answer:
+            "Nos commissions varient de 5% à 15% selon la catégorie de produit et votre volume de ventes. Plus vous vendez, moins vous payez de commission. Transparence totale garantie.",
         },
         {
           question: "Comment recevoir mes paiements en tant que vendeur ?",
-          answer: "Les paiements sont versés hebdomadairement sur votre compte Orange Money, Moov Money, ou compte bancaire. Délai : 7 jours après livraison confirmée par le client."
+          answer:
+            "Les paiements sont versés hebdomadairement sur votre compte Orange Money, Moov Money, ou compte bancaire. Délai : 7 jours après livraison confirmée par le client.",
         },
         {
           question: "Comment promouvoir mes produits ?",
-          answer: "Utilisez nos outils promotionnels : photos de qualité, descriptions détaillées, prix compétitifs, promotions flash, et notre système de mise en avant payant pour plus de visibilité."
-        }
-      ]
+          answer:
+            "Utilisez nos outils promotionnels : photos de qualité, descriptions détaillées, prix compétitifs, promotions flash, et notre système de mise en avant payant pour plus de visibilité.",
+        },
+      ],
     },
     {
       title: "Retours & Remboursements",
@@ -134,45 +154,50 @@ export default function Help() {
       items: [
         {
           question: "Quelle est votre politique de retour ?",
-          answer: "Retours acceptés sous 14 jours pour les produits non-périssables, dans leur emballage d'origine. Frais de retour à votre charge sauf défaut produit. Remboursement sous 7-14 jours."
+          answer:
+            "Retours acceptés sous 14 jours pour les produits non-périssables, dans leur emballage d'origine. Frais de retour à votre charge sauf défaut produit. Remboursement sous 7-14 jours.",
         },
         {
           question: "Comment demander un remboursement ?",
-          answer: "Allez dans 'Mes Commandes', cliquez sur 'Demander un retour', sélectionnez la raison, suivez les instructions de retour. Notre équipe traitera votre demande rapidement."
+          answer:
+            "Allez dans 'Mes Commandes', cliquez sur 'Demander un retour', sélectionnez la raison, suivez les instructions de retour. Notre équipe traitera votre demande rapidement.",
         },
         {
           question: "Combien de temps pour recevoir mon remboursement ?",
-          answer: "Remboursements traités sous 3-7 jours ouvrables après réception du produit retourné. Le délai dépend de votre méthode de paiement originale (mobile money plus rapide)."
+          answer:
+            "Remboursements traités sous 3-7 jours ouvrables après réception du produit retourné. Le délai dépend de votre méthode de paiement originale (mobile money plus rapide).",
         },
         {
           question: "Puis-je échanger un produit au lieu d'un remboursement ?",
-          answer: "Oui, l'échange est possible pour un produit de même valeur ou supérieure (avec complément). Contactez le vendeur ou notre support pour organiser l'échange."
-        }
-      ]
-    }
+          answer:
+            "Oui, l'échange est possible pour un produit de même valeur ou supérieure (avec complément). Contactez le vendeur ou notre support pour organiser l'échange.",
+        },
+      ],
+    },
   ];
 
-  const filteredCategories = faqCategories.map(category => ({
-    ...category,
-    items: category.items.filter(item =>
-      item.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.answer.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  })).filter(category => category.items.length > 0);
+  const filteredCategories = faqCategories
+    .map((category) => ({
+      ...category,
+      items: category.items.filter(
+        (item) =>
+          item.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.answer.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    }))
+    .filter((category) => category.items.length > 0);
 
   return (
     <div className="min-h-screen bg-zaka-light">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-zaka-dark mb-4">
-            Centre d'Aide
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-zaka-dark mb-4">Centre d'Aide</h1>
           <p className="text-xl text-zaka-gray max-w-3xl mx-auto mb-8">
-            Trouvez rapidement les réponses à vos questions sur ZakaMall. 
-            Notre équipe support est également disponible pour vous aider.
+            Trouvez rapidement les réponses à vos questions sur ZakaMall. Notre équipe support est
+            également disponible pour vous aider.
           </p>
-          
+
           {/* Search */}
           <div className="max-w-md mx-auto relative">
             <Input
@@ -244,9 +269,7 @@ export default function Help() {
                 <Accordion type="single" collapsible className="w-full">
                   {category.items.map((item, itemIndex) => (
                     <AccordionItem key={itemIndex} value={`item-${categoryIndex}-${itemIndex}`}>
-                      <AccordionTrigger className="text-left">
-                        {item.question}
-                      </AccordionTrigger>
+                      <AccordionTrigger className="text-left">{item.question}</AccordionTrigger>
                       <AccordionContent className="text-zaka-gray leading-relaxed">
                         {item.answer}
                       </AccordionContent>
@@ -263,11 +286,10 @@ export default function Help() {
           <Card className="text-center py-12">
             <CardContent>
               <i className="fas fa-search text-6xl text-gray-300 mb-4"></i>
-              <h3 className="text-xl font-semibold text-zaka-dark mb-2">
-                Aucun résultat trouvé
-              </h3>
+              <h3 className="text-xl font-semibold text-zaka-dark mb-2">Aucun résultat trouvé</h3>
               <p className="text-zaka-gray mb-6">
-                Essayez avec d'autres mots-clés ou contactez notre support pour une aide personnalisée.
+                Essayez avec d'autres mots-clés ou contactez notre support pour une aide
+                personnalisée.
               </p>
               <a
                 href="/contact"

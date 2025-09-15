@@ -10,22 +10,29 @@ export default function TermsOfService() {
               Conditions d'Utilisation
             </CardTitle>
             <p className="text-center text-zaka-gray">
-              Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}
+              Dernière mise à jour : {new Date().toLocaleDateString("fr-FR")}
             </p>
           </CardHeader>
           <CardContent className="prose prose-gray max-w-none">
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">1. Acceptation des conditions</h2>
+              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">
+                1. Acceptation des conditions
+              </h2>
               <p className="text-zaka-gray leading-relaxed mb-4">
-                En accédant et en utilisant ZakaMall, vous acceptez d'être lié par ces conditions d'utilisation. Si vous n'acceptez pas ces termes, veuillez ne pas utiliser nos services.
+                En accédant et en utilisant ZakaMall, vous acceptez d'être lié par ces conditions
+                d'utilisation. Si vous n'acceptez pas ces termes, veuillez ne pas utiliser nos
+                services.
               </p>
               <p className="text-zaka-gray leading-relaxed">
-                Ces conditions constituent un accord légalement contraignant entre vous et ZakaMall concernant votre utilisation de notre marketplace.
+                Ces conditions constituent un accord légalement contraignant entre vous et ZakaMall
+                concernant votre utilisation de notre marketplace.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">2. Description des services</h2>
+              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">
+                2. Description des services
+              </h2>
               <p className="text-zaka-gray leading-relaxed mb-4">
                 ZakaMall est une plateforme de marketplace en ligne qui permet :
               </p>
@@ -39,9 +46,13 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">3. Éligibilité et inscription</h2>
-              
-              <h3 className="text-xl font-medium text-zaka-dark mb-3">3.1 Conditions d'éligibilité</h3>
+              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">
+                3. Éligibilité et inscription
+              </h2>
+
+              <h3 className="text-xl font-medium text-zaka-dark mb-3">
+                3.1 Conditions d'éligibilité
+              </h3>
               <ul className="list-disc list-inside text-zaka-gray space-y-2 mb-4">
                 <li>Vous devez avoir au moins 18 ans</li>
                 <li>Avoir la capacité juridique de conclure des contrats</li>
@@ -49,10 +60,10 @@ export default function TermsOfService() {
                 <li>Ne pas être suspendu ou banni de la plateforme</li>
               </ul>
 
-              <h3 className="text-xl font-medium text-zaka-dark mb-3">3.2 Responsabilité du compte</h3>
-              <p className="text-zaka-gray leading-relaxed mb-4">
-                Vous êtes responsable de :
-              </p>
+              <h3 className="text-xl font-medium text-zaka-dark mb-3">
+                3.2 Responsabilité du compte
+              </h3>
+              <p className="text-zaka-gray leading-relaxed mb-4">Vous êtes responsable de :</p>
               <ul className="list-disc list-inside text-zaka-gray space-y-2">
                 <li>Maintenir la confidentialité de vos identifiants</li>
                 <li>Toutes les activités sur votre compte</li>
@@ -62,9 +73,13 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">4. Règles d'utilisation</h2>
-              
-              <h3 className="text-xl font-medium text-zaka-dark mb-3">4.1 Utilisations autorisées</h3>
+              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">
+                4. Règles d'utilisation
+              </h2>
+
+              <h3 className="text-xl font-medium text-zaka-dark mb-3">
+                4.1 Utilisations autorisées
+              </h3>
               <ul className="list-disc list-inside text-zaka-gray space-y-2 mb-4">
                 <li>Naviguer et acheter des produits légitimes</li>
                 <li>Créer et gérer votre compte</li>
@@ -72,7 +87,9 @@ export default function TermsOfService() {
                 <li>Laisser des avis honnêtes et constructifs</li>
               </ul>
 
-              <h3 className="text-xl font-medium text-zaka-dark mb-3">4.2 Comportements interdits</h3>
+              <h3 className="text-xl font-medium text-zaka-dark mb-3">
+                4.2 Comportements interdits
+              </h3>
               <p className="text-zaka-gray leading-relaxed mb-4">
                 Il est strictement interdit de :
               </p>
@@ -89,8 +106,10 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">5. Transactions et paiements</h2>
-              
+              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">
+                5. Transactions et paiements
+              </h2>
+
               <h3 className="text-xl font-medium text-zaka-dark mb-3">5.1 Conditions de vente</h3>
               <ul className="list-disc list-inside text-zaka-gray space-y-2 mb-4">
                 <li>Les prix sont indiqués en francs CFA (XOF)</li>
@@ -100,9 +119,7 @@ export default function TermsOfService() {
               </ul>
 
               <h3 className="text-xl font-medium text-zaka-dark mb-3">5.2 Méthodes de paiement</h3>
-              <p className="text-zaka-gray leading-relaxed mb-4">
-                Nous acceptons :
-              </p>
+              <p className="text-zaka-gray leading-relaxed mb-4">Nous acceptons :</p>
               <ul className="list-disc list-inside text-zaka-gray space-y-2">
                 <li>Orange Money</li>
                 <li>Moov Money</li>
@@ -112,11 +129,14 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">6. Politique de retour et remboursement</h2>
-              
+              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">
+                6. Politique de retour et remboursement
+              </h2>
+
               <h3 className="text-xl font-medium text-zaka-dark mb-3">6.1 Droit de rétractation</h3>
               <p className="text-zaka-gray leading-relaxed mb-4">
-                Vous disposez de 14 jours pour retourner un produit, sauf exceptions légales (produits périssables, personnalisés, etc.).
+                Vous disposez de 14 jours pour retourner un produit, sauf exceptions légales
+                (produits périssables, personnalisés, etc.).
               </p>
 
               <h3 className="text-xl font-medium text-zaka-dark mb-3">6.2 Conditions de retour</h3>
@@ -129,9 +149,12 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">7. Propriété intellectuelle</h2>
+              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">
+                7. Propriété intellectuelle
+              </h2>
               <p className="text-zaka-gray leading-relaxed mb-4">
-                Tous les contenus de ZakaMall (logos, textes, images, codes) sont protégés par les droits de propriété intellectuelle. Il est interdit de :
+                Tous les contenus de ZakaMall (logos, textes, images, codes) sont protégés par les
+                droits de propriété intellectuelle. Il est interdit de :
               </p>
               <ul className="list-disc list-inside text-zaka-gray space-y-2">
                 <li>Reproduire ou distribuer nos contenus sans autorisation</li>
@@ -142,11 +165,16 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">8. Responsabilité et garanties</h2>
-              
-              <h3 className="text-xl font-medium text-zaka-dark mb-3">8.1 Limitation de responsabilité</h3>
+              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">
+                8. Responsabilité et garanties
+              </h2>
+
+              <h3 className="text-xl font-medium text-zaka-dark mb-3">
+                8.1 Limitation de responsabilité
+              </h3>
               <p className="text-zaka-gray leading-relaxed mb-4">
-                ZakaMall agit en tant qu'intermédiaire. Notre responsabilité est limitée à la fourniture de la plateforme. Nous ne sommes pas responsables de :
+                ZakaMall agit en tant qu'intermédiaire. Notre responsabilité est limitée à la
+                fourniture de la plateforme. Nous ne sommes pas responsables de :
               </p>
               <ul className="list-disc list-inside text-zaka-gray space-y-2 mb-4">
                 <li>La qualité des produits vendus par les vendeurs</li>
@@ -157,14 +185,19 @@ export default function TermsOfService() {
 
               <h3 className="text-xl font-medium text-zaka-dark mb-3">8.2 Garanties exclues</h3>
               <p className="text-zaka-gray leading-relaxed">
-                Les services sont fournis "en l'état". Nous excluons toute garantie concernant la disponibilité continue, l'exactitude des informations ou l'absence d'erreurs.
+                Les services sont fournis "en l'état". Nous excluons toute garantie concernant la
+                disponibilité continue, l'exactitude des informations ou l'absence d'erreurs.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">9. Suspension et résiliation</h2>
-              
-              <h3 className="text-xl font-medium text-zaka-dark mb-3">9.1 Suspension par ZakaMall</h3>
+              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">
+                9. Suspension et résiliation
+              </h2>
+
+              <h3 className="text-xl font-medium text-zaka-dark mb-3">
+                9.1 Suspension par ZakaMall
+              </h3>
               <p className="text-zaka-gray leading-relaxed mb-4">
                 Nous pouvons suspendre ou fermer votre compte en cas de :
               </p>
@@ -175,15 +208,20 @@ export default function TermsOfService() {
                 <li>Plaintes répétées d'autres utilisateurs</li>
               </ul>
 
-              <h3 className="text-xl font-medium text-zaka-dark mb-3">9.2 Résiliation par l'utilisateur</h3>
+              <h3 className="text-xl font-medium text-zaka-dark mb-3">
+                9.2 Résiliation par l'utilisateur
+              </h3>
               <p className="text-zaka-gray leading-relaxed">
-                Vous pouvez fermer votre compte à tout moment depuis vos paramètres ou en nous contactant.
+                Vous pouvez fermer votre compte à tout moment depuis vos paramètres ou en nous
+                contactant.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">10. Résolution des litiges</h2>
-              
+              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">
+                10. Résolution des litiges
+              </h2>
+
               <h3 className="text-xl font-medium text-zaka-dark mb-3">10.1 Médiation</h3>
               <p className="text-zaka-gray leading-relaxed mb-4">
                 En cas de litige, nous encourageons la résolution amiable via notre service client.
@@ -191,24 +229,42 @@ export default function TermsOfService() {
 
               <h3 className="text-xl font-medium text-zaka-dark mb-3">10.2 Juridiction</h3>
               <p className="text-zaka-gray leading-relaxed">
-                Les présentes conditions sont régies par le droit burkinabé. Tout litige sera soumis aux tribunaux compétents de Ouagadougou.
+                Les présentes conditions sont régies par le droit burkinabé. Tout litige sera soumis
+                aux tribunaux compétents de Ouagadougou.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">11. Modifications des conditions</h2>
+              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">
+                11. Modifications des conditions
+              </h2>
               <p className="text-zaka-gray leading-relaxed">
-                Nous nous réservons le droit de modifier ces conditions à tout moment. Les modifications importantes seront notifiées 30 jours à l'avance par e-mail ou via la plateforme.
+                Nous nous réservons le droit de modifier ces conditions à tout moment. Les
+                modifications importantes seront notifiées 30 jours à l'avance par e-mail ou via la
+                plateforme.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">12. Dispositions générales</h2>
+              <h2 className="text-2xl font-semibold text-zaka-dark mb-4">
+                12. Dispositions générales
+              </h2>
               <ul className="list-disc list-inside text-zaka-gray space-y-2">
-                <li><strong>Divisibilité :</strong> Si une clause est invalide, les autres restent applicables</li>
-                <li><strong>Renonciation :</strong> Notre non-action ne constitue pas une renonciation à nos droits</li>
-                <li><strong>Intégralité :</strong> Ces conditions constituent l'accord complet entre nous</li>
-                <li><strong>Cession :</strong> Vous ne pouvez pas céder vos droits sans notre accord</li>
+                <li>
+                  <strong>Divisibilité :</strong> Si une clause est invalide, les autres restent
+                  applicables
+                </li>
+                <li>
+                  <strong>Renonciation :</strong> Notre non-action ne constitue pas une renonciation
+                  à nos droits
+                </li>
+                <li>
+                  <strong>Intégralité :</strong> Ces conditions constituent l'accord complet entre
+                  nous
+                </li>
+                <li>
+                  <strong>Cession :</strong> Vous ne pouvez pas céder vos droits sans notre accord
+                </li>
               </ul>
             </section>
 
@@ -218,9 +274,24 @@ export default function TermsOfService() {
                 Pour toute question concernant ces conditions d'utilisation :
               </p>
               <div className="bg-zaka-light p-4 rounded-lg">
-                <p className="text-zaka-dark mb-2"><strong>ZakaMall</strong></p>
-                <p className="text-zaka-gray">Email : <a href="mailto:legal@zakamall.com" className="text-zaka-orange hover:underline">legal@zakamall.com</a></p>
-                <p className="text-zaka-gray">Support : <a href="mailto:support@zakamall.com" className="text-zaka-orange hover:underline">support@zakamall.com</a></p>
+                <p className="text-zaka-dark mb-2">
+                  <strong>ZakaMall</strong>
+                </p>
+                <p className="text-zaka-gray">
+                  Email :{" "}
+                  <a href="mailto:legal@zakamall.com" className="text-zaka-orange hover:underline">
+                    legal@zakamall.com
+                  </a>
+                </p>
+                <p className="text-zaka-gray">
+                  Support :{" "}
+                  <a
+                    href="mailto:support@zakamall.com"
+                    className="text-zaka-orange hover:underline"
+                  >
+                    support@zakamall.com
+                  </a>
+                </p>
                 <p className="text-zaka-gray">Téléphone : +226 XX XX XX XX</p>
                 <p className="text-zaka-gray">Adresse : Ouagadougou, Burkina Faso</p>
               </div>
