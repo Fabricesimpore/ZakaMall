@@ -844,8 +844,18 @@ export class DatabaseStorage implements IStorage {
     includeInactive?: boolean;
     minRating?: number;
   }): Promise<{ items: Product[]; total: number; hasMore: boolean }> {
-    // Debugging - get ALL products regardless of active status
-    const whereCondition = undefined;
+    // Build conditions array like the original
+    const conditions = [];
+    conditions.push(eq(products.isActive, true));
+    
+    if (filters?.categoryId) {
+      conditions.push(eq(products.categoryId, filters.categoryId));
+    }
+    
+    // Add vendor status condition (requires vendor join)
+    conditions.push(eq(vendors.status, "approved"));
+    
+    const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
 
     // Default pagination settings
     const limit = filters?.limit || 20;
@@ -863,25 +873,54 @@ export class DatabaseStorage implements IStorage {
         orderByClause = sortOrder === "asc" ? asc(products.name) : desc(products.name);
         break;
       case "rating":
-        // Note: This requires a more complex query to calculate average rating
-        // For now, we'll sort by creation date and add rating sorting later
         orderByClause = sortOrder === "asc" ? asc(products.createdAt) : desc(products.createdAt);
         break;
       default:
         orderByClause = sortOrder === "asc" ? asc(products.createdAt) : desc(products.createdAt);
     }
 
-    // Get total count for pagination
+    // Get total count for pagination (with vendor join like restaurant products)
     const countResult = await db
       .select({ count: sql<number>`count(*)::int` })
-      .from(products);
+      .from(products)
+      .innerJoin(vendors, eq(products.vendorId, vendors.id))
+      .where(whereCondition);
     
     const total = countResult[0]?.count || 0;
 
-    // Get paginated results
+    // Get paginated results (with vendor join like restaurant products)
     const items = await db
-      .select()
+      .select({
+        id: products.id,
+        name: products.name,
+        description: products.description,
+        price: products.price,
+        categoryId: products.categoryId,
+        vendorId: products.vendorId,
+        sku: products.sku,
+        images: products.images,
+        videos: products.videos,
+        tags: products.tags,
+        rating: products.rating,
+        reviewCount: products.reviewCount,
+        isActive: products.isActive,
+        isFeatured: products.isFeatured,
+        trackQuantity: products.trackQuantity,
+        quantity: products.quantity,
+        lowStockThreshold: products.lowStockThreshold,
+        weight: products.weight,
+        dimensions: products.dimensions,
+        shippingClass: products.shippingClass,
+        metaTitle: products.metaTitle,
+        metaDescription: products.metaDescription,
+        createdAt: products.createdAt,
+        updatedAt: products.updatedAt,
+        vendorDisplayName: products.vendorDisplayName,
+        vendorSlug: products.vendorSlug,
+      })
       .from(products)
+      .innerJoin(vendors, eq(products.vendorId, vendors.id))
+      .where(whereCondition)
       .orderBy(orderByClause)
       .limit(limit)
       .offset(offset);
