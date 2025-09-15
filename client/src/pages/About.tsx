@@ -11,8 +11,8 @@ export default function About() {
             À propos de ZakaMall
           </h1>
           <p className="text-xl text-zaka-gray max-w-3xl mx-auto">
-            Le marketplace #1 du Burkina Faso, connectant vendeurs, clients et livreurs 
-            avec des solutions modernes et adaptées au contexte local.
+            Le marketplace #1 du Burkina Faso, connectant vendeurs, clients et livreurs avec des
+            solutions modernes et adaptées au contexte local.
           </p>
         </div>
 
@@ -25,8 +25,8 @@ export default function About() {
           </CardHeader>
           <CardContent>
             <p className="text-zaka-gray leading-relaxed text-lg text-center max-w-4xl mx-auto">
-              Démocratiser le commerce électronique au Burkina Faso en fournissant une plateforme 
-              accessible, sécurisée et adaptée aux besoins locaux. Nous connectons les entrepreneurs 
+              Démocratiser le commerce électronique au Burkina Faso en fournissant une plateforme
+              accessible, sécurisée et adaptée aux besoins locaux. Nous connectons les entrepreneurs
               locaux avec les consommateurs, tout en soutenant l'économie numérique burkinabé.
             </p>
           </CardContent>
@@ -43,8 +43,9 @@ export default function About() {
             </CardHeader>
             <CardContent>
               <p className="text-zaka-gray leading-relaxed">
-                Devenir la plateforme de référence pour le commerce électronique en Afrique de l'Ouest, 
-                en favorisant l'inclusion financière et en stimulant l'entrepreneuriat local.
+                Devenir la plateforme de référence pour le commerce électronique en Afrique de
+                l'Ouest, en favorisant l'inclusion financière et en stimulant l'entrepreneuriat
+                local.
               </p>
             </CardContent>
           </Card>
@@ -94,20 +95,22 @@ export default function About() {
                 </div>
                 <h3 className="font-semibold text-zaka-dark mb-2">Paiements Locaux</h3>
                 <p className="text-zaka-gray text-sm">
-                  Orange Money, Moov Money et autres solutions de paiement mobile populaires au Burkina.
+                  Orange Money, Moov Money et autres solutions de paiement mobile populaires au
+                  Burkina.
                 </p>
               </div>
-              
+
               <div className="text-center">
                 <div className="w-16 h-16 bg-zaka-blue bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <i className="fas fa-motorcycle text-2xl text-zaka-blue"></i>
                 </div>
                 <h3 className="font-semibold text-zaka-dark mb-2">Livraison Rapide</h3>
                 <p className="text-zaka-gray text-sm">
-                  Réseau de livreurs locaux pour une livraison rapide dans toutes les zones de Ouagadougou.
+                  Réseau de livreurs locaux pour une livraison rapide dans toutes les zones de
+                  Ouagadougou.
                 </p>
               </div>
-              
+
               <div className="text-center">
                 <div className="w-16 h-16 bg-zaka-green bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <i className="fas fa-shield-alt text-2xl text-zaka-green"></i>
@@ -187,7 +190,7 @@ export default function About() {
                   </li>
                 </ul>
               </div>
-              
+
               <div>
                 <h3 className="text-xl font-semibold text-zaka-dark mb-4">
                   <i className="fas fa-shopping-cart text-zaka-blue mr-3"></i>
@@ -229,17 +232,34 @@ export default function About() {
           </CardHeader>
           <CardContent>
             <p className="text-zaka-gray leading-relaxed text-center mb-6">
-              ZakaMall utilise les dernières technologies pour offrir une expérience fluide et sécurisée :
+              ZakaMall utilise les dernières technologies pour offrir une expérience fluide et
+              sécurisée :
             </p>
             <div className="flex flex-wrap justify-center gap-3">
-              <Badge variant="secondary" className="text-sm">React & TypeScript</Badge>
-              <Badge variant="secondary" className="text-sm">PostgreSQL</Badge>
-              <Badge variant="secondary" className="text-sm">Stripe Payments</Badge>
-              <Badge variant="secondary" className="text-sm">Cloudinary CDN</Badge>
-              <Badge variant="secondary" className="text-sm">Redis Cache</Badge>
-              <Badge variant="secondary" className="text-sm">WebSocket Real-time</Badge>
-              <Badge variant="secondary" className="text-sm">Mobile Responsive</Badge>
-              <Badge variant="secondary" className="text-sm">PWA Ready</Badge>
+              <Badge variant="secondary" className="text-sm">
+                React & TypeScript
+              </Badge>
+              <Badge variant="secondary" className="text-sm">
+                PostgreSQL
+              </Badge>
+              <Badge variant="secondary" className="text-sm">
+                Stripe Payments
+              </Badge>
+              <Badge variant="secondary" className="text-sm">
+                Cloudinary CDN
+              </Badge>
+              <Badge variant="secondary" className="text-sm">
+                Redis Cache
+              </Badge>
+              <Badge variant="secondary" className="text-sm">
+                WebSocket Real-time
+              </Badge>
+              <Badge variant="secondary" className="text-sm">
+                Mobile Responsive
+              </Badge>
+              <Badge variant="secondary" className="text-sm">
+                PWA Ready
+              </Badge>
             </div>
           </CardContent>
         </Card>
@@ -259,19 +279,19 @@ export default function About() {
                   Développement Local
                 </h3>
                 <p className="text-zaka-gray leading-relaxed">
-                  Nous soutenons l'économie locale en donnant aux entrepreneurs burkinabé 
-                  les outils pour développer leur business en ligne et atteindre plus de clients.
+                  Nous soutenons l'économie locale en donnant aux entrepreneurs burkinabé les outils
+                  pour développer leur business en ligne et atteindre plus de clients.
                 </p>
               </div>
-              
+
               <div>
                 <h3 className="text-lg font-semibold text-zaka-dark mb-3">
                   <i className="fas fa-users text-zaka-blue mr-3"></i>
                   Création d'Emplois
                 </h3>
                 <p className="text-zaka-gray leading-relaxed">
-                  Notre plateforme crée des opportunités d'emploi pour les livreurs, 
-                  développeurs et professionnels du marketing digital au Burkina Faso.
+                  Notre plateforme crée des opportunités d'emploi pour les livreurs, développeurs et
+                  professionnels du marketing digital au Burkina Faso.
                 </p>
               </div>
             </div>
@@ -285,19 +305,19 @@ export default function About() {
               Rejoignez la Révolution du E-commerce au Burkina Faso
             </h3>
             <p className="text-zaka-gray mb-6 max-w-2xl mx-auto">
-              Que vous soyez vendeur, client ou partenaire, ZakaMall vous offre 
-              les outils et le support nécessaires pour réussir dans le commerce électronique.
+              Que vous soyez vendeur, client ou partenaire, ZakaMall vous offre les outils et le
+              support nécessaires pour réussir dans le commerce électronique.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a 
-                href="/register" 
+              <a
+                href="/register"
                 className="bg-zaka-orange text-white px-6 py-3 rounded-lg font-semibold hover:bg-zaka-orange/90 transition-colors"
               >
                 <i className="fas fa-rocket mr-2"></i>
                 Commencer Maintenant
               </a>
-              <a 
-                href="/contact" 
+              <a
+                href="/contact"
                 className="border border-zaka-orange text-zaka-orange px-6 py-3 rounded-lg font-semibold hover:bg-zaka-orange hover:text-white transition-colors"
               >
                 <i className="fas fa-envelope mr-2"></i>

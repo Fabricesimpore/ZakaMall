@@ -88,7 +88,7 @@ function Router() {
           <Route path="/payment-test" component={PaymentTest} />
           <Route path="/register" component={Register} />
           <Route path="/create-admin" component={CreateAdmin} />
-          
+
           {/* Policy and information pages */}
           <Route path="/privacy" component={PrivacyPolicy} />
           <Route path="/terms" component={TermsOfService} />
