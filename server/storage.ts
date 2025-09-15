@@ -848,14 +848,14 @@ export class DatabaseStorage implements IStorage {
     const conditions = [];
     // Test without isActive filter
     // conditions.push(eq(products.isActive, true));
-    
+
     if (filters?.categoryId) {
       conditions.push(eq(products.categoryId, filters.categoryId));
     }
-    
+
     // Add vendor status condition (requires vendor join)
     conditions.push(eq(vendors.status, "approved"));
-    
+
     const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
 
     // Default pagination settings
@@ -886,7 +886,7 @@ export class DatabaseStorage implements IStorage {
       .from(products)
       .innerJoin(vendors, eq(products.vendorId, vendors.id))
       .where(whereCondition);
-    
+
     const total = countResult[0]?.count || 0;
 
     // Get paginated results (with vendor join like restaurant products)
