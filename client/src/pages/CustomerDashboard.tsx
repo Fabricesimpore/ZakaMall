@@ -55,7 +55,7 @@ export default function CustomerDashboard() {
       params.append("sortBy", filters.sortBy);
       params.append("sortOrder", filters.sortOrder);
       params.append("page", pageParam.toString());
-      params.append("pageSize", "20");
+      params.append("limit", "20");
       const response = await fetch(`/api/products?${params}`);
       if (!response.ok)
         throw new Error(`Erreur ${response.status}: Impossible de charger les produits`);

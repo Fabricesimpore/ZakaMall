@@ -16,7 +16,7 @@ export default function Products() {
     queryFn: async ({ pageParam = 1 }) => {
       const params = new URLSearchParams();
       params.append("page", pageParam.toString());
-      params.append("pageSize", "20");
+      params.append("limit", "20");
       const response = await fetch(`/api/products?${params}`);
       if (!response.ok) throw new Error("Failed to fetch products");
       return response.json();

@@ -118,19 +118,21 @@ export function setupProductRoutes(app: Express) {
         search,
       } = req.query;
 
+      const pageNum = Math.max(1, parseInt(page as string));
+      const limitNum = Math.min(Math.max(1, parseInt(limit as string)), 100);
+      
       const filters = {
-        category: category as string,
+        categoryId: category as string,
         vendorId: vendorId as string,
         minPrice: minPrice ? parseFloat(minPrice as string) : undefined,
         maxPrice: maxPrice ? parseFloat(maxPrice as string) : undefined,
         inStock: inStock === "true",
         search: search as string,
+        limit: limitNum,
+        offset: (pageNum - 1) * limitNum,
       };
 
-      const pageNum = Math.max(1, parseInt(page as string));
-      const limitNum = Math.min(Math.max(1, parseInt(limit as string)), 100);
-
-      const result = await storage.getProducts(filters, pageNum, limitNum);
+      const result = await storage.getProducts(filters);
       res.json(result);
     } catch (error) {
       console.error("Error fetching products:", error);
