@@ -291,9 +291,13 @@ export const orders = pgTable("orders", {
   totalAmount: decimal("total_amount", { precision: 12, scale: 2 }).notNull(),
   // Commission tracking fields
   commissionRate: decimal("commission_rate", { precision: 5, scale: 2 }).default("0.15").notNull(),
-  commissionAmount: decimal("commission_amount", { precision: 12, scale: 2 }).default("0.00").notNull(),
+  commissionAmount: decimal("commission_amount", { precision: 12, scale: 2 })
+    .default("0.00")
+    .notNull(),
   vendorEarnings: decimal("vendor_earnings", { precision: 12, scale: 2 }).default("0.00").notNull(),
-  platformRevenue: decimal("platform_revenue", { precision: 12, scale: 2 }).default("0.00").notNull(),
+  platformRevenue: decimal("platform_revenue", { precision: 12, scale: 2 })
+    .default("0.00")
+    .notNull(),
   currency: varchar("currency").default("CFA"),
   paymentMethod: paymentMethodEnum("payment_method"),
   paymentStatus: paymentStatusEnum("payment_status").default("pending"),
