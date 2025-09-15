@@ -25,6 +25,9 @@ export async function runStartupMigrations() {
     // Add document verification to vendors table
     await addDocumentVerificationToVendors();
 
+    // Add commission tracking to orders table
+    await addCommissionTrackingToOrders();
+
     console.log("✅ All startup migrations completed successfully!");
   } catch (error) {
     console.error("❌ Startup migrations failed:", error);
@@ -588,6 +591,63 @@ async function addDocumentVerificationToVendors() {
     console.log("✅ Document verification added to vendors table!");
   } catch (error) {
     console.error("❌ Failed to add document verification to vendors:", error);
+    // Don't throw - this shouldn't break the app if it fails
+  }
+}
+
+// Migration to add commission tracking to orders table
+async function addCommissionTrackingToOrders() {
+  try {
+    console.log("💰 Adding commission tracking to orders table...");
+
+    // Check if commission_rate column already exists
+    const columnExists = await db.execute(sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns 
+        WHERE table_name = 'orders' AND column_name = 'commission_rate'
+      );
+    `);
+
+    if (columnExists.rows[0]?.exists) {
+      console.log("✅ Commission tracking columns already exist, skipping...");
+      return;
+    }
+
+    // Add commission tracking columns to orders table
+    await db.execute(sql`
+      ALTER TABLE orders 
+      ADD COLUMN commission_rate decimal(5,2) DEFAULT 0.15,
+      ADD COLUMN commission_amount decimal(12,2) DEFAULT 0.00,
+      ADD COLUMN vendor_earnings decimal(12,2) DEFAULT 0.00,
+      ADD COLUMN platform_revenue decimal(12,2) DEFAULT 0.00;
+    `);
+
+    // Update existing orders to calculate commission fields
+    await db.execute(sql`
+      UPDATE orders 
+      SET 
+        commission_rate = COALESCE(commission_rate, 0.15),
+        commission_amount = ROUND(total_amount * 0.15, 2),
+        vendor_earnings = ROUND(total_amount * 0.85, 2),
+        platform_revenue = ROUND(total_amount * 0.15, 2)
+      WHERE commission_rate IS NULL 
+        OR commission_amount = 0 
+        OR vendor_earnings = 0 
+        OR platform_revenue = 0;
+    `);
+
+    // Add indexes for commission tracking queries
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS idx_orders_commission_amount ON orders(commission_amount);
+    `);
+
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS idx_orders_platform_revenue ON orders(platform_revenue);
+    `);
+
+    console.log("✅ Commission tracking added to orders table!");
+  } catch (error) {
+    console.error("❌ Failed to add commission tracking to orders:", error);
     // Don't throw - this shouldn't break the app if it fails
   }
 }
