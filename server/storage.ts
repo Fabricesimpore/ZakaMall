@@ -846,7 +846,8 @@ export class DatabaseStorage implements IStorage {
   }): Promise<{ items: Product[]; total: number; hasMore: boolean }> {
     // Build conditions array like the original
     const conditions = [];
-    conditions.push(eq(products.isActive, true));
+    // Test without isActive filter
+    // conditions.push(eq(products.isActive, true));
     
     if (filters?.categoryId) {
       conditions.push(eq(products.categoryId, filters.categoryId));
