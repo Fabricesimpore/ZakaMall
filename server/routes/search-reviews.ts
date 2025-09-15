@@ -67,7 +67,9 @@ export function setupSearchReviewRoutes(app: Express) {
 
       // Validate type parameter
       const validTypes = ["user_based", "item_based", "trending", "similar", "personalized"];
-      const recommendationType = validTypes.includes(type as string) ? type as "user_based" | "item_based" | "trending" | "similar" | "personalized" : "trending";
+      const recommendationType = validTypes.includes(type as string)
+        ? (type as "user_based" | "item_based" | "trending" | "similar" | "personalized")
+        : "trending";
 
       const recommendations = await storage.getRecommendations({
         userId: userId as string,
