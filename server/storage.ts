@@ -844,8 +844,8 @@ export class DatabaseStorage implements IStorage {
     includeInactive?: boolean;
     minRating?: number;
   }): Promise<{ items: Product[]; total: number; hasMore: boolean }> {
-    // Simplified filtering for debugging - just get active products
-    const whereCondition = eq(products.isActive, true);
+    // Debugging - get ALL products regardless of active status
+    const whereCondition = undefined;
 
     // Default pagination settings
     const limit = filters?.limit || 20;
@@ -874,8 +874,7 @@ export class DatabaseStorage implements IStorage {
     // Get total count for pagination
     const countResult = await db
       .select({ count: sql<number>`count(*)::int` })
-      .from(products)
-      .where(whereCondition);
+      .from(products);
     
     const total = countResult[0]?.count || 0;
 
@@ -883,7 +882,6 @@ export class DatabaseStorage implements IStorage {
     const items = await db
       .select()
       .from(products)
-      .where(whereCondition)
       .orderBy(orderByClause)
       .limit(limit)
       .offset(offset);
