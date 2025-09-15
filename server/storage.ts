@@ -933,7 +933,34 @@ export class DatabaseStorage implements IStorage {
 
     // Get paginated results (with vendor join for approved vendors only)
     const items = await db
-      .select()
+      .select({
+        id: products.id,
+        name: products.name,
+        description: products.description,
+        price: products.price,
+        categoryId: products.categoryId,
+        vendorId: products.vendorId,
+        sku: products.sku,
+        images: products.images,
+        videos: products.videos,
+        tags: products.tags,
+        rating: products.rating,
+        reviewCount: products.reviewCount,
+        isActive: products.isActive,
+        isFeatured: products.isFeatured,
+        trackQuantity: products.trackQuantity,
+        quantity: products.quantity,
+        lowStockThreshold: products.lowStockThreshold,
+        weight: products.weight,
+        dimensions: products.dimensions,
+        shippingClass: products.shippingClass,
+        metaTitle: products.metaTitle,
+        metaDescription: products.metaDescription,
+        createdAt: products.createdAt,
+        updatedAt: products.updatedAt,
+        vendorDisplayName: products.vendorDisplayName,
+        vendorSlug: products.vendorSlug,
+      })
       .from(products)
       .innerJoin(vendors, eq(products.vendorId, vendors.id))
       .where(and(whereCondition, eq(vendors.status, "approved"))!)
