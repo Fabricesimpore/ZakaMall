@@ -1,25 +1,25 @@
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Contact() {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -30,7 +30,7 @@ export default function Contact() {
     try {
       // Here you would typically send the form data to your backend
       // For now, we'll just simulate a successful submission
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       toast({
         title: "Message envoyé !",
@@ -39,12 +39,12 @@ export default function Contact() {
 
       // Reset form
       setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: ''
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Erreur",
         description: "Une erreur s'est produite. Veuillez réessayer.",
@@ -60,12 +60,10 @@ export default function Contact() {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-zaka-dark mb-4">
-            Contactez-Nous
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-zaka-dark mb-4">Contactez-Nous</h1>
           <p className="text-xl text-zaka-gray max-w-3xl mx-auto">
-            Notre équipe est là pour vous aider. N'hésitez pas à nous contacter 
-            pour toute question, suggestion ou demande de support.
+            Notre équipe est là pour vous aider. N'hésitez pas à nous contacter pour toute question,
+            suggestion ou demande de support.
           </p>
         </div>
 
@@ -96,7 +94,10 @@ export default function Contact() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-zaka-dark mb-2">
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-zaka-dark mb-2"
+                    >
                       Email *
                     </label>
                     <Input
@@ -110,9 +111,12 @@ export default function Contact() {
                     />
                   </div>
                 </div>
-                
+
                 <div>
-                  <label htmlFor="subject" className="block text-sm font-medium text-zaka-dark mb-2">
+                  <label
+                    htmlFor="subject"
+                    className="block text-sm font-medium text-zaka-dark mb-2"
+                  >
                     Sujet *
                   </label>
                   <Input
@@ -125,9 +129,12 @@ export default function Contact() {
                     placeholder="Sujet de votre message"
                   />
                 </div>
-                
+
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-zaka-dark mb-2">
+                  <label
+                    htmlFor="message"
+                    className="block text-sm font-medium text-zaka-dark mb-2"
+                  >
                     Message *
                   </label>
                   <Textarea
@@ -140,9 +147,9 @@ export default function Contact() {
                     rows={6}
                   />
                 </div>
-                
-                <Button 
-                  type="submit" 
+
+                <Button
+                  type="submit"
                   className="w-full bg-zaka-orange hover:bg-zaka-orange/90"
                   disabled={isSubmitting}
                 >
@@ -180,7 +187,8 @@ export default function Contact() {
                   <div>
                     <h3 className="font-semibold text-zaka-dark">Adresse</h3>
                     <p className="text-zaka-gray">
-                      Secteur 15, Avenue Kwame Nkrumah<br />
+                      Secteur 15, Avenue Kwame Nkrumah
+                      <br />
                       Ouagadougou, Burkina Faso
                     </p>
                   </div>
@@ -193,7 +201,8 @@ export default function Contact() {
                   <div>
                     <h3 className="font-semibold text-zaka-dark">Téléphone</h3>
                     <p className="text-zaka-gray">
-                      +226 25 XX XX XX<br />
+                      +226 25 XX XX XX
+                      <br />
                       +226 70 XX XX XX (WhatsApp)
                     </p>
                   </div>
@@ -206,7 +215,8 @@ export default function Contact() {
                   <div>
                     <h3 className="font-semibold text-zaka-dark">Email</h3>
                     <p className="text-zaka-gray">
-                      support@zakamall.com<br />
+                      support@zakamall.com
+                      <br />
                       contact@zakamall.com
                     </p>
                   </div>
@@ -219,8 +229,10 @@ export default function Contact() {
                   <div>
                     <h3 className="font-semibold text-zaka-dark">Horaires</h3>
                     <p className="text-zaka-gray">
-                      Lundi - Vendredi : 8h00 - 18h00<br />
-                      Samedi : 9h00 - 16h00<br />
+                      Lundi - Vendredi : 8h00 - 18h00
+                      <br />
+                      Samedi : 9h00 - 16h00
+                      <br />
                       Dimanche : Fermé
                     </p>
                   </div>
@@ -279,36 +291,36 @@ export default function Contact() {
                   Restez connectés pour les dernières nouvelles et mises à jour.
                 </p>
                 <div className="flex space-x-4">
-                  <a 
-                    href="#" 
+                  <a
+                    href="#"
                     className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
                     aria-label="Facebook"
                   >
                     <i className="fab fa-facebook-f"></i>
                   </a>
-                  <a 
-                    href="#" 
+                  <a
+                    href="#"
                     className="w-10 h-10 bg-blue-400 text-white rounded-full flex items-center justify-center hover:bg-blue-500 transition-colors"
                     aria-label="Twitter"
                   >
                     <i className="fab fa-twitter"></i>
                   </a>
-                  <a 
-                    href="#" 
+                  <a
+                    href="#"
                     className="w-10 h-10 bg-pink-600 text-white rounded-full flex items-center justify-center hover:bg-pink-700 transition-colors"
                     aria-label="Instagram"
                   >
                     <i className="fab fa-instagram"></i>
                   </a>
-                  <a 
-                    href="#" 
+                  <a
+                    href="#"
                     className="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center hover:bg-green-700 transition-colors"
                     aria-label="WhatsApp"
                   >
                     <i className="fab fa-whatsapp"></i>
                   </a>
-                  <a 
-                    href="#" 
+                  <a
+                    href="#"
                     className="w-10 h-10 bg-blue-700 text-white rounded-full flex items-center justify-center hover:bg-blue-800 transition-colors"
                     aria-label="LinkedIn"
                   >
@@ -333,33 +345,38 @@ export default function Contact() {
               <div>
                 <h3 className="font-semibold text-zaka-dark mb-2">Comment passer une commande ?</h3>
                 <p className="text-zaka-gray text-sm mb-4">
-                  Inscrivez-vous, parcourez les produits, ajoutez au panier et procédez au paiement sécurisé.
+                  Inscrivez-vous, parcourez les produits, ajoutez au panier et procédez au paiement
+                  sécurisé.
                 </p>
-                
-                <h3 className="font-semibold text-zaka-dark mb-2">Quels sont les frais de livraison ?</h3>
+
+                <h3 className="font-semibold text-zaka-dark mb-2">
+                  Quels sont les frais de livraison ?
+                </h3>
                 <p className="text-zaka-gray text-sm mb-4">
-                  Les frais varient selon la zone de livraison. Généralement 500-2000 FCFA dans Ouagadougou.
+                  Les frais varient selon la zone de livraison. Généralement 500-2000 FCFA dans
+                  Ouagadougou.
                 </p>
               </div>
-              
+
               <div>
                 <h3 className="font-semibold text-zaka-dark mb-2">Comment devenir vendeur ?</h3>
                 <p className="text-zaka-gray text-sm mb-4">
-                  Créez un compte vendeur, soumettez vos documents et attendez la validation de notre équipe.
+                  Créez un compte vendeur, soumettez vos documents et attendez la validation de
+                  notre équipe.
                 </p>
-                
-                <h3 className="font-semibold text-zaka-dark mb-2">Que faire en cas de problème ?</h3>
+
+                <h3 className="font-semibold text-zaka-dark mb-2">
+                  Que faire en cas de problème ?
+                </h3>
                 <p className="text-zaka-gray text-sm mb-4">
-                  Contactez notre support via ce formulaire ou par téléphone pour une assistance rapide.
+                  Contactez notre support via ce formulaire ou par téléphone pour une assistance
+                  rapide.
                 </p>
               </div>
             </div>
-            
+
             <div className="text-center mt-6">
-              <a 
-                href="/help" 
-                className="text-zaka-orange hover:underline font-medium"
-              >
+              <a href="/help" className="text-zaka-orange hover:underline font-medium">
                 <i className="fas fa-arrow-right mr-2"></i>
                 Voir toutes les FAQ
               </a>
