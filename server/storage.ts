@@ -923,18 +923,20 @@ export class DatabaseStorage implements IStorage {
         orderByClause = sortOrder === "asc" ? asc(products.createdAt) : desc(products.createdAt);
     }
 
-    // Get total count for pagination
+    // Get total count for pagination (with vendor join for approved vendors only)
     const countResult = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(products)
-      .where(whereCondition);
+      .innerJoin(vendors, eq(products.vendorId, vendors.id))
+      .where(and(whereCondition, eq(vendors.status, "approved"))!);
     const total = countResult[0]?.count || 0;
 
-    // Get paginated results
+    // Get paginated results (with vendor join for approved vendors only)
     const items = await db
       .select()
       .from(products)
-      .where(whereCondition)
+      .innerJoin(vendors, eq(products.vendorId, vendors.id))
+      .where(and(whereCondition, eq(vendors.status, "approved"))!)
       .orderBy(orderByClause)
       .limit(limit)
       .offset(offset);
