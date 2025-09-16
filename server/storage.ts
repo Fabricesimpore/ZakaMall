@@ -846,11 +846,11 @@ export class DatabaseStorage implements IStorage {
   }): Promise<{ items: Product[]; total: number; hasMore: boolean }> {
     // Build where conditions
     const conditions = [];
-    
+
     if (filters?.vendorId) {
       conditions.push(eq(products.vendorId, filters.vendorId));
     }
-    
+
     if (filters?.categoryId) {
       conditions.push(eq(products.categoryId, filters.categoryId));
     }
@@ -904,10 +904,7 @@ export class DatabaseStorage implements IStorage {
     const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
 
     // Get total count
-    const countResult = await db
-      .select({ count: count() })
-      .from(products)
-      .where(whereCondition);
+    const countResult = await db.select({ count: count() }).from(products).where(whereCondition);
     const total = countResult[0]?.count || 0;
 
     // Get paginated products
