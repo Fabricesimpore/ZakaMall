@@ -844,19 +844,40 @@ export class DatabaseStorage implements IStorage {
     includeInactive?: boolean;
     minRating?: number;
   }): Promise<{ items: Product[]; total: number; hasMore: boolean }> {
-    // Build conditions array like the original
+    // Build where conditions
     const conditions = [];
-    // Test without isActive filter
-    // conditions.push(eq(products.isActive, true));
-
+    
+    if (filters?.vendorId) {
+      conditions.push(eq(products.vendorId, filters.vendorId));
+    }
+    
     if (filters?.categoryId) {
       conditions.push(eq(products.categoryId, filters.categoryId));
     }
 
-    // Add vendor status condition (requires vendor join)
-    conditions.push(eq(vendors.status, "approved"));
+    if (filters?.search) {
+      conditions.push(
+        or(
+          ilike(products.name, `%${filters.search}%`),
+          ilike(products.description, `%${filters.search}%`)
+        )
+      );
+    }
 
-    const whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions);
+    if (filters?.minPrice) {
+      conditions.push(gte(products.price, filters.minPrice.toString()));
+    }
+
+    if (filters?.maxPrice) {
+      conditions.push(lte(products.price, filters.maxPrice.toString()));
+    }
+
+    if (filters?.inStock) {
+      conditions.push(gt(products.quantity, 0));
+    }
+
+    // Active products only by default
+    conditions.push(eq(products.isActive, true));
 
     // Default pagination settings
     const limit = filters?.limit || 20;
@@ -874,53 +895,25 @@ export class DatabaseStorage implements IStorage {
         orderByClause = sortOrder === "asc" ? asc(products.name) : desc(products.name);
         break;
       case "rating":
-        orderByClause = sortOrder === "asc" ? asc(products.createdAt) : desc(products.createdAt);
+        orderByClause = sortOrder === "asc" ? asc(products.rating) : desc(products.rating);
         break;
       default:
         orderByClause = sortOrder === "asc" ? asc(products.createdAt) : desc(products.createdAt);
     }
 
-    // Get total count for pagination (with vendor join like restaurant products)
-    const countResult = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(products)
-      .innerJoin(vendors, eq(products.vendorId, vendors.id))
-      .where(whereCondition);
+    const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
 
+    // Get total count
+    const countResult = await db
+      .select({ count: count() })
+      .from(products)
+      .where(whereCondition);
     const total = countResult[0]?.count || 0;
 
-    // Get paginated results (with vendor join like restaurant products)
+    // Get paginated products
     const items = await db
-      .select({
-        id: products.id,
-        name: products.name,
-        description: products.description,
-        price: products.price,
-        categoryId: products.categoryId,
-        vendorId: products.vendorId,
-        sku: products.sku,
-        images: products.images,
-        videos: products.videos,
-        tags: products.tags,
-        rating: products.rating,
-        reviewCount: products.reviewCount,
-        isActive: products.isActive,
-        isFeatured: products.isFeatured,
-        trackQuantity: products.trackQuantity,
-        quantity: products.quantity,
-        lowStockThreshold: products.lowStockThreshold,
-        weight: products.weight,
-        dimensions: products.dimensions,
-        shippingClass: products.shippingClass,
-        metaTitle: products.metaTitle,
-        metaDescription: products.metaDescription,
-        createdAt: products.createdAt,
-        updatedAt: products.updatedAt,
-        vendorDisplayName: products.vendorDisplayName,
-        vendorSlug: products.vendorSlug,
-      })
+      .select()
       .from(products)
-      .innerJoin(vendors, eq(products.vendorId, vendors.id))
       .where(whereCondition)
       .orderBy(orderByClause)
       .limit(limit)
